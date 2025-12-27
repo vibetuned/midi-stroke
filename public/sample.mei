@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="5.0">
+  <meiHead>
+    <fileDesc>
+      <titleStmt>
+        <title>Simple Scale (Longer)</title>
+      </titleStmt>
+      <pubStmt/>
+    </fileDesc>
+  </meiHead>
+  <music>
+    <body>
+      <mdiv>
+        <score>
+          <scoreDef>
+            <staffGrp>
+              <staffDef n="1" lines="5" clef.shape="G" clef.line="2" meter.count="4" meter.unit="4" key.sig="0"/>
+            </staffGrp>
+          </scoreDef>
+          <section>
+            <!-- Measure 1 -->
+            <measure n="1">
+              <staff n="1">
+                <layer n="1">
+                  <note pname="c" oct="4" dur="4"/>
+                  <note pname="d" oct="4" dur="4"/>
+                  <note pname="e" oct="4" dur="4"/>
+                  <note pname="f" oct="4" dur="4"/>
+                </layer>
+              </staff>
+            </measure>
+            <!-- Measure 2 -->
+            <measure n="2">
+              <staff n="1">
+                <layer n="1">
+                  <note pname="g" oct="4" dur="4"/>
+                  <note pname="a" oct="4" dur="4"/>
+                  <note pname="b" oct="4" dur="4"/>
+                  <note pname="c" oct="5" dur="4"/>
+                </layer>
+              </staff>
+            </measure>
+            <!-- Measure 3 -->
+            <measure n="3">
+              <staff n="1">
+                <layer n="1">
+                  <note pname="d" oct="5" dur="4"/>
+                  <note pname="c" oct="5" dur="4"/>
+                  <note pname="b" oct="4" dur="4"/>
+                  <note pname="a" oct="4" dur="4"/>
+                </layer>
+              </staff>
+            </measure>
+            <!-- Measure 4 -->
+            <measure n="4">
+              <staff n="1">
+                <layer n="1">
+                  <note pname="g" oct="4" dur="2"/>
+                  <note pname="e" oct="4" dur="2"/>
+                </layer>
+              </staff>
+            </measure>
+             <!-- Measure 5 -->
+            <measure n="5">
+              <staff n="1">
+                <layer n="1">
+                  <note pname="c" oct="4" dur="1"/>
+                </layer>
+              </staff>
+            </measure>
+             <!-- Measure 6 -->
+            <measure n="6">
+              <staff n="1">
+                <layer n="1">
+                  <rest dur="1"/>
+                </layer>
+              </staff>
+            </measure>
+            <!-- Repeat purely for length -->
+            <measure n="7">
+              <staff n="1">
+                <layer n="1">
+                  <note pname="c" oct="4" dur="4"/>
+                  <note pname="e" oct="4" dur="4"/>
+                  <note pname="g" oct="4" dur="4"/>
+                  <note pname="c" oct="5" dur="4"/>
+                </layer>
+              </staff>
+            </measure>
+            <measure n="8">
+              <staff n="1">
+                <layer n="1">
+                  <note pname="g" oct="4" dur="4"/>
+                  <note pname="e" oct="4" dur="4"/>
+                  <note pname="c" oct="4" dur="2"/>
+                </layer>
+              </staff>
+            </measure>
+          </section>
+        </score>
+      </mdiv>
+    </body>
+  </music>
+</mei>
