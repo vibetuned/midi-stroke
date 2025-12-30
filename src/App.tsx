@@ -1,17 +1,21 @@
 import { ScoreView } from './components/ScoreView';
 import { MidiStatus } from './components/MidiStatus';
 import { PlayControls } from './components/PlayControls';
-import { GameProvider } from './context/GameContext';
+import { GameProvider, useMidiFile } from './context/GameContext';
 import { useAudio } from './hooks/useAudio';
 import { StartOverlay } from './components/StartOverlay';
+import { PianoSetup } from './components/PianoSetup';
+import { VirtualPiano } from './components/VirtualPiano';
 
 const GameContent = () => {
   // Initialize Audio
   useAudio();
+  useMidiFile();
 
   return (
     <div className="app-container">
       <StartOverlay />
+      <PianoSetup />
       <header style={{ padding: '1rem', borderBottom: '1px solid var(--color-bg-secondary)' }}>
         <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Piano Verovio Game</h1>
       </header>
@@ -19,6 +23,7 @@ const GameContent = () => {
         <MidiStatus />
         <ScoreView />
       </main>
+      <VirtualPiano />
       <PlayControls />
     </div>
   );

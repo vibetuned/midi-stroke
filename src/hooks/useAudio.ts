@@ -119,26 +119,28 @@ export function useAudio() {
     }, [isPlaying, tempo, isAudioStarted]);
 
     // Handle Incoming MIDI Notes (Active Notes)
-    const prevNotesRef = useRef<Set<number>>(new Set());
+    const prevNotesRef = useRef<Map<number, number>>(new Map());
 
     useEffect(() => {
         if (!samplerRef.current || !isLoaded) return;
 
         const prev = prevNotesRef.current;
 
-        // Find newly added notes
-        activeNotes.forEach(note => {
+        // Find newly added or changed notes
+        activeNotes.forEach((velocity, note) => {
             if (!prev.has(note)) {
                 // Note On
                 if (Tone.getContext().state === 'running') {
                     const freq = Tone.Frequency(note, "midi").toFrequency();
-                    samplerRef.current?.triggerAttack(freq);
+                    // Normalize velocity (0-127) to (0-1)
+                    const vel = velocity / 127;
+                    samplerRef.current?.triggerAttack(freq, Tone.now(), vel);
                 }
             }
         });
 
         // Find removed notes
-        prev.forEach(note => {
+        prev.forEach((_, note) => {
             if (!activeNotes.has(note)) {
                 // Note Off
                 const freq = Tone.Frequency(note, "midi").toFrequency();
@@ -146,7 +148,7 @@ export function useAudio() {
             }
         });
 
-        prevNotesRef.current = new Set(activeNotes);
+        prevNotesRef.current = new Map(activeNotes);
     }, [activeNotes, isLoaded]);
 
     return {

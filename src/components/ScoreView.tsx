@@ -1,13 +1,46 @@
 import React, { useEffect, useState, useRef } from 'react';
 import * as Tone from 'tone';
 import { useVerovio } from '../hooks/useVerovio';
+import { useGame } from '../context/GameContext';
 
 export const ScoreView: React.FC = () => {
     const { toolkit } = useVerovio();
+    const { isPlaying, setIsPlaying, setPlayPosition } = useGame(); // Added useGame hook
     const [svg, setSvg] = useState<string>('');
     const containerRef = useRef<HTMLDivElement>(null);
+    const isDragging = useRef<boolean>(false); // Added isDragging ref
 
-    // Scroll Logic
+    // Stop playback on user interaction start
+    const handleInteractionStart = () => {
+        isDragging.current = true;
+        if (isPlaying) {
+            setIsPlaying(false);
+            Tone.getTransport().pause();
+        }
+    };
+
+    const handleInteractionEnd = () => {
+        isDragging.current = false;
+        // Optional: Resume playback? Usually user wants to stay paused after scrub.
+    };
+
+    const handleScroll = () => {
+        if (isDragging.current && containerRef.current) {
+            const scrollLeft = containerRef.current.scrollLeft;
+            const pixelsPerBeat = 60;
+            const beat = scrollLeft / pixelsPerBeat;
+            const ticks = beat * 192;
+
+            // Sync Transport to Scroll
+            const transport = Tone.getTransport();
+            const time = transport.toSeconds(ticks + "i"); // 'i' for ticks
+
+            transport.seconds = time;
+            setPlayPosition(time);
+        }
+    };
+
+    // Scroll Animation Logic
     useEffect(() => {
         let animationFrameId: number;
 
@@ -16,25 +49,28 @@ export const ScoreView: React.FC = () => {
             // But valid only if context is created.
             // We'll trust Tone is initialized since we use it in useAudio.
 
-            if (containerRef.current) {
+            if (containerRef.current && !isDragging.current) { // Added !isDragging.current
                 // Calculate scroll based on Musical Time (Ticks)
                 // Ticks = 192 per quarter note (beat).
                 // pixelsPerBeat = 150 (Previous estimation).
                 // Scroll = (Ticks / 192) * pixelsPerBeat.
 
-                const ticks = Tone.Transport.ticks;
+                const ticks = Tone.getTransport().ticks; // Changed to Tone.getTransport().ticks
                 const beat = ticks / 192;
-                const pixelsPerBeat = 150;
+                const pixelsPerBeat = 60;
                 const scrollPos = beat * pixelsPerBeat;
 
-                containerRef.current.scrollLeft = scrollPos;
+                // Only update if difference is significant to avoid jitter during scrub fight
+                if (Math.abs(containerRef.current.scrollLeft - scrollPos) > 1) { // Added jitter check
+                    containerRef.current.scrollLeft = scrollPos;
+                }
             }
             animationFrameId = requestAnimationFrame(loop);
         };
 
         animationFrameId = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(animationFrameId);
-    }, []);
+    }, [isDragging]); // Added isDragging to dependency array
 
     useEffect(() => {
         if (!toolkit) return;
@@ -47,7 +83,9 @@ export const ScoreView: React.FC = () => {
             adjustPageHeight: true,
             header: 'none',
             footer: 'none',
-            breaks: 'none'
+            breaks: 'none',
+            spacingNonLinear: 1.0,
+            spacingLinear: 0.03,
         };
         toolkit.setOptions(options);
 
@@ -85,6 +123,12 @@ export const ScoreView: React.FC = () => {
 
             <div className="score-view"
                 ref={containerRef}
+                onMouseDown={handleInteractionStart} // Added event handlers
+                onMouseUp={handleInteractionEnd}
+                onMouseLeave={handleInteractionEnd}
+                onTouchStart={handleInteractionStart}
+                onTouchEnd={handleInteractionEnd}
+                onScroll={handleScroll}
                 style={{
                     width: '100%',
                     height: '100%',
@@ -103,7 +147,8 @@ export const ScoreView: React.FC = () => {
                         style={{
                             height: '100%',
                             paddingLeft: '5vw', // Start at hit line
-                            display: 'inline-block'
+                            display: 'inline-block',
+                            pointerEvents: 'none' // Let clicks pass to container ?? No, we need drag.
                         }}
                     />
                 ) : (

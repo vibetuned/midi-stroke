@@ -45,7 +45,7 @@ export const MidiStatus: React.FC = () => {
                     fontSize: '0.75rem',
                     color: 'var(--color-text-secondary)'
                 }}>
-                    Keys: {Array.from(activeNotes).join(', ')}
+                    Keys: {Array.from(activeNotes.keys()).join(', ')}
                 </div>
             )}
         </div>
