@@ -3,7 +3,7 @@
   <meiHead>
     <fileDesc>
       <titleStmt>
-        <title>Simple Scale (Longer)</title>
+        <title>Two Hand Scale</title>
       </titleStmt>
       <pubStmt/>
     </fileDesc>
@@ -13,8 +13,9 @@
       <mdiv>
         <score>
           <scoreDef>
-            <staffGrp>
+            <staffGrp symbol="brace" bar.thru="true">
               <staffDef n="1" lines="5" clef.shape="G" clef.line="2" meter.count="4" meter.unit="4" key.sig="0"/>
+              <staffDef n="2" lines="5" clef.shape="F" clef.line="4" meter.count="4" meter.unit="4" key.sig="0"/>
             </staffGrp>
           </scoreDef>
           <section>
@@ -28,6 +29,11 @@
                   <note pname="f" oct="4" dur="4"/>
                 </layer>
               </staff>
+              <staff n="2">
+                <layer n="1">
+                  <note pname="c" oct="3" dur="1"/>
+                </layer>
+              </staff>
             </measure>
             <!-- Measure 2 -->
             <measure n="2">
@@ -37,6 +43,11 @@
                   <note pname="a" oct="4" dur="4"/>
                   <note pname="b" oct="4" dur="4"/>
                   <note pname="c" oct="5" dur="4"/>
+                </layer>
+              </staff>
+              <staff n="2">
+                <layer n="1">
+                  <note pname="g" oct="3" dur="1"/>
                 </layer>
               </staff>
             </measure>
@@ -50,6 +61,11 @@
                   <note pname="a" oct="4" dur="4"/>
                 </layer>
               </staff>
+              <staff n="2">
+                <layer n="1">
+                  <note pname="f" oct="3" dur="1"/>
+                </layer>
+              </staff>
             </measure>
             <!-- Measure 4 -->
             <measure n="4">
@@ -57,6 +73,11 @@
                 <layer n="1">
                   <note pname="g" oct="4" dur="2"/>
                   <note pname="e" oct="4" dur="2"/>
+                </layer>
+              </staff>
+              <staff n="2">
+                <layer n="1">
+                  <note pname="c" oct="3" dur="1"/>
                 </layer>
               </staff>
             </measure>
@@ -67,6 +88,11 @@
                   <note pname="c" oct="4" dur="1"/>
                 </layer>
               </staff>
+              <staff n="2">
+                <layer n="1">
+                  <note pname="e" oct="3" dur="1"/>
+                </layer>
+              </staff>
             </measure>
              <!-- Measure 6 -->
             <measure n="6">
@@ -75,8 +101,16 @@
                   <rest dur="1"/>
                 </layer>
               </staff>
+              <staff n="2">
+                 <layer n="1">
+                  <note pname="g" oct="3" dur="4"/>
+                  <note pname="a" oct="3" dur="4"/>
+                  <note pname="b" oct="3" dur="4"/>
+                  <note pname="c" oct="4" dur="4"/>
+                </layer>
+              </staff>
             </measure>
-            <!-- Repeat purely for length -->
+            <!-- Measure 7 -->
             <measure n="7">
               <staff n="1">
                 <layer n="1">
@@ -86,6 +120,12 @@
                   <note pname="c" oct="5" dur="4"/>
                 </layer>
               </staff>
+              <staff n="2">
+                <layer n="1">
+                   <note pname="c" oct="3" dur="2"/>
+                   <note pname="g" oct="2" dur="2"/>
+                </layer>
+              </staff>
             </measure>
             <measure n="8">
               <staff n="1">
@@ -93,6 +133,11 @@
                   <note pname="g" oct="4" dur="4"/>
                   <note pname="e" oct="4" dur="4"/>
                   <note pname="c" oct="4" dur="2"/>
+                </layer>
+              </staff>
+              <staff n="2">
+                <layer n="1">
+                  <note pname="c" oct="3" dur="1"/>
                 </layer>
               </staff>
             </measure>

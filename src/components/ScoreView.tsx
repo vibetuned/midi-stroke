@@ -1,49 +1,40 @@
 import React, { useEffect, useState, useRef } from 'react';
+import * as Tone from 'tone';
 import { useVerovio } from '../hooks/useVerovio';
-import { useGame } from '../context/GameContext';
 
 export const ScoreView: React.FC = () => {
     const { toolkit } = useVerovio();
-    const { isPlaying, tempo } = useGame();
     const [svg, setSvg] = useState<string>('');
     const containerRef = useRef<HTMLDivElement>(null);
-    const lastFrameTime = useRef<number>(0);
 
     // Scroll Logic
     useEffect(() => {
         let animationFrameId: number;
 
-        const loop = (timestamp: number) => {
-            if (isPlaying && containerRef.current) {
-                if (!lastFrameTime.current) lastFrameTime.current = timestamp;
-                const deltaTime = timestamp - lastFrameTime.current;
+        const loop = () => {
+            // We can read Tone.Transport.ticks even if state is 'stopped' (it will be 0 or paused value)
+            // But valid only if context is created.
+            // We'll trust Tone is initialized since we use it in useAudio.
 
-                // Calculate scroll speed (pixels per millisecond)
-                // This is a rough estimation. 40 scale approx = ? pixels per beat
-                // Needs calibration or mapping from Verovio.
-                // Assuming roughly 100px per beat for now at scale 40?
-                // beats per minute = tempo. beats per second = tempo / 60.
-                // pixels per second = (tempo / 60) * pixelsPerBeat.
-                const pixelsPerBeat = 100;
-                const pixelsPerSecond = (tempo / 60) * pixelsPerBeat;
-                const scrollAmount = (pixelsPerSecond * deltaTime) / 1000;
+            if (containerRef.current) {
+                // Calculate scroll based on Musical Time (Ticks)
+                // Ticks = 192 per quarter note (beat).
+                // pixelsPerBeat = 150 (Previous estimation).
+                // Scroll = (Ticks / 192) * pixelsPerBeat.
 
-                // Debug Dimensions
-                if (Math.floor(timestamp) % 60 === 0) { // Log occasionally
-                    console.log(`Scroll: ${containerRef.current.scrollLeft}/${containerRef.current.scrollWidth} (Client: ${containerRef.current.clientWidth})`);
-                }
+                const ticks = Tone.Transport.ticks;
+                const beat = ticks / 192;
+                const pixelsPerBeat = 150;
+                const scrollPos = beat * pixelsPerBeat;
 
-                containerRef.current.scrollLeft += scrollAmount;
-                lastFrameTime.current = timestamp;
-            } else {
-                lastFrameTime.current = 0;
+                containerRef.current.scrollLeft = scrollPos;
             }
             animationFrameId = requestAnimationFrame(loop);
         };
 
         animationFrameId = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(animationFrameId);
-    }, [isPlaying, tempo]);
+    }, []);
 
     useEffect(() => {
         if (!toolkit) return;
@@ -52,7 +43,7 @@ export const ScoreView: React.FC = () => {
         const options = {
             pageWidth: 60000,
             pageHeight: 1000,
-            scale: 40,
+            scale: 60, // Increased size
             adjustPageHeight: true,
             header: 'none',
             footer: 'none',
@@ -85,9 +76,9 @@ export const ScoreView: React.FC = () => {
                 top: 0,
                 bottom: 0,
                 width: '4px',
-                background: 'rgba(255, 255, 255, 0.8)',
+                background: 'rgb(100, 108, 255)', // User requested specific blue
                 zIndex: 10,
-                borderRight: '1px solid var(--color-accent)'
+                borderRight: '1px solid rgba(255, 255, 255, 0.5)'
             }}
                 className="cursor-glow"
             />
@@ -97,7 +88,7 @@ export const ScoreView: React.FC = () => {
                 style={{
                     width: '100%',
                     height: '100%',
-                    background: 'var(--color-bg-secondary)',
+                    background: '#888888', // Darker gray as requested
                     overflowX: 'scroll',
                     overflowY: 'hidden',
                     whiteSpace: 'nowrap',

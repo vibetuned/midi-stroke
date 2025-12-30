@@ -1,7 +1,7 @@
 import { useGame } from '../context/GameContext';
 
 export const PlayControls: React.FC = () => {
-    const { isPlaying, setIsPlaying, tempo, setTempo } = useGame();
+    const { isPlaying, setIsPlaying, tempo, setTempo, isMetronomeMuted, setMetronomeMuted } = useGame();
 
     return (
         <div style={{
@@ -39,20 +39,43 @@ export const PlayControls: React.FC = () => {
                 {isPlaying ? '⏸' : '▶'}
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Tempo</span>
+            <button
+                onClick={() => setMetronomeMuted(!isMetronomeMuted)}
+                title={isMetronomeMuted ? "Unmute Metronome" : "Mute Metronome"}
+                style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    border: '1px solid var(--color-text-secondary)',
+                    background: isMetronomeMuted ? 'transparent' : 'rgba(255,255,255,0.1)',
+                    color: 'var(--color-text-primary)',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s'
+                }}
+                className="hover-scale"
+            >
+                {isMetronomeMuted ? '🔇' : '🔊'}
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '200px' }}>
+                <span style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', fontWeight: 'bold' }}>
+                    Tempo: {tempo} BPM
+                </span>
                 <input
-                    type="number"
+                    type="range"
+                    min="30"
+                    max="120"
+                    step="30"
                     value={tempo}
                     onChange={(e) => setTempo(Number(e.target.value))}
                     style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        padding: '0.4rem',
-                        borderRadius: '4px',
-                        width: '60px',
-                        color: 'white',
-                        textAlign: 'center'
+                        flex: 1,
+                        cursor: 'pointer',
+                        accentColor: 'var(--color-accent)'
                     }}
                 />
             </div>

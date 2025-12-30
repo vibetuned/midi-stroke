@@ -9,6 +9,8 @@ interface GameState {
     setCurrentMeasure: (measure: number) => void;
     isAudioStarted: boolean;
     setAudioStarted: (started: boolean) => void;
+    isMetronomeMuted: boolean;
+    setMetronomeMuted: (muted: boolean) => void;
 }
 
 const GameContext = createContext<GameState | undefined>(undefined);
@@ -18,6 +20,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [tempo, setTempo] = useState(120);
     const [currentMeasure, setCurrentMeasure] = useState(1);
     const [isAudioStarted, setAudioStarted] = useState(false);
+    const [isMetronomeMuted, setMetronomeMuted] = useState(false);
 
     return (
         <GameContext.Provider value={{
@@ -28,7 +31,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             currentMeasure,
             setCurrentMeasure,
             isAudioStarted,
-            setAudioStarted
+            setAudioStarted,
+            isMetronomeMuted,
+            setMetronomeMuted
         }}>
             {children}
         </GameContext.Provider>
