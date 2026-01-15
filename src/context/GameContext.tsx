@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from 'react';
 import * as Tone from 'tone';
 
 interface GameState {
@@ -16,8 +16,11 @@ interface GameState {
     setPianoRange: (range: { min: number; max: number } | null) => void;
     playSize: number;
     setPlaySize: (size: number) => void;
+    playSizeTicks: number;
+    setPlaySizeTicks: (ticks: number) => void;
     playPosition: number;
     setPlayPosition: (pos: number) => void;
+    loadMidiData: (base64: string) => void;
 }
 
 const GameContext = createContext<GameState | undefined>(undefined);
@@ -30,7 +33,34 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [isMetronomeMuted, setMetronomeMuted] = useState(false);
     const [pianoRange, setPianoRange] = useState<{ min: number; max: number } | null>(null);
     const [playSize, setPlaySize] = useState(0);
+    const [playSizeTicks, setPlaySizeTicks] = useState(0);
     const [playPosition, setPlayPosition] = useState(0);
+
+    const loadMidiData = useCallback((base64: string) => {
+        import('@tonejs/midi').then(({ Midi }) => {
+            try {
+                const binaryString = window.atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const midi = new Midi(bytes);
+
+                const tonePPQ = Tone.getTransport().PPQ;
+                const midiPPQ = midi.header.ppq;
+                const ppqRatio = tonePPQ / midiPPQ;
+                const adjustedTicks = midi.durationTicks * ppqRatio;
+
+                console.log(`Midi Loaded. PPQ[Tone/Midi]: ${tonePPQ}/${midiPPQ}. DurationTicks: ${midi.durationTicks} -> ${adjustedTicks}`);
+
+                setPlaySize(midi.duration);
+                setPlaySizeTicks(adjustedTicks);
+            } catch (error) {
+                console.error("Error parsing MIDI data:", error);
+            }
+        });
+    }, []);
 
     return (
         <GameContext.Provider value={{
@@ -48,8 +78,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setPianoRange,
             playSize,
             setPlaySize,
+            playSizeTicks,
+            setPlaySizeTicks,
             playPosition,
-            setPlayPosition
+            setPlayPosition,
+            loadMidiData
         }}>
             {children}
         </GameContext.Provider>
@@ -66,38 +99,25 @@ export const useGame = () => {
 
 // Hook to manage MIDI File Duration and Limits
 export const useMidiFile = () => {
-    const { setPlaySize, playSize, isPlaying, setIsPlaying, setPlayPosition } = useGame();
-    // Use Tone.Transport.position or seconds to track progress.
-
-    useEffect(() => {
-        // Load Midi File metadata
-        import('@tonejs/midi').then(({ Midi }) => {
-            fetch('/sample.mid')
-                .then(res => res.arrayBuffer())
-                .then(arrayBuffer => {
-                    const midi = new Midi(arrayBuffer);
-                    console.log("Midi Loaded. Duration:", midi.duration);
-                    setPlaySize(midi.duration);
-                });
-        });
-    }, [setPlaySize]);
+    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition } = useGame();
+    // Use Tone.Transport.ticks to track progress.
 
     // Check Limits Loop
     useEffect(() => {
-        if (!playSize || !isPlaying) return;
+        if (!playSizeTicks || !isPlaying) return;
 
         const interval = setInterval(() => {
-            const now = Tone.Transport.seconds;
+            const now = Tone.Transport.ticks;
             setPlayPosition(now);
 
-            if (now >= playSize) {
+            if (now >= playSizeTicks) {
                 Tone.Transport.pause();
                 setIsPlaying(false);
-                Tone.Transport.seconds = 0; // Reset or keep at end? usually reset or stop.
+                Tone.Transport.ticks = 0;
                 setPlayPosition(0);
             }
         }, 100);
 
         return () => clearInterval(interval);
-    }, [playSize, isPlaying, setIsPlaying, setPlayPosition]);
+    }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition]);
 };
