@@ -7,7 +7,7 @@ export function useAudio() {
     const samplerRef = useRef<Tone.Sampler | null>(null);
     const metronomeRef = useRef<Tone.MembraneSynth | null>(null);
     const { activeNotes } = useMidi();
-    const { isAudioStarted, isPlaying, tempo, isMetronomeMuted } = useGame();
+    const { isAudioStarted, isPlaying, tempo, isMetronomeMuted, gameMode } = useGame();
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Initialize Audio Engine
@@ -80,7 +80,11 @@ export function useAudio() {
             // We'll handle mute in a separate effect.
 
             // Trigger Kick
-            metro.triggerAttackRelease("C1", "8n", time);
+            // Only trigger if not in Practice Mode (User request to remove kick loop for practice)
+            // Or maybe we want metronome in practice? User specifically asked to remove it.
+            if (gameMode !== 'practice') {
+                metro.triggerAttackRelease("C1", "8n", time);
+            }
         }, "4n");
 
         console.log("Audio Engine Initialized");
@@ -92,7 +96,7 @@ export function useAudio() {
             samplerRef.current = null;
             metronomeRef.current = null;
         };
-    }, [isAudioStarted]);
+    }, [isAudioStarted, gameMode]);
 
     // Handle Metronome Mute
     useEffect(() => {

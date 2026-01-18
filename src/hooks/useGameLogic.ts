@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useGame } from '../context/GameContext';
 import { useMidi } from './useMidi';
 
@@ -17,9 +17,10 @@ export interface GameLogicState {
 }
 
 export function useGameLogic() {
-    const { midiData, playPosition, ppqRatio, gameMode, waitingForNotes, removeWaitingNote } = useGame();
-    const { lastNote } = useMidi();
+    const { midiData, playPosition, ppqRatio, gameMode, waitingForNotes, resumePractice } = useGame();
+    const { lastNote, activeNotes } = useMidi();
     const [feedback, setFeedback] = useState<string | null>(null);
+    const lastProcessedTimeRef = useRef<number>(0);
 
 
     // Calculate expected notes based on current play position
@@ -62,18 +63,45 @@ export function useGameLogic() {
 
     // Validation Logic
     useEffect(() => {
-        if (!lastNote) return;
-
         // Practice Mode Validation
-        if (gameMode === 'practice') {
-            if (waitingForNotes.includes(lastNote.note)) {
-                console.log(`Practice Hit Note: ${lastNote.note}. Remaining: ${waitingForNotes.length - 1}`);
-                setFeedback("Good!");
-                removeWaitingNote(lastNote.note);
-                setTimeout(() => setFeedback(null), 500);
+        if (gameMode === 'practice' && waitingForNotes.length > 0) {
+
+            // Scenario A: Single Note -> Responsive "Hit" Logic (Don't need to hold)
+            if (waitingForNotes.length === 1) {
+                const target = waitingForNotes[0];
+                if (lastNote && lastNote.note === target) {
+                    // Check freshness: effectively if this note event happened AFTER we processed the last one?
+                    // Or just if it's "recent" enough? lastNote.timestamp is performance.now()
+                    // We can just check if we already processed this exact timestamp.
+                    if (lastNote.timestamp > lastProcessedTimeRef.current) {
+                        console.log(`Single Note Hit: ${target}. Resuming.`);
+                        lastProcessedTimeRef.current = lastNote.timestamp;
+                        setFeedback("Good!");
+                        resumePractice();
+                        setTimeout(() => setFeedback(null), 500);
+                    }
+                }
+            }
+            // Scenario B: Chord -> Strict "Hold" Logic (Must hold all notes)
+            else {
+                // Check if ALL waiting notes are currently present in activeNotes
+                const allNotesHeld = waitingForNotes.every(note => activeNotes.has(note));
+
+                if (allNotesHeld) {
+                    console.log(`Chord Satisfied! [${waitingForNotes.join(', ')}]. Resuming.`);
+                    // We don't necessarily update lastProcessedTimeRef for chords since it's state-based,
+                    // but we might want to prevent double-triggering if effect runs twice?
+                    // usually resumePractice() clears waitingForNotes promptly.
+                    setFeedback("Good!");
+                    resumePractice();
+                    setTimeout(() => setFeedback(null), 500);
+                }
             }
             return;
         }
+
+        // Standard Mode Validation (stays event-based via lastNote)
+        if (!lastNote) return;
 
         // Standard Mode Validation
         // Check if lastNote matches any note in the data at this time
@@ -113,7 +141,7 @@ export function useGameLogic() {
             // Optional: setFeedback("Miss");
         }
 
-    }, [lastNote, midiData, playPosition, gameMode, waitingForNotes, removeWaitingNote, ppqRatio]);
+    }, [lastNote, activeNotes, midiData, playPosition, gameMode, waitingForNotes, resumePractice, ppqRatio]);
 
     return { expectedNotes, feedback };
 }

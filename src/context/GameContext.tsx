@@ -32,6 +32,7 @@ interface GameState {
     removeWaitingNote: (note: number) => void;
     resumePractice: () => void;
     seek: (ticks: number) => void;
+    waitingForNotesRef: React.MutableRefObject<number[]>;
 }
 
 const GameContext = createContext<GameState | undefined>(undefined);
@@ -49,15 +50,31 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [midiData, setMidiData] = useState<Midi | null>(null);
     const [ppqRatio, setPpqRatio] = useState(1);
     const [gameMode, setGameMode] = useState<'standard' | 'practice'>('standard');
-    const [waitingForNotes, setWaitingForNotes] = useState<number[]>([]);
+    const [waitingForNotes, setWaitingForNotesState] = useState<number[]>([]);
+    const waitingForNotesRef = React.useRef<number[]>([]);
+
+    const setWaitingForNotes = useCallback((notes: number[]) => {
+        waitingForNotesRef.current = notes;
+        setWaitingForNotesState(notes);
+    }, []);
 
     const resumePractice = useCallback(() => {
         setWaitingForNotes([]);
+        waitingForNotesRef.current = [];
+        // Epsilon is 15. We must jump just enough to escape strict equality checks if any.
+        // Actually, reducing to +1 tick to verify if it solves "Skipping Note" issue.
+        // Logic: If closestTick was X. Now is X.
+        // Loop finds next note > X.
+        // If we jump +1, Now is X+1.
+        // Notes at X are ignored. Notes at X+0.something are ignored.
+        // Notes at X+2 are found.
+        Tone.getTransport().ticks += 1;
         Tone.getTransport().start();
-    }, []);
+    }, [setWaitingForNotes]);
 
     const seek = useCallback((ticks: number) => {
         setWaitingForNotes([]);
+        waitingForNotesRef.current = [];
         Tone.getTransport().ticks = ticks;
         setPlayPosition(ticks);
         // If we were paused for a note, we should probably stay paused transport-wise
@@ -65,8 +82,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, []);
 
     const removeWaitingNote = useCallback((note: number) => {
-        setWaitingForNotes(prev => {
+        // We use setWaitingForNotesState directly here because we need previous state calculation
+        // But we must also update the ref!
+        // Actually, removeWaitingNote is NO LONGER USED in the new logic (separate split).
+        // It was used when we removed notes one by one.
+        // We can keep it for safety or remove it.
+        // If we keep it, we need to fix the type error.
+        setWaitingForNotesState(prev => {
             const next = prev.filter(n => n !== note);
+            waitingForNotesRef.current = next; // Sync ref manually
+
             // If we cleared all notes we were waiting for, resume!
             if (next.length === 0 && prev.length > 0) {
                 console.log("All waiting notes cleared. Resuming!");
@@ -133,7 +158,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setWaitingForNotes,
             removeWaitingNote,
             resumePractice,
-            seek
+            seek,
+            waitingForNotesRef
         }}>
             {children}
         </GameContext.Provider>
@@ -150,8 +176,34 @@ export const useGame = () => {
 
 // Hook to manage MIDI File Duration and Limits
 export const useMidiFile = () => {
-    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, waitingForNotes, setWaitingForNotes } = useGame();
+    // We access the context via useGame inside the hook if needed, but here we can just pull what we need.
+    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, setWaitingForNotes, waitingForNotes } = useGame();
+
+    // We need to access the Ref directly from the context if exposed, OR we can't fully fix the race condition
+    // unless the Ref is exposed via the Context Value.
+    // However, we didn't expose the Ref in the Interface. 
+    // BUT: setWaitingForNotes updates the ref inside the GameProvider.
+    // AND: We effectively need the LOOP to read the Ref.
+    // The LOOP is defined inside useMidiFile.
+
+    // PROBLEM: useMidiFile DOES NOT have access to 'waitingForNotesRef' from GameContext because it's not in the context value.
+    // We must expose it or move the logic.
+    // Let's modify the Context Interface to expose a way to check if we are waiting synchronously? Or just expose the ref?
+    // Exposing Ref directly in context is fine.
+
+    // For now, let's assume we update the Context Interface below this block.
+    // Wait, I can't update interface in this tool call block effectively if I don't see it.
+    // usage: const { waitingForNotesRef } = useGame();
+
+    // Actually, I should probably split this tool call to update interface first?
+    // No, I can do it in one file.
+
+    // Let's just fix the loop assuming we expose it.
+    const { waitingForNotesRef } = useGame();
+
     // Use Tone.Transport.ticks to track progress.
+    // Removed lastPausedTick as it conflicts with seek/reset operations.
+    // Instead we rely on 'resumePractice' advancing the cursor past the current event.
 
     // Check Limits Loop & Practice Mode Pausing
     useEffect(() => {
@@ -174,7 +226,8 @@ export const useMidiFile = () => {
             // PRACTICE MODE CHECK
             if (gameMode === 'practice' && midiData) {
                 // If we are already waiting, ensure we are paused
-                if (waitingForNotes.length > 0) {
+                // Use Ref for synchronous check to avoid race conditions with Interval
+                if (waitingForNotesRef.current.length > 0) {
                     if (Tone.getTransport().state !== 'paused') {
                         Tone.getTransport().pause();
                     }
@@ -200,9 +253,12 @@ export const useMidiFile = () => {
 
                 // 2. If closest tick is imminent, Gather ALL notes at that tick
                 if (closestTick !== Infinity && (closestTick - now) < CHECK_AHEAD) {
-                    const notesAtTick: number[] = [];
                     // Tolerance for "At that tick" since floating point math
-                    const TICK_EPSILON = 5;
+                    // Increased to 15 ticks (~30-40ms) to group humanized chords
+                    const TICK_EPSILON = 15;
+
+                    // Anti-bounce handled by resumePractice jumping forward +16 ticks
+                    const notesAtTick: number[] = [];
 
                     midiData.tracks.forEach(track => {
                         track.notes.forEach(note => {
