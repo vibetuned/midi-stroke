@@ -64,14 +64,35 @@ export const PlayControls: React.FC = () => {
                 </button>
             </div>
 
+            {/* Reset Button (Always visible) */}
+            <button
+                onClick={handleReset}
+                title="Reset to Start"
+                style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    border: '1px solid var(--color-text-secondary)',
+                    background: 'transparent',
+                    color: 'var(--color-text-primary)',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s',
+                    marginRight: '0.5rem'
+                }}
+                className="hover-scale"
+            >
+                ↺
+            </button>
+
+            {/* Play/Pause Button */}
             <button
                 onClick={() => {
-                    if (gameMode === 'practice' && playPosition > 10) {
-                        handleReset();
-                    } else {
-                        console.log("Toggling Play state. New state:", !isPlaying);
-                        setIsPlaying(!isPlaying);
-                    }
+                    console.log("Toggling Play state. New state:", !isPlaying);
+                    setIsPlaying(!isPlaying);
                 }}
                 style={{
                     width: '50px',
@@ -89,7 +110,7 @@ export const PlayControls: React.FC = () => {
                 }}
                 className="hover-scale"
             >
-                {gameMode === 'practice' && playPosition > 10 ? '↺' : (isPlaying ? '⏸' : '▶')}
+                {isPlaying ? '⏸' : '▶'}
             </button>
 
             <button

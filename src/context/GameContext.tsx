@@ -31,6 +31,7 @@ interface GameState {
     setWaitingForNotes: (notes: number[]) => void;
     removeWaitingNote: (note: number) => void;
     resumePractice: () => void;
+    seek: (ticks: number) => void;
 }
 
 const GameContext = createContext<GameState | undefined>(undefined);
@@ -53,6 +54,14 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const resumePractice = useCallback(() => {
         setWaitingForNotes([]);
         Tone.getTransport().start();
+    }, []);
+
+    const seek = useCallback((ticks: number) => {
+        setWaitingForNotes([]);
+        Tone.getTransport().ticks = ticks;
+        setPlayPosition(ticks);
+        // If we were paused for a note, we should probably stay paused transport-wise
+        // until user plays or hits play, but clearing waitingForNotes allows the loop to find the *new* next note.
     }, []);
 
     const removeWaitingNote = useCallback((note: number) => {
@@ -123,7 +132,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             waitingForNotes,
             setWaitingForNotes,
             removeWaitingNote,
-            resumePractice
+            resumePractice,
+            seek
         }}>
             {children}
         </GameContext.Provider>

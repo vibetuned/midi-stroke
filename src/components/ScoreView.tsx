@@ -7,7 +7,7 @@ import { scaleLinear } from 'd3';
 export const ScoreView: React.FC = () => {
     const { toolkit } = useVerovio();
     // Destructure playSizeTicks from GameContext
-    const { isPlaying, setIsPlaying, setPlayPosition, loadMidiData, playSizeTicks } = useGame();
+    const { isPlaying, setIsPlaying, loadMidiData, playSizeTicks, seek } = useGame();
     const [svg, setSvg] = useState<string>('');
     const containerRef = useRef<HTMLDivElement>(null);
     const stickyContainerRef = useRef<HTMLDivElement>(null);
@@ -55,9 +55,7 @@ export const ScoreView: React.FC = () => {
             const absoluteTicks = relativeTicks + offsetTicks;
 
             // Sync Transport to Scroll
-            const transport = Tone.getTransport();
-            transport.ticks = absoluteTicks;
-            setPlayPosition(absoluteTicks);
+            seek(absoluteTicks);
         }
     };
 
