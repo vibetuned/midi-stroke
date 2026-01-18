@@ -1,7 +1,16 @@
 import { useGame } from '../context/GameContext';
+import * as Tone from 'tone';
 
 export const PlayControls: React.FC = () => {
-    const { isPlaying, setIsPlaying, tempo, setTempo, isMetronomeMuted, setMetronomeMuted } = useGame();
+    const { isPlaying, setIsPlaying, tempo, setTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, playPosition, setPlayPosition, setWaitingForNotes } = useGame();
+
+    const handleReset = () => {
+        setIsPlaying(false);
+        Tone.getTransport().pause();
+        Tone.getTransport().ticks = 0;
+        setPlayPosition(0);
+        setWaitingForNotes([]);
+    };
 
     return (
         <div style={{
@@ -15,10 +24,54 @@ export const PlayControls: React.FC = () => {
             width: '100%',
             height: '80px'
         }}>
+            {/* Game Mode Toggle */}
+            <div style={{
+                display: 'flex',
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '20px',
+                padding: '4px',
+                marginRight: '1rem'
+            }}>
+                <button
+                    onClick={() => setGameMode('standard')}
+                    style={{
+                        background: gameMode === 'standard' ? 'var(--color-accent)' : 'transparent',
+                        color: gameMode === 'standard' ? 'white' : 'var(--color-text-secondary)',
+                        border: 'none',
+                        borderRadius: '16px',
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    Rhythm
+                </button>
+                <button
+                    onClick={() => setGameMode('practice')}
+                    style={{
+                        background: gameMode === 'practice' ? 'var(--color-accent)' : 'transparent',
+                        color: gameMode === 'practice' ? 'white' : 'var(--color-text-secondary)',
+                        border: 'none',
+                        borderRadius: '16px',
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    Practice
+                </button>
+            </div>
+
             <button
                 onClick={() => {
-                    console.log("Toggling Play state. New state:", !isPlaying);
-                    setIsPlaying(!isPlaying);
+                    if (gameMode === 'practice' && playPosition > 10) {
+                        handleReset();
+                    } else {
+                        console.log("Toggling Play state. New state:", !isPlaying);
+                        setIsPlaying(!isPlaying);
+                    }
                 }}
                 style={{
                     width: '50px',
@@ -36,7 +89,7 @@ export const PlayControls: React.FC = () => {
                 }}
                 className="hover-scale"
             >
-                {isPlaying ? '⏸' : '▶'}
+                {gameMode === 'practice' && playPosition > 10 ? '↺' : (isPlaying ? '⏸' : '▶')}
             </button>
 
             <button

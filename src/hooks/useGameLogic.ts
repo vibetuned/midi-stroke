@@ -17,7 +17,7 @@ export interface GameLogicState {
 }
 
 export function useGameLogic() {
-    const { midiData, playPosition, ppqRatio } = useGame();
+    const { midiData, playPosition, ppqRatio, gameMode, waitingForNotes, removeWaitingNote } = useGame();
     const { lastNote } = useMidi();
     const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -25,6 +25,11 @@ export function useGameLogic() {
     // Calculate expected notes based on current play position
     const expectedNotes = useMemo(() => {
         if (!midiData) return [];
+
+        // In Practice Mode, if we are waiting for notes, strictly return those notes.
+        if (gameMode === 'practice' && waitingForNotes.length > 0) {
+            return waitingForNotes;
+        }
 
         const currentTicks = playPosition;
         const notes: number[] = [];
@@ -52,13 +57,25 @@ export function useGameLogic() {
 
         // Dedup
         return Array.from(new Set(notes));
-    }, [midiData, playPosition, ppqRatio]);
+    }, [midiData, playPosition, ppqRatio, gameMode, waitingForNotes]);
 
 
     // Validation Logic
     useEffect(() => {
         if (!lastNote) return;
 
+        // Practice Mode Validation
+        if (gameMode === 'practice') {
+            if (waitingForNotes.includes(lastNote.note)) {
+                console.log(`Practice Hit Note: ${lastNote.note}. Remaining: ${waitingForNotes.length - 1}`);
+                setFeedback("Good!");
+                removeWaitingNote(lastNote.note);
+                setTimeout(() => setFeedback(null), 500);
+            }
+            return;
+        }
+
+        // Standard Mode Validation
         // Check if lastNote matches any note in the data at this time
         // We re-calculate specifically for the hit to be precise
         if (!midiData) return;
@@ -96,7 +113,7 @@ export function useGameLogic() {
             // Optional: setFeedback("Miss");
         }
 
-    }, [lastNote, midiData, playPosition]);
+    }, [lastNote, midiData, playPosition, gameMode, waitingForNotes, removeWaitingNote, ppqRatio]);
 
     return { expectedNotes, feedback };
 }

@@ -25,6 +25,12 @@ interface GameState {
     loadMidiData: (base64: string) => void;
     midiData: Midi | null;
     ppqRatio: number;
+    gameMode: 'standard' | 'practice';
+    setGameMode: (mode: 'standard' | 'practice') => void;
+    waitingForNotes: number[];
+    setWaitingForNotes: (notes: number[]) => void;
+    removeWaitingNote: (note: number) => void;
+    resumePractice: () => void;
 }
 
 const GameContext = createContext<GameState | undefined>(undefined);
@@ -41,6 +47,25 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [playPosition, setPlayPosition] = useState(0);
     const [midiData, setMidiData] = useState<Midi | null>(null);
     const [ppqRatio, setPpqRatio] = useState(1);
+    const [gameMode, setGameMode] = useState<'standard' | 'practice'>('standard');
+    const [waitingForNotes, setWaitingForNotes] = useState<number[]>([]);
+
+    const resumePractice = useCallback(() => {
+        setWaitingForNotes([]);
+        Tone.getTransport().start();
+    }, []);
+
+    const removeWaitingNote = useCallback((note: number) => {
+        setWaitingForNotes(prev => {
+            const next = prev.filter(n => n !== note);
+            // If we cleared all notes we were waiting for, resume!
+            if (next.length === 0 && prev.length > 0) {
+                console.log("All waiting notes cleared. Resuming!");
+                Tone.getTransport().start();
+            }
+            return next;
+        });
+    }, []);
 
     const loadMidiData = useCallback((base64: string) => {
         import('@tonejs/midi').then(({ Midi }) => {
@@ -92,7 +117,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setPlayPosition,
             loadMidiData,
             midiData,
-            ppqRatio
+            ppqRatio,
+            gameMode,
+            setGameMode,
+            waitingForNotes,
+            setWaitingForNotes,
+            removeWaitingNote,
+            resumePractice
         }}>
             {children}
         </GameContext.Provider>
@@ -109,10 +140,10 @@ export const useGame = () => {
 
 // Hook to manage MIDI File Duration and Limits
 export const useMidiFile = () => {
-    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition } = useGame();
+    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, waitingForNotes, setWaitingForNotes } = useGame();
     // Use Tone.Transport.ticks to track progress.
 
-    // Check Limits Loop
+    // Check Limits Loop & Practice Mode Pausing
     useEffect(() => {
         if (!playSizeTicks || !isPlaying) return;
 
@@ -120,14 +151,73 @@ export const useMidiFile = () => {
             const now = Tone.Transport.ticks;
             setPlayPosition(now);
 
+            // END OF SONG CHECK
             if (now >= playSizeTicks) {
-                Tone.Transport.pause();
+                Tone.getTransport().pause();
                 setIsPlaying(false);
-                Tone.Transport.ticks = 0;
+                Tone.getTransport().ticks = 0;
                 setPlayPosition(0);
+                setWaitingForNotes([]);
+                return;
             }
-        }, 100);
+
+            // PRACTICE MODE CHECK
+            if (gameMode === 'practice' && midiData) {
+                // If we are already waiting, ensure we are paused
+                if (waitingForNotes.length > 0) {
+                    if (Tone.getTransport().state !== 'paused') {
+                        Tone.getTransport().pause();
+                    }
+                    return;
+                }
+
+                // Look ahead
+                const CHECK_AHEAD = 20; // ticks
+                const OFFSET_TICKS = 1 * 192; // 4 beats count-in
+
+                // 1. Find the Closest Next Target Time
+                let closestTick = Infinity;
+
+                midiData.tracks.forEach(track => {
+                    track.notes.forEach(note => {
+                        const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
+                        // Determine if this note is in the future
+                        if (start > now && start < closestTick) {
+                            closestTick = start;
+                        }
+                    });
+                });
+
+                // 2. If closest tick is imminent, Gather ALL notes at that tick
+                if (closestTick !== Infinity && (closestTick - now) < CHECK_AHEAD) {
+                    const notesAtTick: number[] = [];
+                    // Tolerance for "At that tick" since floating point math
+                    const TICK_EPSILON = 5;
+
+                    midiData.tracks.forEach(track => {
+                        track.notes.forEach(note => {
+                            const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
+                            if (Math.abs(start - closestTick) < TICK_EPSILON) {
+                                notesAtTick.push(note.midi);
+                            }
+                        });
+                    });
+
+                    // Remove duplicates
+                    const uniqueNotes = Array.from(new Set(notesAtTick));
+
+                    if (uniqueNotes.length > 0) {
+                        console.log(`Pausing for notes [${uniqueNotes.join(', ')}] at ${closestTick}`);
+                        Tone.getTransport().pause();
+                        Tone.getTransport().ticks = closestTick;
+                        setPlayPosition(closestTick);
+                        setWaitingForNotes(uniqueNotes);
+                    }
+                }
+            }
+
+        }, 50); // 50ms interval
 
         return () => clearInterval(interval);
-    }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition]);
+    }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, waitingForNotes, setWaitingForNotes]);
 };

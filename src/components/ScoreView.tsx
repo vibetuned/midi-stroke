@@ -198,7 +198,10 @@ export const ScoreView: React.FC = () => {
                         zIndex: 5,
                         background: '#888888',
                         pointerEvents: 'none',
-                        borderRight: '1px solid rgba(255,255,255,0.2)'
+                        borderRight: '1px solid rgba(255,255,255,0.2)',
+                        // Mask to fade the right 50px to 0.5 opacity
+                        maskImage: 'linear-gradient(to right, black calc(100% - 50px), rgba(0,0,0,0.0) 100%)',
+                        WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 50px), rgba(0,0,0,0.0) 100%)'
                     }}
                 >
                     {/* Render the same SVG but clipped via wrapper width */}
