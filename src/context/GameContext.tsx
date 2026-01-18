@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from 'react';
 import * as Tone from 'tone';
 
+import { Midi } from '@tonejs/midi';
+
 interface GameState {
     isPlaying: boolean;
     setIsPlaying: (playing: boolean) => void;
@@ -21,6 +23,8 @@ interface GameState {
     playPosition: number;
     setPlayPosition: (pos: number) => void;
     loadMidiData: (base64: string) => void;
+    midiData: Midi | null;
+    ppqRatio: number;
 }
 
 const GameContext = createContext<GameState | undefined>(undefined);
@@ -35,6 +39,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [playSize, setPlaySize] = useState(0);
     const [playSizeTicks, setPlaySizeTicks] = useState(0);
     const [playPosition, setPlayPosition] = useState(0);
+    const [midiData, setMidiData] = useState<Midi | null>(null);
+    const [ppqRatio, setPpqRatio] = useState(1);
 
     const loadMidiData = useCallback((base64: string) => {
         import('@tonejs/midi').then(({ Midi }) => {
@@ -56,6 +62,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                 setPlaySize(midi.duration);
                 setPlaySizeTicks(adjustedTicks);
+                setMidiData(midi);
+                setPpqRatio(ppqRatio);
             } catch (error) {
                 console.error("Error parsing MIDI data:", error);
             }
@@ -82,7 +90,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setPlaySizeTicks,
             playPosition,
             setPlayPosition,
-            loadMidiData
+            loadMidiData,
+            midiData,
+            ppqRatio
         }}>
             {children}
         </GameContext.Provider>

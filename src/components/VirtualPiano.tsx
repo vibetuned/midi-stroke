@@ -1,11 +1,13 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
+import { useGameLogic } from '../hooks/useGameLogic';
 import { useMidi } from '../hooks/useMidi';
 import * as Tone from 'tone';
 
 export const VirtualPiano: React.FC = () => {
     const { pianoRange } = useGame();
     const { activeNotes } = useMidi();
+    const { expectedNotes } = useGameLogic();
 
     if (!pianoRange) return null;
 
@@ -16,9 +18,10 @@ export const VirtualPiano: React.FC = () => {
     for (let i = min; i <= max; i++) {
         const isBlack = [1, 3, 6, 8, 10].includes(i % 12);
         const isActive = activeNotes.has(i);
+        const isExpected = expectedNotes.includes(i);
         const noteName = Tone.Frequency(i, "midi").toNote(); // e.g., C4
 
-        keys.push({ note: i, isBlack, isActive, noteName });
+        keys.push({ note: i, isBlack, isActive, isExpected, noteName });
     }
 
     return (
@@ -50,6 +53,8 @@ export const VirtualPiano: React.FC = () => {
                                 width: '24px',
                                 height: '100%',
                                 background: key.isActive ? 'var(--color-accent)' : '#fff',
+                                border: key.isExpected ? '2px solid var(--color-accent)' : 'none',
+                                boxSizing: 'border-box',
                                 borderRadius: '0 0 4px 4px'
                             }} />
 
@@ -62,6 +67,8 @@ export const VirtualPiano: React.FC = () => {
                                     width: '16px',
                                     height: '60%',
                                     background: blackActive ? 'var(--color-accent)' : '#000',
+                                    border: expectedNotes.includes(nextNote) ? '2px solid var(--color-accent)' : 'none',
+                                    boxSizing: 'border-box',
                                     zIndex: 10,
                                     borderRadius: '0 0 2px 2px'
                                 }} />

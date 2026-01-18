@@ -11,7 +11,7 @@ export const PianoSetup: React.FC = () => {
 
     // Audio Context Resume on Interaction (Just in case, usually handled by start overlay)
     useEffect(() => {
-        console.log(`[PianoSetup] Step: ${step}, Active Notes: ${Array.from(activeNotes.keys()).join(', ')}`);
+        //console.log(`[PianoSetup] Step: ${step}, Active Notes: ${Array.from(activeNotes.keys()).join(', ')}`);
 
         if (!pianoRange) {
             // Check for key press

@@ -36,7 +36,7 @@ export const ScoreView: React.FC = () => {
             const scrollLeft = containerRef.current.scrollLeft;
 
             // Offset for sticky measure (4 beats count-in)
-            const offsetTicks = 4 * 192;
+            const offsetTicks = 1 * 192;
 
             // Global Scale: Map effective Time -> Effective Width
             // Domain: [0, playSizeTicks - offsetTicks] (Musical duration of scrolling part)
@@ -68,7 +68,7 @@ export const ScoreView: React.FC = () => {
         const loop = () => {
             if (containerRef.current && !isDragging.current && playSizeTicks > 0 && scrollableWidth > 0) {
                 // Offset for sticky measure (4 beats count-in)
-                const offsetTicks = 4 * 192;
+                const offsetTicks = 1 * 192;
 
                 const currentTicks = Tone.getTransport().ticks; // Current musical position
 
@@ -156,7 +156,8 @@ export const ScoreView: React.FC = () => {
                     let totalWidth = 0;
                     for (let i = 1; i < measures.length; i++) {
                         const bbox = (measures[i] as SVGGraphicsElement).getBoundingClientRect();
-                        totalWidth += bbox.width - 16;
+                        console.log("Measure", i, "Width:", bbox.width);
+                        totalWidth += bbox.width;  //- 16;
                     }
 
                     // If there are no other measures, width is 0? Or maybe totalWidth should handle 1 measure case
