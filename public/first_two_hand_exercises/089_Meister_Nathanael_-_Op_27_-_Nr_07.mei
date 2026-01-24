@@ -1,0 +1,274 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-model href="https://music-encoding.org/schema/5.1/mei-all.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<?xml-model href="https://music-encoding.org/schema/5.1/mei-all.rng" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="5.1">
+  <meiHead xml:id="m1cnpxfm">
+    <fileDesc xml:id="f1pgej5j">
+      <titleStmt xml:id="telhl2h">
+        <title/>
+        <respStmt>
+          <persName role="composer">Nathanael Meister; Op.27; Nº.7</persName>
+        </respStmt>
+      </titleStmt>
+      <pubStmt xml:id="p129btbq">
+        <date isodate="2026-01-24" type="encoding-date">2026-01-24</date>
+      </pubStmt>
+    </fileDesc>
+    <encodingDesc xml:id="eo0m6pp">
+      <appInfo xml:id="adbmp69">
+        <application xml:id="a412ukh" isodate="2026-01-24T20:21:38" version="5.7.0-7135340">
+          <name xml:id="n1qmq48i">Verovio</name>
+          <p xml:id="p1jqd896">Transcoded from MusicXML</p>
+        </application>
+      </appInfo>
+    </encodingDesc>
+  </meiHead>
+  <music>
+    <body>
+      <mdiv xml:id="c6m6euj">
+        <score xml:id="d11rsvfz">
+          <scoreDef xml:id="egvwxna">
+            <staffGrp xml:id="g20yt3s">
+              <staffGrp xml:id="P1" bar.thru="true">
+                <grpSym xml:id="d10rcjut" symbol="brace"/>
+                <instrDef xml:id="h18l58os" midi.channel="0"/>
+                <staffDef xml:id="je1oad1" n="1" lines="5" ppq="2">
+                  <clef xml:id="quiwt1x" shape="G" line="2"/>
+                  <keySig xml:id="raqltz5" mode="major" sig="0"/>
+                  <meterSig xml:id="sozgu2p" count="4" sym="common" unit="4"/>
+                </staffDef>
+                <staffDef xml:id="t11ptadc" n="2" lines="5" ppq="2">
+                  <clef xml:id="a1a1m0lg" shape="F" line="4"/>
+                  <keySig xml:id="b1oo6w9g" mode="major" sig="0"/>
+                  <meterSig xml:id="c14lxf3e" count="4" sym="common" unit="4"/>
+                </staffDef>
+              </staffGrp>
+            </staffGrp>
+          </scoreDef>
+          <section xml:id="fd6mfg5">
+            <measure n="0">
+              <staff n="1">
+                <layer n="1">
+                  <rest dur="4"/>
+                </layer>
+              </staff>
+              <staff n="2">
+                <layer n="1">
+                  <rest dur="4"/>
+                </layer>
+              </staff>
+            </measure>
+            <measure xml:id="edhlddw" right="rptstart" n="1">
+              <staff xml:id="nypo061" n="1">
+                <layer xml:id="v8ycd88" n="1">
+                  <note xml:id="w1bs2h15" dur.ppq="8" dur="1" oct="4" pname="c"/>
+                </layer>
+              </staff>
+              <staff xml:id="otn65cz" n="2">
+                <layer xml:id="xnunfan" n="5">
+                  <note xml:id="y10oa4ck" dur.ppq="2" dur="4" oct="3" pname="c"/>
+                  <note xml:id="z103d3v" dur.ppq="2" dur="4" oct="3" pname="g"/>
+                  <note xml:id="aiq4dop" dur.ppq="2" dur="4" oct="3" pname="e"/>
+                  <note xml:id="b2nwm1u" dur.ppq="2" dur="4" oct="3" pname="g"/>
+                </layer>
+              </staff>
+              <tempo xml:id="piogwnw" place="above" staff="1" tstamp="1" xml:lang="it" mm.unit="8">Moderato<rend xml:id="rs99zon" glyph.auth="smufl"></rend> = 0</tempo>
+            </measure>
+            <measure xml:id="c4hy4ze" right="dbl" n="2">
+              <staff xml:id="l2hgogr" n="1">
+                <layer xml:id="nnbt4mk" n="5">
+                  <note xml:id="ofxjjds" dur.ppq="2" dur="4" staff="2" oct="3" pname="c"/>
+                  <note xml:id="pnpp867" dur.ppq="2" dur="4" staff="2" oct="3" pname="g"/>
+                  <note xml:id="qao5jxj" dur.ppq="2" dur="4" staff="2" oct="3" pname="e"/>
+                  <note xml:id="r1ea1c64" dur.ppq="2" dur="4" staff="2" oct="3" pname="g"/>
+                </layer>
+              </staff>
+              <staff xml:id="m1o72l77" n="2">
+                <layer xml:id="s12qx6ug" n="1">
+                  <mSpace xml:id="t12iwx33"/>
+                </layer>
+              </staff>
+            </measure>
+            <measure xml:id="u1jbskn2" right="end" n="3">
+              <staff xml:id="d9t9aw0" n="1">
+                <layer xml:id="fc2oldy" n="1">
+                  <chord xml:id="h11mgzzi" dur.ppq="4" dur="2">
+                    <note xml:id="gblzzko" oct="4" pname="c"/>
+                    <note xml:id="i12pq5x3" oct="4" pname="e"/>
+                  </chord>
+                  <chord xml:id="kxc5ra1" dur.ppq="4" dur="2">
+                    <note xml:id="j1ffemhd" oct="4" pname="c"/>
+                    <note xml:id="l2whfxp" oct="4" pname="g"/>
+                  </chord>
+                  <chord xml:id="n1cb65cs" dur.ppq="4" dur="2">
+                    <note xml:id="mz5bn8y" oct="4" pname="c"/>
+                    <note xml:id="osyz9z7" oct="4" pname="e"/>
+                  </chord>
+                  <chord xml:id="qwk5xam" dur.ppq="4" dur="2">
+                    <note xml:id="p1wuum9m" oct="4" pname="c"/>
+                    <note xml:id="r50dup2" oct="4" pname="g"/>
+                  </chord>
+                  <chord xml:id="tr2ech2" dur.ppq="4" dur="2">
+                    <note xml:id="sue14h3" oct="4" pname="c"/>
+                    <note xml:id="u1sssuwm" oct="4" pname="e"/>
+                  </chord>
+                  <chord xml:id="w85gwy1" dur.ppq="4" dur="2">
+                    <note xml:id="v77vly" oct="4" pname="d"/>
+                    <note xml:id="xrkudnu" oct="4" pname="f"/>
+                  </chord>
+                  <chord xml:id="z1iz9wkm" dur.ppq="4" dur="2">
+                    <note xml:id="ylcs0la" oct="4" pname="d"/>
+                    <note xml:id="a1yo9w38" oct="4" pname="f"/>
+                  </chord>
+                  <chord xml:id="cwv0r3d" dur.ppq="2" dur="4">
+                    <note xml:id="b26bwja" oct="4" pname="c"/>
+                    <note xml:id="dxpn13i" oct="4" pname="g"/>
+                  </chord>
+                  <chord xml:id="f1nrb9jl" dur.ppq="2" dur="4">
+                    <note xml:id="e54m4ai" oct="3" pname="b"/>
+                    <note xml:id="ifbi9v5" oct="4" pname="g"/>
+                  </chord>
+                  <chord xml:id="khwdtx9" dur.ppq="8" dur="1">
+                    <note xml:id="j1tp0ywe" oct="4" pname="c"/>
+                    <note xml:id="n700vly" oct="4" pname="e"/>
+                  </chord>
+                </layer>
+              </staff>
+              <staff xml:id="eobogio" n="2">
+                <layer xml:id="ogkhykt" n="5">
+                  <note xml:id="p1i8wqgg" dur.ppq="2" dur="4" oct="3" pname="c"/>
+                  <note xml:id="qkex3bv" dur.ppq="2" dur="4" oct="3" pname="e"/>
+                  <note xml:id="rshjkt1" dur.ppq="2" dur="4" oct="3" pname="d"/>
+                  <note xml:id="s17pkm8g" dur.ppq="2" dur="4" oct="3" pname="c"/>
+                </layer>
+              </staff>
+              <fing xml:id="g1fv4fet" staff="1" startid="#e54m4ai">5</fing>
+              <fing xml:id="l1jda4c4" staff="1" startid="#j1tp0ywe">4</fing>
+            </measure>
+            <measure xml:id="tp7qee" n="4">
+              <staff xml:id="c76ofhd" n="1">
+                <layer xml:id="e10kzsh1" n="5">
+                  <note xml:id="f5hnfdp" dur.ppq="2" dur="4" staff="2" oct="3" pname="g"/>
+                  <note xml:id="g14sqyy4" dur.ppq="2" dur="4" staff="2" oct="3" pname="f"/>
+                  <note xml:id="h1ky692z" dur.ppq="2" dur="4" staff="2" oct="3" pname="e"/>
+                  <note xml:id="i1c09xmv" dur.ppq="2" dur="4" staff="2" oct="3" pname="d"/>
+                </layer>
+              </staff>
+              <staff xml:id="d1pk2o8g" n="2">
+                <layer xml:id="li855zu" n="1">
+                  <mSpace xml:id="m80dv8z"/>
+                </layer>
+              </staff>
+              <fing xml:id="j1xd2w5z" staff="1" startid="#i1c09xmv">1</fing>
+            </measure>
+            <measure xml:id="n112oao1" right="rptend" n="5">
+              <staff xml:id="w1wom2iu" n="1">
+                <layer xml:id="y1ltx6e1" n="5">
+                  <note xml:id="zzqf42d" dur.ppq="8" dur="1" staff="2" oct="2" pname="c"/>
+                </layer>
+              </staff>
+              <staff xml:id="xi5m3kt" n="2">
+                <layer xml:id="cscyn6x" n="1">
+                  <mSpace xml:id="d1vdfsf4"/>
+                </layer>
+              </staff>
+              <fing xml:id="ajj30zs" staff="1" startid="#zzqf42d">5</fing>
+            </measure>
+            <measure xml:id="ej56r8" n="6">
+              <staff xml:id="n1x356q" n="1">
+                <layer xml:id="pchq8pc" n="1">
+                  <mSpace xml:id="q1lmsfin"/>
+                </layer>
+              </staff>
+              <staff xml:id="okku7ms" n="2">
+                <layer xml:id="rrzbzda" n="1">
+                  <mSpace xml:id="s5h8zgu"/>
+                </layer>
+              </staff>
+            </measure>
+            <measure xml:id="tnslx4y" right="rptstart" n="7">
+              <staff xml:id="cv599bh" n="1">
+                <layer xml:id="e1x57jgz" n="5">
+                  <note xml:id="fl9s7eq" dur.ppq="1" dur="8" staff="2" oct="2" pname="c"/>
+                  <note xml:id="g1s34b0f" dur.ppq="1" dur="8" staff="2" oct="2" pname="g"/>
+                  <note xml:id="h2ntxqk" dur.ppq="1" dur="8" staff="2" oct="2" pname="f"/>
+                  <note xml:id="id1jwu9" dur.ppq="1" dur="8" staff="2" oct="2" pname="g"/>
+                  <note xml:id="j3035zb" dur.ppq="1" dur="8" staff="2" oct="2" pname="e"/>
+                  <note xml:id="ke4nqbi" dur.ppq="1" dur="8" staff="2" oct="2" pname="g"/>
+                  <note xml:id="lf14tst" dur.ppq="1" dur="8" staff="2" oct="2" pname="d"/>
+                  <note xml:id="m1an0tdy" dur.ppq="1" dur="8" staff="2" oct="2" pname="g"/>
+                </layer>
+              </staff>
+              <staff xml:id="d5xuyvz" n="2">
+                <layer xml:id="n1ahwr4q" n="1">
+                  <mSpace xml:id="o1ngwwih"/>
+                </layer>
+              </staff>
+            </measure>
+            <measure xml:id="p15u35us" n="8">
+              <staff xml:id="y1xscvtd" n="1">
+                <layer xml:id="a119vdum" n="5">
+                  <note xml:id="b1n7i88j" dur.ppq="1" dur="8" staff="2" oct="2" pname="c"/>
+                  <note xml:id="c469tg8" dur.ppq="1" dur="8" staff="2" oct="2" pname="g"/>
+                  <note xml:id="d1mnv2qk" dur.ppq="1" dur="8" staff="2" oct="2" pname="f"/>
+                  <note xml:id="e11qtk8z" dur.ppq="1" dur="8" staff="2" oct="2" pname="g"/>
+                  <note xml:id="f9hu4o9" dur.ppq="1" dur="8" staff="2" oct="2" pname="e"/>
+                  <note xml:id="g1edx29a" dur.ppq="1" dur="8" staff="2" oct="2" pname="g"/>
+                  <note xml:id="h6107vb" dur.ppq="1" dur="8" staff="2" oct="2" pname="d"/>
+                  <note xml:id="iqnupwm" dur.ppq="1" dur="8" staff="2" oct="2" pname="g"/>
+                </layer>
+              </staff>
+              <staff xml:id="zv8do1j" n="2">
+                <layer xml:id="j1gthrav" n="1">
+                  <mSpace xml:id="k1h84b3c"/>
+                </layer>
+              </staff>
+            </measure>
+            <measure xml:id="l1ubnzw" n="9">
+              <staff xml:id="u4tt3su" n="1">
+                <layer xml:id="w160uxqk" n="5">
+                  <note xml:id="x1xbq3yi" dur.ppq="2" dur="4" staff="2" oct="2" pname="c"/>
+                  <note xml:id="yw8yzl9" dur.ppq="2" dur="4" staff="2" oct="2" pname="g"/>
+                  <note xml:id="z1e76yr0" dur.ppq="2" dur="4" staff="2" oct="2" pname="f"/>
+                  <note xml:id="ay915pj" dur.ppq="2" dur="4" staff="2" oct="2" pname="e"/>
+                </layer>
+              </staff>
+              <staff xml:id="v1gnjmez" n="2">
+                <layer xml:id="b1xcwnwg" n="1">
+                  <mSpace xml:id="cc630ju"/>
+                </layer>
+              </staff>
+            </measure>
+            <measure xml:id="d1k2w9i8" n="10">
+              <staff xml:id="mq1vicu" n="1">
+                <layer xml:id="ooce46h" n="5">
+                  <note xml:id="plilftu" dur.ppq="2" dur="4" staff="2" oct="2" pname="d"/>
+                  <note xml:id="q1t2kwfw" dur.ppq="2" dur="4" staff="2" oct="2" pname="f"/>
+                  <note xml:id="r1z0laft" dur.ppq="2" dur="4" staff="2" oct="2" pname="e"/>
+                  <note xml:id="s7gu1cm" dur.ppq="2" dur="4" staff="2" oct="2" pname="d"/>
+                </layer>
+              </staff>
+              <staff xml:id="n52uhf0" n="2">
+                <layer xml:id="txs2iea" n="1">
+                  <mSpace xml:id="u1vro3w5"/>
+                </layer>
+              </staff>
+            </measure>
+            <measure xml:id="v1qwhx0p" right="rptend" n="11">
+              <staff xml:id="e1wgvs73" n="1">
+                <layer xml:id="g1gkplxz" n="5">
+                  <note xml:id="hwouryc" dur.ppq="8" dur="1" staff="2" oct="2" pname="c"/>
+                </layer>
+              </staff>
+              <staff xml:id="f4r3mb9" n="2">
+                <layer xml:id="if3s01p" n="1">
+                  <mSpace xml:id="jpuyvdy"/>
+                </layer>
+              </staff>
+            </measure>
+          </section>
+        </score>
+      </mdiv>
+    </body>
+  </music>
+</mei>

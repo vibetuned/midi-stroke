@@ -33,6 +33,8 @@ interface GameState {
     resumePractice: () => void;
     seek: (ticks: number) => void;
     waitingForNotesRef: React.MutableRefObject<number[]>;
+    selectedSong: string | null;
+    setSelectedSong: (song: string | null) => void;
 }
 
 const GameContext = createContext<GameState | undefined>(undefined);
@@ -52,6 +54,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [gameMode, setGameMode] = useState<'standard' | 'practice'>('standard');
     const [waitingForNotes, setWaitingForNotesState] = useState<number[]>([]);
     const waitingForNotesRef = React.useRef<number[]>([]);
+    const [selectedSong, setSelectedSong] = useState<string | null>(null);
 
     const setWaitingForNotes = useCallback((notes: number[]) => {
         waitingForNotesRef.current = notes;
@@ -159,7 +162,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             removeWaitingNote,
             resumePractice,
             seek,
-            waitingForNotesRef
+            waitingForNotesRef,
+            selectedSong,
+            setSelectedSong
         }}>
             {children}
         </GameContext.Provider>

@@ -7,7 +7,7 @@ import { scaleLinear } from 'd3';
 export const ScoreView: React.FC = () => {
     const { toolkit } = useVerovio();
     // Destructure playSizeTicks from GameContext
-    const { isPlaying, setIsPlaying, loadMidiData, playSizeTicks, seek } = useGame();
+    const { isPlaying, setIsPlaying, loadMidiData, playSizeTicks, seek, selectedSong } = useGame();
     const [svg, setSvg] = useState<string>('');
     const containerRef = useRef<HTMLDivElement>(null);
     const stickyContainerRef = useRef<HTMLDivElement>(null);
@@ -98,7 +98,7 @@ export const ScoreView: React.FC = () => {
     }, [isDragging, playSizeTicks, scrollableWidth]);
 
     useEffect(() => {
-        if (!toolkit) return;
+        if (!toolkit || !selectedSong) return;
 
         // Configure for horizontal layout
         const options = {
@@ -114,9 +114,15 @@ export const ScoreView: React.FC = () => {
         };
         toolkit.setOptions(options);
 
-        // Load sample data
-        fetch('/sample.mei')
-            .then(response => response.text())
+        // Load selected song
+        // Ensure path starts with /
+        const path = selectedSong.startsWith('/') ? selectedSong : `/${selectedSong}`;
+
+        fetch(path)
+            .then(response => {
+                if (!response.ok) throw new Error(`Failed to load ${path}`);
+                return response.text();
+            })
             .then(data => {
                 try {
                     toolkit.loadData(data);
@@ -126,7 +132,12 @@ export const ScoreView: React.FC = () => {
                     // Generate MIDI and load into GameContext
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const midiBase64 = (toolkit as any).renderToMIDI();
+                    // Reset MIDI Data first? No, loadMidiData handles replacement.
                     loadMidiData(midiBase64);
+                    // Reset Play Position? loadMidiData sets play position to specific? 
+                    // No, GameContext initializes playPosition but we might want to reset locally?
+                    // GameContext's loadMidiData sets playSize and PlaySizeTicks.
+                    // Ideally we should reset transport?
 
                 } catch (e) {
                     console.error("Verovio render error:", e);
@@ -134,7 +145,7 @@ export const ScoreView: React.FC = () => {
             })
             .catch(err => console.error('Error loading MEI:', err));
 
-    }, [toolkit, loadMidiData]);
+    }, [toolkit, loadMidiData, selectedSong]);
 
     // Calculate Sticky Width and Scrollable Width after SVG render
     useEffect(() => {
