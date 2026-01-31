@@ -239,8 +239,18 @@ export const useMidiFile = () => {
                     return;
                 }
 
-                // Look ahead
-                const CHECK_AHEAD = 20; // ticks
+                // Lookahead Calculation based on Tempo and Poll Interval
+                // We want to ensure our lookahead window acts as a net that catches everything 
+                // between polls, even if the computer lags or tempo is high.
+                const intervalSec = 0.050; // 50ms
+                const currentBpm = Tone.getTransport().bpm.value;
+                const ppq = Tone.getTransport().PPQ;
+                const ticksPerSecond = (currentBpm / 60) * ppq;
+                const ticksPerPoll = ticksPerSecond * intervalSec;
+
+                // Safety factor of 1.5 to ensure overlap between checks
+                const dynamicCheckAhead = Math.max(20, ticksPerPoll * 1.5);
+
                 const OFFSET_TICKS = 1 * 192; // 4 beats count-in
 
                 // 1. Find the Closest Next Target Time
@@ -257,7 +267,7 @@ export const useMidiFile = () => {
                 });
 
                 // 2. If closest tick is imminent, Gather ALL notes at that tick
-                if (closestTick !== Infinity && (closestTick - now) < CHECK_AHEAD) {
+                if (closestTick !== Infinity && (closestTick - now) < dynamicCheckAhead) {
                     // Tolerance for "At that tick" since floating point math
                     // Increased to 15 ticks (~30-40ms) to group humanized chords
                     const TICK_EPSILON = 15;
@@ -278,7 +288,7 @@ export const useMidiFile = () => {
                     const uniqueNotes = Array.from(new Set(notesAtTick));
 
                     if (uniqueNotes.length > 0) {
-                        console.log(`Pausing for notes [${uniqueNotes.join(', ')}] at ${closestTick}`);
+                        console.log(`Pausing for notes [${uniqueNotes.join(', ')}] at ${closestTick} (Lookahead: ${dynamicCheckAhead.toFixed(1)})`);
                         Tone.getTransport().pause();
                         Tone.getTransport().ticks = closestTick;
                         setPlayPosition(closestTick);

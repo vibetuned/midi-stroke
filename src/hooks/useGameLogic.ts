@@ -9,7 +9,7 @@ import { useMidi } from './useMidi';
 // 100ms = 0.1s.
 // Ticks = (0.1 / 0.5) * 192 = 38.4 ticks.
 // Let's use a generous tolerance for now, say 50 ticks.
-const TOLERANCE_TICKS = 100;
+const TOLERANCE_TICKS = 10;
 
 export interface GameLogicState {
     expectedNotes: number[]; // Array of MIDI note numbers
@@ -69,13 +69,21 @@ export function useGameLogic() {
             // Scenario A: Single Note -> Responsive "Hit" Logic (Don't need to hold)
             if (waitingForNotes.length === 1) {
                 const target = waitingForNotes[0];
-                if (lastNote && lastNote.note === target) {
-                    // Check freshness: effectively if this note event happened AFTER we processed the last one?
-                    // Or just if it's "recent" enough? lastNote.timestamp is performance.now()
-                    // We can just check if we already processed this exact timestamp.
-                    if (lastNote.timestamp > lastProcessedTimeRef.current) {
+                const noteData = activeNotes.get(target);
+
+                if (noteData) {
+                    // Check freshness: event timestamp must be > last processed success
+                    if (noteData.timestamp > lastProcessedTimeRef.current) {
                         console.log(`Single Note Hit: ${target}. Resuming.`);
-                        lastProcessedTimeRef.current = lastNote.timestamp;
+                        // Update reference time to NOW, ensuring next check requires even newer input
+                        // Use max of timestamp and now to be safe, though timestamp is from performance.now
+
+                        // We must bump the time to "consume" this key press for this event. 
+                        // If the user holds the key, the next event will see the SAME timestamp, 
+                        // which is <= lastProcessedTimeRef, so it will fail.
+                        // Ideally we use the note's timestamp as the barrier.
+                        lastProcessedTimeRef.current = Math.max(lastProcessedTimeRef.current, noteData.timestamp);
+
                         setFeedback("Good!");
                         resumePractice();
                         setTimeout(() => setFeedback(null), 500);
@@ -83,20 +91,43 @@ export function useGameLogic() {
                 }
             }
             // Scenario B: Chord -> Strict "Hold" Logic (Must hold all notes)
+            // AND at least one of them must be "Fresh" (timestamp > lastProcessed)
+            // This prevents holding a chord from passing multiple identical chords in a row.
             else {
-                // Check if ALL waiting notes are currently present in activeNotes
+                // Check if ALL waiting notes are currently present
                 const allNotesHeld = waitingForNotes.every(note => activeNotes.has(note));
 
                 if (allNotesHeld) {
-                    console.log(`Chord Satisfied! [${waitingForNotes.join(', ')}]. Resuming.`);
-                    // We don't necessarily update lastProcessedTimeRef for chords since it's state-based,
-                    // but we might want to prevent double-triggering if effect runs twice?
-                    // usually resumePractice() clears waitingForNotes promptly.
-                    setFeedback("Good!");
-                    resumePractice();
-                    setTimeout(() => setFeedback(null), 500);
+                    // Check if AT LEAST ONE is fresh. 
+                    // Logic: You can hold 2 notes of a triad and tap the 3rd, it counts.
+                    // Or re-strike the whole chord.
+                    // But if you just hold the previous chord, all timestamps < lastProcessed.
+                    const hasFreshAttack = waitingForNotes.some(note => {
+                        const data = activeNotes.get(note);
+                        return data && data.timestamp > lastProcessedTimeRef.current;
+                    });
+
+                    if (hasFreshAttack) {
+                        console.log(`Chord Satisfied! [${waitingForNotes.join(', ')}]. Resuming.`);
+
+                        // Update barrier to the LATEST timestamp among the held notes
+                        // ensuring next chord requires something newer.
+                        let maxTimestamp = lastProcessedTimeRef.current;
+                        waitingForNotes.forEach(note => {
+                            const data = activeNotes.get(note);
+                            if (data && data.timestamp > maxTimestamp) {
+                                maxTimestamp = data.timestamp;
+                            }
+                        });
+                        lastProcessedTimeRef.current = maxTimestamp;
+
+                        setFeedback("Good!");
+                        resumePractice();
+                        setTimeout(() => setFeedback(null), 500);
+                    }
                 }
             }
+            return;
             return;
         }
 

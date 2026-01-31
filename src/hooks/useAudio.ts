@@ -123,7 +123,7 @@ export function useAudio() {
     }, [isPlaying, tempo, isAudioStarted]);
 
     // Handle Incoming MIDI Notes (Active Notes)
-    const prevNotesRef = useRef<Map<number, number>>(new Map());
+    const prevNotesRef = useRef<Map<number, { velocity: number, timestamp: number }>>(new Map());
 
     useEffect(() => {
         if (!samplerRef.current || !isLoaded) return;
@@ -131,7 +131,8 @@ export function useAudio() {
         const prev = prevNotesRef.current;
 
         // Find newly added or changed notes
-        activeNotes.forEach((velocity, note) => {
+        activeNotes.forEach((data, note) => {
+            const { velocity } = data;
             if (!prev.has(note)) {
                 // Note On
                 if (Tone.getContext().state === 'running') {

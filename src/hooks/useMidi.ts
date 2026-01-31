@@ -10,7 +10,7 @@ export interface MidiNote {
 export function useMidi() {
     const [midiAccess, setMidiAccess] = useState<MIDIAccess | null>(null);
     const [inputs, setInputs] = useState<MIDIInput[]>([]);
-    const [activeNotes, setActiveNotes] = useState<Map<number, number>>(new Map());
+    const [activeNotes, setActiveNotes] = useState<Map<number, { velocity: number, timestamp: number }>>(new Map());
     const [lastNote, setLastNote] = useState<MidiNote | null>(null);
 
     const handleMidiMessage = useCallback((event: MIDIMessageEvent) => {
@@ -25,7 +25,7 @@ export function useMidi() {
         if (command === 144 && velocity > 0) {
             setActiveNotes(prev => {
                 const next = new Map(prev);
-                next.set(note, velocity);
+                next.set(note, { velocity, timestamp: performance.now() });
                 return next;
             });
             setLastNote({ note, velocity, channel, timestamp: performance.now() });
