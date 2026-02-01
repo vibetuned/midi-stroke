@@ -35,8 +35,8 @@ export const ScoreView: React.FC = () => {
         if (isDragging.current && containerRef.current && playSizeTicks > 0 && scrollableWidth > 0) {
             const scrollLeft = containerRef.current.scrollLeft;
 
-            // Offset for sticky measure (4 beats count-in)
-            const offsetTicks = 1 * 192;
+            // Offset for sticky measure (2 beats count-in)
+            const offsetTicks = 2 * 192;
 
             // Global Scale: Map effective Time -> Effective Width
             // Domain: [0, playSizeTicks - offsetTicks] (Musical duration of scrolling part)
@@ -65,8 +65,8 @@ export const ScoreView: React.FC = () => {
 
         const loop = () => {
             if (containerRef.current && !isDragging.current && playSizeTicks > 0 && scrollableWidth > 0) {
-                // Offset for sticky measure (4 beats count-in)
-                const offsetTicks = 1 * 192;
+                // Offset for sticky measure (2 beats count-in)
+                const offsetTicks = 2 * 192;
 
                 const currentTicks = Tone.getTransport().ticks; // Current musical position
 
@@ -132,12 +132,7 @@ export const ScoreView: React.FC = () => {
                     // Generate MIDI and load into GameContext
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const midiBase64 = (toolkit as any).renderToMIDI();
-                    // Reset MIDI Data first? No, loadMidiData handles replacement.
                     loadMidiData(midiBase64);
-                    // Reset Play Position? loadMidiData sets play position to specific? 
-                    // No, GameContext initializes playPosition but we might want to reset locally?
-                    // GameContext's loadMidiData sets playSize and PlaySizeTicks.
-                    // Ideally we should reset transport?
 
                 } catch (e) {
                     console.error("Verovio render error:", e);
@@ -218,13 +213,6 @@ export const ScoreView: React.FC = () => {
                         dangerouslySetInnerHTML={{ __html: svg }}
                         style={{
                             height: '100%',
-                            // We don't need padding here because this div is ALREADY at 5vw.
-                            // So the SVG should start at 0 inside this div.
-                            // BUT our main SVG has padding-left: 5vw? 
-                            // No, the main CONTAINER has valid SVG.
-                            // If we render pure SVG here, it starts at 0.
-                            // Wait, the main view logic below says paddingLeft: 5vw.
-                            // If sticky is at left: 5vw, then inside it SVG starts at 0.
                             display: 'inline-block'
                         }}
                     />
@@ -271,13 +259,7 @@ export const ScoreView: React.FC = () => {
                         dangerouslySetInnerHTML={{ __html: svg }}
                         style={{
                             height: '100%',
-                            paddingLeft: '5vw', // Start at hit line visually? 
-                            // Actually if we want Sticky M0 to align with "Real" M0 at start:
-                            // Sticky M0 is at Left:5vw.
-                            // Real M0 starts at PaddingLeft:5vw.
-                            // So they overlap perfectly initially.
-                            // When we scroll, Real M0 moves left. Sticky stays. 
-                            // Correct.
+                            paddingLeft: '5vw',
                             display: 'inline-block',
                             pointerEvents: 'none'
                         }}

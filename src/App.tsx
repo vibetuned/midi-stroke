@@ -26,7 +26,7 @@ const GameContent = () => {
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Piano Verovio Game</h1>
+        <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Midi Stroke</h1>
         {selectedSong && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>

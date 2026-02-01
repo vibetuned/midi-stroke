@@ -18,10 +18,18 @@ export const VirtualPiano: React.FC = () => {
     for (let i = min; i <= max; i++) {
         const isBlack = [1, 3, 6, 8, 10].includes(i % 12);
         const isActive = activeNotes.has(i);
-        const isExpected = expectedNotes.includes(i);
+        // Find if this note is expected and get its track info
+        const expectedData = expectedNotes.find(e => e.note === i);
+        const isExpected = !!expectedData;
+
+        let borderColor = 'none';
+        if (isExpected && expectedData) {
+            borderColor = expectedData.trackIndex % 2 === 0 ? '#51A0CF' : '#A351CF';
+        }
+
         const noteName = Tone.Frequency(i, "midi").toNote(); // e.g., C4
 
-        keys.push({ note: i, isBlack, isActive, isExpected, noteName });
+        keys.push({ note: i, isBlack, isActive, isExpected, borderColor, noteName });
     }
 
     return (
@@ -46,6 +54,14 @@ export const VirtualPiano: React.FC = () => {
                     const hasBlack = (nextNote <= max) && [1, 3, 6, 8, 10].includes(nextNote % 12);
                     const blackActive = activeNotes.has(nextNote);
 
+                    // Black key expected check
+                    const blackExpectedData = expectedNotes.find(e => e.note === nextNote);
+                    const blackExpected = !!blackExpectedData;
+                    let blackBorderColor = 'none';
+                    if (blackExpected && blackExpectedData) {
+                        blackBorderColor = blackExpectedData.trackIndex % 2 === 0 ? '#51A0CF' : '#A351CF';
+                    }
+
                     return (
                         <div key={key.note} style={{ position: 'relative', height: '100%', margin: '0 1px' }}>
                             {/* White Key */}
@@ -53,7 +69,7 @@ export const VirtualPiano: React.FC = () => {
                                 width: '24px',
                                 height: '100%',
                                 background: key.isActive ? 'var(--color-accent)' : '#fff',
-                                border: key.isExpected ? '2px solid var(--color-accent)' : 'none',
+                                border: key.isExpected ? `2px solid ${key.borderColor}` : 'none',
                                 boxSizing: 'border-box',
                                 borderRadius: '0 0 4px 4px'
                             }} />
@@ -67,7 +83,7 @@ export const VirtualPiano: React.FC = () => {
                                     width: '16px',
                                     height: '60%',
                                     background: blackActive ? 'var(--color-accent)' : '#000',
-                                    border: expectedNotes.includes(nextNote) ? '2px solid var(--color-accent)' : 'none',
+                                    border: blackExpected ? `2px solid ${blackBorderColor}` : 'none',
                                     boxSizing: 'border-box',
                                     zIndex: 10,
                                     borderRadius: '0 0 2px 2px'

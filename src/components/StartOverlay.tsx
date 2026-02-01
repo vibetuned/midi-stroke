@@ -28,7 +28,7 @@ export const StartOverlay: React.FC = () => {
             justifyContent: 'center',
             backdropFilter: 'blur(5px)'
         }}>
-            <h1 style={{ marginBottom: '2rem', color: 'white' }}>Piano Verovio Game</h1>
+            <h1 style={{ marginBottom: '2rem', color: 'white' }}>Midi Stroke</h1>
             <button
                 onClick={handleStart}
                 style={{

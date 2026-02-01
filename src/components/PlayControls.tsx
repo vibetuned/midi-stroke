@@ -2,7 +2,7 @@ import { useGame } from '../context/GameContext';
 import * as Tone from 'tone';
 
 export const PlayControls: React.FC = () => {
-    const { isPlaying, setIsPlaying, tempo, setTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, playPosition, setPlayPosition, setWaitingForNotes } = useGame();
+    const { isPlaying, setIsPlaying, tempo, setTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes } = useGame();
 
     const handleReset = () => {
         setIsPlaying(false);

@@ -72,16 +72,6 @@ export function useAudio() {
 
         // 3. Setup Transport Loop
         const loopId = Tone.getTransport().scheduleRepeat((time) => {
-            // We access the REF directly because this closure is created once.
-            // But we need to check the CURRENT value of isMetronomeMuted.
-            // Since we can't easily inject the latest react state into the Tone loop callback without re-creating it,
-            // we will use a muted volume approach or a ref check if we had one.
-            // Actually, the best way for a toggle is to simply set the volume of the synth or mute it.
-            // We'll handle mute in a separate effect.
-
-            // Trigger Kick
-            // Only trigger if not in Practice Mode (User request to remove kick loop for practice)
-            // Or maybe we want metronome in practice? User specifically asked to remove it.
             if (gameMode !== 'practice') {
                 metro.triggerAttackRelease("C1", "8n", time);
             }

@@ -8,11 +8,16 @@ import { useMidi } from './useMidi';
 // 192 ticks per beat.
 // 100ms = 0.1s.
 // Ticks = (0.1 / 0.5) * 192 = 38.4 ticks.
-// Let's use a generous tolerance for now, say 50 ticks.
+// Let's use a generous tolerance for now, say 10 ticks.
 const TOLERANCE_TICKS = 10;
 
+export interface ExpectedNote {
+    note: number;
+    trackIndex: number;
+}
+
 export interface GameLogicState {
-    expectedNotes: number[]; // Array of MIDI note numbers
+    expectedNotes: ExpectedNote[];
     feedback: string | null;
 }
 
@@ -27,37 +32,44 @@ export function useGameLogic() {
     const expectedNotes = useMemo(() => {
         if (!midiData) return [];
 
-        // In Practice Mode, if we are waiting for notes, strictly return those notes.
-        if (gameMode === 'practice' && waitingForNotes.length > 0) {
-            return waitingForNotes;
-        }
-
         const currentTicks = playPosition;
-        const notes: number[] = [];
+        const notes: ExpectedNote[] = [];
 
-        midiData.tracks.forEach(track => {
+        // Helper to check if a note is valid
+        const isNoteValid = (noteStart: number, noteMidi: number) => {
+            // Strict match for practice mode waiting notes
+            if (gameMode === 'practice' && waitingForNotes.length > 0) {
+                const TICK_EPSILON = 20;
+                return waitingForNotes.includes(noteMidi) && Math.abs(noteStart - currentTicks) < TICK_EPSILON;
+            }
+
+            // Standard mode tolerance
+            return noteStart >= currentTicks - TOLERANCE_TICKS && noteStart <= currentTicks + TOLERANCE_TICKS;
+        };
+
+        midiData.tracks.forEach((track, trackIndex) => {
             track.notes.forEach(note => {
-                // Check if note overlaps with current time window
-                // Note ticks are in MIDI PPQ. playPosition is in Tone PPQ.
-                // We must scale MIDI ticks to Tone ticks.
-                // Also apply the 4-beat offset (silence at start).
-                // The MIDI file starts at 0, but playback includes 4 beats of silence.
-                // So a note at MIDI 0 should play when Transport is at 4 * 192.
-                // AdjustedStart = (NoteTicks * Ratio) + Offset
-
-                // Assuming Tone default PPQ is 192.
                 const OFFSET_TICKS = 1 * 192;
                 const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
 
-                // Let's define "Expected to be pressed" as "Starts within tolerance window"
-                if (start >= currentTicks - TOLERANCE_TICKS && start <= currentTicks + TOLERANCE_TICKS) {
-                    notes.push(note.midi);
+                if (isNoteValid(start, note.midi)) {
+                    notes.push({ note: note.midi, trackIndex });
                 }
             });
         });
 
-        // Dedup
-        return Array.from(new Set(notes));
+        if (gameMode === 'practice' && waitingForNotes.length > 0) {
+            const result = notes.filter(n => waitingForNotes.includes(n.note));
+            // Dedup by note+track
+            return result.filter((n, i, self) =>
+                i === self.findIndex(t => t.note === n.note && t.trackIndex === n.trackIndex)
+            );
+        }
+
+        return notes.filter((n, i, self) =>
+            i === self.findIndex(t => t.note === n.note && t.trackIndex === n.trackIndex)
+        );
+
     }, [midiData, playPosition, ppqRatio, gameMode, waitingForNotes]);
 
 
@@ -75,13 +87,6 @@ export function useGameLogic() {
                     // Check freshness: event timestamp must be > last processed success
                     if (noteData.timestamp > lastProcessedTimeRef.current) {
                         console.log(`Single Note Hit: ${target}. Resuming.`);
-                        // Update reference time to NOW, ensuring next check requires even newer input
-                        // Use max of timestamp and now to be safe, though timestamp is from performance.now
-
-                        // We must bump the time to "consume" this key press for this event. 
-                        // If the user holds the key, the next event will see the SAME timestamp, 
-                        // which is <= lastProcessedTimeRef, so it will fail.
-                        // Ideally we use the note's timestamp as the barrier.
                         lastProcessedTimeRef.current = Math.max(lastProcessedTimeRef.current, noteData.timestamp);
 
                         setFeedback("Good!");
@@ -90,28 +95,20 @@ export function useGameLogic() {
                     }
                 }
             }
-            // Scenario B: Chord -> Strict "Hold" Logic (Must hold all notes)
-            // AND at least one of them must be "Fresh" (timestamp > lastProcessed)
-            // This prevents holding a chord from passing multiple identical chords in a row.
             else {
                 // Check if ALL waiting notes are currently present
                 const allNotesHeld = waitingForNotes.every(note => activeNotes.has(note));
 
                 if (allNotesHeld) {
-                    // Check if AT LEAST ONE is fresh. 
-                    // Logic: You can hold 2 notes of a triad and tap the 3rd, it counts.
-                    // Or re-strike the whole chord.
-                    // But if you just hold the previous chord, all timestamps < lastProcessed.
                     const hasFreshAttack = waitingForNotes.some(note => {
                         const data = activeNotes.get(note);
                         return data && data.timestamp > lastProcessedTimeRef.current;
                     });
 
                     if (hasFreshAttack) {
+
                         console.log(`Chord Satisfied! [${waitingForNotes.join(', ')}]. Resuming.`);
 
-                        // Update barrier to the LATEST timestamp among the held notes
-                        // ensuring next chord requires something newer.
                         let maxTimestamp = lastProcessedTimeRef.current;
                         waitingForNotes.forEach(note => {
                             const data = activeNotes.get(note);
@@ -135,8 +132,6 @@ export function useGameLogic() {
         if (!lastNote) return;
 
         // Standard Mode Validation
-        // Check if lastNote matches any note in the data at this time
-        // We re-calculate specifically for the hit to be precise
         if (!midiData) return;
 
         const hitTime = playPosition;
@@ -147,10 +142,6 @@ export function useGameLogic() {
             for (const note of track.notes) {
                 // Check pitch
                 if (note.midi !== lastNote.note) continue;
-
-                // Check timing
-                // start is in MIDI Ticks. hitTime is in Tone Ticks.
-                // Scale start to Tone Ticks and add Offset
                 const OFFSET_TICKS = 1 * 192;
                 const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
 
@@ -165,7 +156,6 @@ export function useGameLogic() {
         if (hit) {
             console.log(`Hit! Note: ${lastNote.note} at Ticks: ${hitTime}`);
             setFeedback("Hit!");
-            // Clear feedback after a short delay
             setTimeout(() => setFeedback(null), 1000);
         } else {
             //console.log(`Miss! Note: ${lastNote.note} at Ticks: ${hitTime}`);

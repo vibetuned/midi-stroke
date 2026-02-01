@@ -51,17 +51,11 @@ export const SongSelector: React.FC = () => {
 
     const handleConfirm = () => {
         if (selectedPath && selectedRecord) {
-            // Construct relative path
-            // logic: folder_name = path, filename = level 
-            // We need to form the URL. public/path/name
-            // Fetching /path/name
             const songUrl = `${selectedPath}/${selectedRecord}`;
             setSelectedSong(songUrl);
         }
     };
 
-    // Visibility Logic
-    // Show only if Audio is started (StartOverlay done), Piano is setup, and no song selected yet.
     if (!isAudioStarted || !pianoRange || selectedSong) return null;
 
     return (
@@ -69,8 +63,7 @@ export const SongSelector: React.FC = () => {
             position: 'absolute',
             top: 0, left: 0, right: 0, bottom: 0,
             background: 'rgba(0,0,0,0.95)',
-            zIndex: 150, // Below StartOverlay (1000), Above PlayControls? PianoSetup is 200. 
-            // PianoSetup returns null if setup is done. So this takes over.
+            zIndex: 150,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',

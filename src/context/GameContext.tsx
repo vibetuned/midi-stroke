@@ -64,13 +64,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const resumePractice = useCallback(() => {
         setWaitingForNotes([]);
         waitingForNotesRef.current = [];
-        // Epsilon is 15. We must jump just enough to escape strict equality checks if any.
-        // Actually, reducing to +1 tick to verify if it solves "Skipping Note" issue.
-        // Logic: If closestTick was X. Now is X.
-        // Loop finds next note > X.
-        // If we jump +1, Now is X+1.
-        // Notes at X are ignored. Notes at X+0.something are ignored.
-        // Notes at X+2 are found.
         Tone.getTransport().ticks += 1;
         Tone.getTransport().start();
     }, [setWaitingForNotes]);
@@ -80,17 +73,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         waitingForNotesRef.current = [];
         Tone.getTransport().ticks = ticks;
         setPlayPosition(ticks);
-        // If we were paused for a note, we should probably stay paused transport-wise
-        // until user plays or hits play, but clearing waitingForNotes allows the loop to find the *new* next note.
     }, []);
 
     const removeWaitingNote = useCallback((note: number) => {
-        // We use setWaitingForNotesState directly here because we need previous state calculation
-        // But we must also update the ref!
-        // Actually, removeWaitingNote is NO LONGER USED in the new logic (separate split).
-        // It was used when we removed notes one by one.
-        // We can keep it for safety or remove it.
-        // If we keep it, we need to fix the type error.
         setWaitingForNotesState(prev => {
             const next = prev.filter(n => n !== note);
             waitingForNotesRef.current = next; // Sync ref manually
@@ -181,36 +166,10 @@ export const useGame = () => {
 
 // Hook to manage MIDI File Duration and Limits
 export const useMidiFile = () => {
-    // We access the context via useGame inside the hook if needed, but here we can just pull what we need.
     const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, setWaitingForNotes, waitingForNotes } = useGame();
 
-    // We need to access the Ref directly from the context if exposed, OR we can't fully fix the race condition
-    // unless the Ref is exposed via the Context Value.
-    // However, we didn't expose the Ref in the Interface. 
-    // BUT: setWaitingForNotes updates the ref inside the GameProvider.
-    // AND: We effectively need the LOOP to read the Ref.
-    // The LOOP is defined inside useMidiFile.
-
-    // PROBLEM: useMidiFile DOES NOT have access to 'waitingForNotesRef' from GameContext because it's not in the context value.
-    // We must expose it or move the logic.
-    // Let's modify the Context Interface to expose a way to check if we are waiting synchronously? Or just expose the ref?
-    // Exposing Ref directly in context is fine.
-
-    // For now, let's assume we update the Context Interface below this block.
-    // Wait, I can't update interface in this tool call block effectively if I don't see it.
-    // usage: const { waitingForNotesRef } = useGame();
-
-    // Actually, I should probably split this tool call to update interface first?
-    // No, I can do it in one file.
-
-    // Let's just fix the loop assuming we expose it.
     const { waitingForNotesRef } = useGame();
 
-    // Use Tone.Transport.ticks to track progress.
-    // Removed lastPausedTick as it conflicts with seek/reset operations.
-    // Instead we rely on 'resumePractice' advancing the cursor past the current event.
-
-    // Check Limits Loop & Practice Mode Pausing
     useEffect(() => {
         if (!playSizeTicks || !isPlaying) return;
 
@@ -230,8 +189,7 @@ export const useMidiFile = () => {
 
             // PRACTICE MODE CHECK
             if (gameMode === 'practice' && midiData) {
-                // If we are already waiting, ensure we are paused
-                // Use Ref for synchronous check to avoid race conditions with Interval
+
                 if (waitingForNotesRef.current.length > 0) {
                     if (Tone.getTransport().state !== 'paused') {
                         Tone.getTransport().pause();
@@ -240,8 +198,7 @@ export const useMidiFile = () => {
                 }
 
                 // Lookahead Calculation based on Tempo and Poll Interval
-                // We want to ensure our lookahead window acts as a net that catches everything 
-                // between polls, even if the computer lags or tempo is high.
+
                 const intervalSec = 0.050; // 50ms
                 const currentBpm = Tone.getTransport().bpm.value;
                 const ppq = Tone.getTransport().PPQ;
