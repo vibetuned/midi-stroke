@@ -1,14 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<?xml-model href="https://music-encoding.org/schema/5.1/mei-all.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
-<?xml-model href="https://music-encoding.org/schema/5.1/mei-all.rng" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"?>
 <mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="5.1">
   <meiHead xml:id="m443z7s">
     <fileDesc xml:id="fp0suwa">
       <titleStmt xml:id="ti5gw6f">
-        <title/>
-        <respStmt/>
+        <title />
+        <respStmt />
       </titleStmt>
-      <pubStmt xml:id="p16so3kb"/>
+      <pubStmt xml:id="p16so3kb" />
     </fileDesc>
     <encodingDesc xml:id="e2vphmw">
       <appInfo xml:id="a1si8a2d">
@@ -26,12 +24,12 @@
           <scoreDef xml:id="eogcbyn">
             <staffGrp xml:id="giama5f">
               <staffDef xml:id="P1" n="1" lines="5" ppq="64">
-                <clef xml:id="r1p750by" shape="G" line="2"/>
-                <meterSig xml:id="s14uu4ra" count="4" unit="4"/>
+                <clef xml:id="r1p750by" shape="G" line="2" />
+                <meterSig xml:id="s14uu4ra" count="4" unit="4" />
               </staffDef>
               <staffDef xml:id="P2" n="2" lines="5" ppq="64">
-                <clef xml:id="c1phry7" shape="F" line="4"/>
-                <meterSig xml:id="dpsqg8z" count="4" unit="4"/>
+                <clef xml:id="c1phry7" shape="F" line="4" />
+                <meterSig xml:id="dpsqg8z" count="4" unit="4" />
               </staffDef>
             </staffGrp>
           </scoreDef>
@@ -39,137 +37,137 @@
             <measure n="0">
               <staff n="1">
                 <layer>
-                  <rest dur="4"/>
+                  <rest dur="4" />
                 </layer>
               </staff>
               <staff n="2">
                 <layer>
-                  <rest dur="4"/>
+                  <rest dur="4" />
                 </layer>
               </staff>
             </measure>
             <measure xml:id="t5htvtx" n="1">
               <staff xml:id="cwp9e8k" n="1">
                 <layer>
-                  <note xml:id="e17cen7" dur.ppq="64" dur="4" oct="5" pname="e"/>
-                  <note xml:id="f1xpbe11" dur.ppq="64" dur="4" oct="5" pname="c"/>
-                  <note xml:id="gowqxvy" dur.ppq="64" dur="4" oct="5" pname="g"/>
-                  <note xml:id="hdt00fl" dur.ppq="64" dur="4" oct="5" pname="e"/>
+                  <note xml:id="e17cen7" dur.ppq="64" dur="4" oct="5" pname="e" />
+                  <note xml:id="f1xpbe11" dur.ppq="64" dur="4" oct="5" pname="c" />
+                  <note xml:id="gowqxvy" dur.ppq="64" dur="4" oct="5" pname="g" />
+                  <note xml:id="hdt00fl" dur.ppq="64" dur="4" oct="5" pname="e" />
                 </layer>
               </staff>
               <staff xml:id="nm3g5d1" n="2">
                 <layer>
-                  <note xml:id="p1ske7pv" dur.ppq="128" dur="2" oct="3" pname="c"/>
-                  <note xml:id="q1v5zm7s" dur.ppq="128" dur="2" oct="3" pname="e"/>
+                  <note xml:id="p1ske7pv" dur.ppq="128" dur="2" oct="3" pname="c" />
+                  <note xml:id="q1v5zm7s" dur.ppq="128" dur="2" oct="3" pname="e" />
                 </layer>
               </staff>
-            </measure>
+            <fing staff="1" startid="#e17cen7">4</fing><fing staff="1" startid="#f1xpbe11">2</fing><fing staff="1" startid="#gowqxvy">5</fing><fing staff="1" startid="#hdt00fl">2</fing><fing staff="2" startid="#p1ske7pv">5</fing><fing staff="2" startid="#q1v5zm7s">3</fing></measure>
             <measure xml:id="i1kim95a" n="2">
               <staff xml:id="rp9du9w" n="1">
                 <layer>
-                  <note xml:id="tin038i" dur.ppq="64" dur="4" oct="5" pname="d"/>
-                  <note xml:id="u12wndtm" dur.ppq="64" dur="4" oct="5" pname="e"/>
-                  <note xml:id="v199ec0v" dur.ppq="64" dur="4" oct="5" pname="f"/>
-                  <note xml:id="w1vvv9kb" dur.ppq="64" dur="4" oct="5" pname="d"/>
+                  <note xml:id="tin038i" dur.ppq="64" dur="4" oct="5" pname="d" />
+                  <note xml:id="u12wndtm" dur.ppq="64" dur="4" oct="5" pname="e" />
+                  <note xml:id="v199ec0v" dur.ppq="64" dur="4" oct="5" pname="f" />
+                  <note xml:id="w1vvv9kb" dur.ppq="64" dur="4" oct="5" pname="d" />
                 </layer>
               </staff>
               <staff xml:id="adji2d2" n="2">
                 <layer>
-                  <note xml:id="csc6q9" dur.ppq="256" dur="1" oct="3" pname="g"/>
+                  <note xml:id="csc6q9" dur.ppq="256" dur="1" oct="3" pname="g" />
                 </layer>
               </staff>
-            </measure>
+            <fing staff="1" startid="#tin038i">3</fing><fing staff="1" startid="#u12wndtm">2</fing><fing staff="1" startid="#v199ec0v">3</fing><fing staff="1" startid="#w1vvv9kb">5</fing><fing staff="2" startid="#csc6q9">1</fing></measure>
             <measure xml:id="xm92z4o" n="3">
               <staff xml:id="g1ndff93" n="1">
                 <layer>
-                  <note xml:id="inuid4x" dur.ppq="64" dur="4" oct="5" pname="e"/>
-                  <note xml:id="j1h75y62" dur.ppq="64" dur="4" oct="5" pname="c"/>
-                  <note xml:id="k1u4v6rf" dur.ppq="64" dur="4" oct="5" pname="g"/>
-                  <note xml:id="l1yr2eyl" dur.ppq="64" dur="4" oct="5" pname="e"/>
+                  <note xml:id="inuid4x" dur.ppq="64" dur="4" oct="5" pname="e" />
+                  <note xml:id="j1h75y62" dur.ppq="64" dur="4" oct="5" pname="c" />
+                  <note xml:id="k1u4v6rf" dur.ppq="64" dur="4" oct="5" pname="g" />
+                  <note xml:id="l1yr2eyl" dur.ppq="64" dur="4" oct="5" pname="e" />
                 </layer>
               </staff>
               <staff xml:id="m1b4d0by" n="2">
                 <layer>
-                  <note xml:id="ou0b3ms" dur.ppq="128" dur="2" oct="3" pname="c"/>
-                  <note xml:id="p1gyvd93" dur.ppq="128" dur="2" oct="3" pname="e"/>
+                  <note xml:id="ou0b3ms" dur.ppq="128" dur="2" oct="3" pname="c" />
+                  <note xml:id="p1gyvd93" dur.ppq="128" dur="2" oct="3" pname="e" />
                 </layer>
               </staff>
-            </measure>
+            <fing staff="1" startid="#inuid4x">4</fing><fing staff="1" startid="#j1h75y62">2</fing><fing staff="1" startid="#k1u4v6rf">5</fing><fing staff="1" startid="#l1yr2eyl">2</fing><fing staff="2" startid="#ou0b3ms">5</fing><fing staff="2" startid="#p1gyvd93">3</fing></measure>
             <measure xml:id="m161t3d5" n="4">
               <staff xml:id="v105rvfy" n="1">
                 <layer>
-                  <note xml:id="xrhpsnr" dur.ppq="64" dur="4" oct="5" pname="d"/>
-                  <note xml:id="y104bgaw" dur.ppq="64" dur="4" oct="5" pname="e"/>
-                  <note xml:id="z1mkxnki" dur.ppq="64" dur="4" oct="5" pname="f"/>
-                  <note xml:id="ass6090" dur.ppq="64" dur="4" oct="5" pname="d"/>
+                  <note xml:id="xrhpsnr" dur.ppq="64" dur="4" oct="5" pname="d" />
+                  <note xml:id="y104bgaw" dur.ppq="64" dur="4" oct="5" pname="e" />
+                  <note xml:id="z1mkxnki" dur.ppq="64" dur="4" oct="5" pname="f" />
+                  <note xml:id="ass6090" dur.ppq="64" dur="4" oct="5" pname="d" />
                 </layer>
               </staff>
               <staff xml:id="z83jkb0" n="2">
                 <layer>
-                  <note xml:id="bay3nqw" dur.ppq="256" dur="1" oct="3" pname="g"/>
+                  <note xml:id="bay3nqw" dur.ppq="256" dur="1" oct="3" pname="g" />
                 </layer>
               </staff>
-            </measure>
+            <fing staff="1" startid="#xrhpsnr">3</fing><fing staff="1" startid="#y104bgaw">2</fing><fing staff="1" startid="#z1mkxnki">3</fing><fing staff="1" startid="#ass6090">5</fing><fing staff="2" startid="#bay3nqw">5</fing></measure>
             <measure xml:id="bcanygg" n="5">
               <staff xml:id="k1se9td7" n="1">
                 <layer>
-                  <note xml:id="mnyrmi2" dur.ppq="64" dur="4" oct="5" pname="e"/>
-                  <note xml:id="n1mtuabr" dur.ppq="64" dur="4" oct="5" pname="c"/>
-                  <note xml:id="obp7nxn" dur.ppq="64" dur="4" oct="5" pname="g"/>
-                  <note xml:id="p1ayep8j" dur.ppq="64" dur="4" oct="5" pname="e"/>
+                  <note xml:id="mnyrmi2" dur.ppq="64" dur="4" oct="5" pname="e" />
+                  <note xml:id="n1mtuabr" dur.ppq="64" dur="4" oct="5" pname="c" />
+                  <note xml:id="obp7nxn" dur.ppq="64" dur="4" oct="5" pname="g" />
+                  <note xml:id="p1ayep8j" dur.ppq="64" dur="4" oct="5" pname="e" />
                 </layer>
               </staff>
               <staff xml:id="ll053yc" n="2">
                 <layer>
-                  <note xml:id="nym6m22" dur.ppq="128" dur="2" oct="3" pname="c"/>
-                  <note xml:id="ojs9m01" dur.ppq="128" dur="2" oct="3" pname="e"/>
+                  <note xml:id="nym6m22" dur.ppq="128" dur="2" oct="3" pname="c" />
+                  <note xml:id="ojs9m01" dur.ppq="128" dur="2" oct="3" pname="e" />
                 </layer>
               </staff>
-            </measure>
+            <fing staff="1" startid="#mnyrmi2">4</fing><fing staff="1" startid="#n1mtuabr">2</fing><fing staff="1" startid="#obp7nxn">5</fing><fing staff="1" startid="#p1ayep8j">3</fing><fing staff="2" startid="#nym6m22">1</fing><fing staff="2" startid="#ojs9m01">2</fing></measure>
             <measure xml:id="q5dp9y3" n="6">
               <staff xml:id="zx2cbs1" n="1">
                 <layer>
-                  <note xml:id="b1gkdmjg" dur.ppq="64" dur="4" oct="5" pname="d"/>
-                  <note xml:id="cq4p25i" dur.ppq="64" dur="4" oct="5" pname="e"/>
-                  <note xml:id="d1rwwce9" dur.ppq="64" dur="4" oct="5" pname="f"/>
-                  <note xml:id="e1w5tyzf" dur.ppq="64" dur="4" oct="5" pname="d"/>
+                  <note xml:id="b1gkdmjg" dur.ppq="64" dur="4" oct="5" pname="d" />
+                  <note xml:id="cq4p25i" dur.ppq="64" dur="4" oct="5" pname="e" />
+                  <note xml:id="d1rwwce9" dur.ppq="64" dur="4" oct="5" pname="f" />
+                  <note xml:id="e1w5tyzf" dur.ppq="64" dur="4" oct="5" pname="d" />
                 </layer>
               </staff>
               <staff xml:id="y1e1jx0r" n="2">
                 <layer>
-                  <note xml:id="a12kmiwv" dur.ppq="128" dur="2" oct="3" pname="f"/>
-                  <note xml:id="b16u8t5v" dur.ppq="128" dur="2" oct="3" pname="d"/>
+                  <note xml:id="a12kmiwv" dur.ppq="128" dur="2" oct="3" pname="f" />
+                  <note xml:id="b16u8t5v" dur.ppq="128" dur="2" oct="3" pname="d" />
                 </layer>
               </staff>
-            </measure>
+            <fing staff="1" startid="#b1gkdmjg">2</fing><fing staff="1" startid="#cq4p25i">3</fing><fing staff="1" startid="#d1rwwce9">2</fing><fing staff="1" startid="#e1w5tyzf">4</fing><fing staff="2" startid="#a12kmiwv">3</fing><fing staff="2" startid="#b16u8t5v">5</fing></measure>
             <measure xml:id="f133sx6i" n="7">
               <staff xml:id="o1drxxhx" n="1">
                 <layer>
-                  <note xml:id="q19g7uht" dur.ppq="64" dur="4" oct="5" pname="e"/>
-                  <note xml:id="r1dugulr" dur.ppq="64" dur="4" oct="5" pname="g"/>
-                  <note xml:id="sb257gl" dur.ppq="64" dur="4" oct="5" pname="f"/>
-                  <note xml:id="t1ji991n" dur.ppq="64" dur="4" oct="5" pname="d"/>
+                  <note xml:id="q19g7uht" dur.ppq="64" dur="4" oct="5" pname="e" />
+                  <note xml:id="r1dugulr" dur.ppq="64" dur="4" oct="5" pname="g" />
+                  <note xml:id="sb257gl" dur.ppq="64" dur="4" oct="5" pname="f" />
+                  <note xml:id="t1ji991n" dur.ppq="64" dur="4" oct="5" pname="d" />
                 </layer>
               </staff>
               <staff xml:id="l1gzno2k" n="2">
                 <layer>
-                  <note xml:id="n1j4h3c3" dur.ppq="128" dur="2" oct="3" pname="g"/>
-                  <note xml:id="o1qsvvnm" dur.ppq="128" dur="2" oct="3" pname="g"/>
+                  <note xml:id="n1j4h3c3" dur.ppq="128" dur="2" oct="3" pname="g" />
+                  <note xml:id="o1qsvvnm" dur.ppq="128" dur="2" oct="3" pname="g" />
                 </layer>
               </staff>
-            </measure>
+            <fing staff="1" startid="#q19g7uht">5</fing><fing staff="1" startid="#r1dugulr">3</fing><fing staff="1" startid="#sb257gl">5</fing><fing staff="1" startid="#t1ji991n">3</fing><fing staff="2" startid="#n1j4h3c3">2</fing><fing staff="2" startid="#o1qsvvnm">2</fing></measure>
             <measure xml:id="u14luygt" right="end" n="8">
               <staff xml:id="d56wx0v" n="1">
                 <layer>
-                  <note xml:id="f4hp07q" dur.ppq="256" dur="1" oct="5" pname="c"/>
+                  <note xml:id="f4hp07q" dur.ppq="256" dur="1" oct="5" pname="c" />
                 </layer>
               </staff>
               <staff xml:id="y1toh6c2" n="2">
                 <layer>
-                  <note xml:id="a1wz99v4" dur.ppq="256" dur="1" oct="3" pname="c"/>
+                  <note xml:id="a1wz99v4" dur.ppq="256" dur="1" oct="3" pname="c" />
                 </layer>
               </staff>
-            </measure>
+            <fing staff="1" startid="#f4hp07q">2</fing><fing staff="2" startid="#a1wz99v4">5</fing></measure>
           </section>
         </score>
       </mdiv>
