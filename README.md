@@ -71,6 +71,12 @@ This will create a `localhost+2.pem` and `localhost+2-key.pem` file in the `cert
 
 As we are using self-signed certificates, you will need to add an exception in your browser to allow access to the development server.
 
+If you are using the firewall ufw, you will need to allow the port 5173:
+
+```bash
+sudo ufw allow 5173
+```
+
 ---
 
 > **Note:** For the best experience, ensure your MIDI device is connected before launching the application to allow for automatic hardware detection.
