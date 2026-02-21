@@ -73,7 +73,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         waitingForNotesRef.current = [];
         Tone.getTransport().ticks = ticks;
         setPlayPosition(ticks);
-    }, []);
+    }, [setWaitingForNotes]);
 
     const removeWaitingNote = useCallback((note: number) => {
         setWaitingForNotesState(prev => {
@@ -208,7 +208,7 @@ export const useMidiFile = () => {
                 // Safety factor of 1.5 to ensure overlap between checks
                 const dynamicCheckAhead = Math.max(20, ticksPerPoll * 1.5);
 
-                const OFFSET_TICKS = 1 * 192; // 4 beats count-in
+                const OFFSET_TICKS = 0 * 192; // 4 beats count-in
 
                 // 1. Find the Closest Next Target Time
                 let closestTick = Infinity;
