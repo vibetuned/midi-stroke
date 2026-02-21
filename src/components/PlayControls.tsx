@@ -90,9 +90,22 @@ export const PlayControls: React.FC = () => {
 
             {/* Play/Pause Button */}
             <button
-                onClick={() => {
-                    console.log("Toggling Play state. New state:", !isPlaying);
-                    setIsPlaying(!isPlaying);
+                onClick={async () => {
+                    const nextState = !isPlaying;
+                    console.log("Toggling Play state. New state:", nextState);
+                    setIsPlaying(nextState);
+
+                    if (nextState) {
+                        try {
+                            await Tone.start();
+                            Tone.getTransport().start();
+                        } catch (e) {
+                            console.error("Audio Context blocked:", e);
+                            setIsPlaying(false);
+                        }
+                    } else {
+                        Tone.getTransport().pause();
+                    }
                 }}
                 style={{
                     width: '50px',

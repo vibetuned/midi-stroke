@@ -49,7 +49,7 @@ export function useGameLogic() {
 
         midiData.tracks.forEach((track, trackIndex) => {
             track.notes.forEach(note => {
-                const OFFSET_TICKS = 1 * 192;
+                const OFFSET_TICKS = 0 * 192;
                 const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
 
                 if (isNoteValid(start, note.midi)) {
@@ -142,7 +142,7 @@ export function useGameLogic() {
             for (const note of track.notes) {
                 // Check pitch
                 if (note.midi !== lastNote.note) continue;
-                const OFFSET_TICKS = 1 * 192;
+                const OFFSET_TICKS = 0 * 192;
                 const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
 
                 if (Math.abs(start - hitTime) <= TOLERANCE_TICKS) {

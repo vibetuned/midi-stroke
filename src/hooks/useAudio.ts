@@ -7,7 +7,7 @@ export function useAudio() {
     const samplerRef = useRef<Tone.Sampler | null>(null);
     const metronomeRef = useRef<Tone.MembraneSynth | null>(null);
     const { activeNotes } = useMidi();
-    const { isAudioStarted, isPlaying, tempo, isMetronomeMuted, gameMode } = useGame();
+    const { isAudioStarted, tempo, isMetronomeMuted, gameMode } = useGame();
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Initialize Audio Engine
@@ -98,19 +98,8 @@ export function useAudio() {
     // Handle Transport Play/Pause & Tempo
     useEffect(() => {
         if (!isAudioStarted) return;
-
         Tone.getTransport().bpm.value = tempo;
-
-        if (isPlaying) {
-            if (Tone.getTransport().state !== 'started') {
-                Tone.getTransport().start();
-            }
-        } else {
-            if (Tone.getTransport().state !== 'stopped') {
-                Tone.getTransport().pause();
-            }
-        }
-    }, [isPlaying, tempo, isAudioStarted]);
+    }, [tempo, isAudioStarted]);
 
     // Handle Incoming MIDI Notes (Active Notes)
     const prevNotesRef = useRef<Map<number, { velocity: number, timestamp: number }>>(new Map());
