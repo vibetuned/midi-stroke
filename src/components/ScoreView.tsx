@@ -250,6 +250,28 @@ export const ScoreView: React.FC = () => {
             .then(data => {
                 try {
                     setLoadingMsg('Rendering SVG...');
+
+                    // Parse MEI to find ticksInMeasure
+                    let parsedTicksInMeasure = 768; // default to 4/4
+                    try {
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(data, "text/xml");
+                        const meterSig = xmlDoc.querySelector("meterSig");
+                        if (meterSig) {
+                            const countAttr = meterSig.getAttribute("count");
+                            const unitAttr = meterSig.getAttribute("unit");
+                            if (countAttr && unitAttr) {
+                                const count = parseInt(countAttr, 10);
+                                const unit = parseInt(unitAttr, 10);
+                                if (!isNaN(count) && !isNaN(unit) && unit > 0) {
+                                    parsedTicksInMeasure = count * (4 / unit) * 192;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Error parsing MEI for meterSig:", e);
+                    }
+
                     toolkit.loadData(data);
                     const svgData = toolkit.renderToSVG(1, {});
 
@@ -258,7 +280,7 @@ export const ScoreView: React.FC = () => {
 
                         setTimeout(() => {
                             if (hiddenSvgRef.current) {
-                                processSvgToPixi(svgData, hiddenSvgRef.current);
+                                processSvgToPixi(svgData, hiddenSvgRef.current, parsedTicksInMeasure);
                             }
                         }, 50);
                     }
@@ -279,7 +301,7 @@ export const ScoreView: React.FC = () => {
 
     }, [toolkit, loadMidiData, selectedSong]);
 
-    const processSvgToPixi = async (svgString: string, hiddenDiv: HTMLDivElement) => {
+    const processSvgToPixi = async (svgString: string, hiddenDiv: HTMLDivElement, ticksInMeasureVal: number = 768) => {
         if (!appRef.current) return;
         setLoadingMsg('Slicing Textures...');
         const measures = Array.from(hiddenDiv.querySelectorAll('.system .measure'));
@@ -294,8 +316,7 @@ export const ScoreView: React.FC = () => {
 
         measures.forEach((m, index) => {
             const bbox = m.getBoundingClientRect();
-            // Default 4 beats per measure * 192 ticks/beat = 768
-            const ticksInMeasure = index === 0 ? 0 : 768;
+            const ticksInMeasure = index === 0 ? 0 : ticksInMeasureVal;
 
             mData.push({
                 id: m.id,
