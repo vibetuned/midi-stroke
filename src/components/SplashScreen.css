@@ -1,0 +1,165 @@
+.splash-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: var(--color-bg-primary);
+    background-image: radial-gradient(circle at 50% 50%, rgba(100, 108, 255, 0.1) 0%, transparent 50%);
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+    overflow: hidden;
+}
+
+.splash-title-wrapper {
+    text-align: center;
+    margin-bottom: 4rem;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.splash-title {
+    font-size: 4rem;
+    font-weight: 800;
+    margin: 0;
+    background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -2px;
+}
+
+.splash-subtitle {
+    font-size: 1.2rem;
+    color: #a0a0ab;
+    margin-top: 0.5rem;
+    font-weight: 400;
+}
+
+.splash-cards-container {
+    display: flex;
+    gap: 3rem;
+    perspective: 1000px;
+}
+
+.app-card {
+    position: relative;
+    width: 250px;
+    height: 350px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    animation: fadeInUp 0.8s ease-out backwards;
+}
+
+.app-card:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+.app-card:nth-child(2) {
+    animation-delay: 0.4s;
+}
+
+.app-card:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.app-card:hover {
+    transform: translateY(-15px) scale(1.05);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.app-card:hover:before {
+    opacity: 1;
+}
+
+.card-piano {
+    box-shadow: 0 10px 30px rgba(100, 108, 255, 0.1);
+}
+
+.card-piano:hover {
+    box-shadow: 0 20px 40px rgba(100, 108, 255, 0.3);
+    border-color: rgba(100, 108, 255, 0.4);
+}
+
+.card-drums {
+    box-shadow: 0 10px 30px rgba(245, 87, 108, 0.1);
+}
+
+.card-drums:hover {
+    box-shadow: 0 20px 40px rgba(245, 87, 108, 0.3);
+    border-color: rgba(245, 87, 108, 0.4);
+}
+
+.app-icon {
+    font-size: 5rem;
+    margin-bottom: 2rem;
+    transition: transform 0.3s ease;
+    z-index: 1;
+}
+
+.app-card:hover .app-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.app-name {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: white;
+    z-index: 1;
+}
+
+.app-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(245, 87, 108, 0.2);
+    color: #ff8a98;
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

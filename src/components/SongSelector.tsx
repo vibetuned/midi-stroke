@@ -7,7 +7,7 @@ interface SongFile {
 }
 
 export const SongSelector: React.FC = () => {
-    const { isAudioStarted, pianoRange, selectedSong, setSelectedSong } = useGame();
+    const { isAudioStarted, pianoRange, selectedSong, setSelectedSong, instrument } = useGame();
     const [files, setFiles] = useState<SongFile[]>([]);
     const [availablePaths, setAvailablePaths] = useState<string[]>([]);
     const [selectedPath, setSelectedPath] = useState<string>('');
@@ -17,7 +17,7 @@ export const SongSelector: React.FC = () => {
 
     // Load files.json
     useEffect(() => {
-        fetch('/files.json')
+        fetch(`/${instrument}_files.json`)
             .then(res => res.json())
             .then((data: SongFile[]) => {
                 setFiles(data);
@@ -29,10 +29,10 @@ export const SongSelector: React.FC = () => {
                 setIsLoading(false);
             })
             .catch(err => {
-                console.error("Failed to load song catalog:", err);
+                console.error(`Failed to load ${instrument} song catalog:`, err);
                 setIsLoading(false);
             });
-    }, []);
+    }, [instrument]);
 
     // Filter records when path changes
     useEffect(() => {
@@ -56,7 +56,8 @@ export const SongSelector: React.FC = () => {
         }
     };
 
-    if (!isAudioStarted || !pianoRange || selectedSong) return null;
+    if (!isAudioStarted || selectedSong) return null;
+    if (instrument === 'piano' && !pianoRange) return null;
 
     return (
         <div style={{

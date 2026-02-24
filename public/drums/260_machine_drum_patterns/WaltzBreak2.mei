@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+<mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="5.1">
+  <meiHead>
+    <fileDesc>
+      <titleStmt>
+        <title>WaltzBreak2</title>
+      </titleStmt>
+      <pubStmt/>
+    </fileDesc>
+  </meiHead>
+  <music>
+    <body>
+      <mdiv>
+        <score>
+          <scoreDef>
+            <staffGrp>
+              <staffDef n="1" lines="5" clef.shape="perc">
+                <meterSig xml:id="mc65nicv" count="3" unit="4"/>
+              </staffDef>
+            </staffGrp>
+          </scoreDef>
+          <section>
+            <measure n="0">
+              <staff n="1">
+                <layer>
+                  <rest dur="4"/>
+                </layer>
+              </staff>
+            </measure>
+            <measure n="1">
+              <staff n="1">
+                <layer n="1">
+                  <tuplet num="3" numbase="2">
+                    <note dur="4" breaksec="1" stem.dir="up" pname="c" oct="5"/>
+                    <space dur="8"/>
+                  </tuplet>
+                  <tuplet num="3" numbase="2">
+                    <space dur="8"/>
+                    <note dur="4" breaksec="1" stem.dir="up" pname="g" oct="5" head.shape="x"/>
+                  </tuplet>
+                  <tuplet num="3" numbase="2">
+                    <space dur="8"/>
+                    <space dur="8"/>
+                    <note dur="8" breaksec="1" stem.dir="up" pname="g" oct="5" head.shape="x"/>
+                  </tuplet>
+                  <tuplet num="3" numbase="2">
+                    <space dur="8"/>
+                    <space dur="8"/>
+                    <space dur="8"/>
+                  </tuplet>
+                </layer>
+                <layer n="2">
+                  <tuplet num="3" numbase="2">
+                    <chord dur="4" stem.dir="down">
+                      <note breaksec="1" pname="f" oct="4"/>
+                    </chord>
+                    <space dur="8"/>
+                  </tuplet>
+                  <tuplet num="3" numbase="2">
+                    <space dur="8"/>
+                    <chord dur="4" stem.dir="down">
+                      <note breaksec="1" pname="d" oct="5"/>
+                    </chord>
+                  </tuplet>
+                  <tuplet num="3" numbase="2">
+                    <space dur="8"/>
+                    <space dur="8"/>
+                    <chord dur="8" stem.dir="down">
+                      <note breaksec="1" pname="a" oct="4"/>
+                    </chord>
+                  </tuplet>
+                  <tuplet num="3" numbase="2">
+                    <space dur="8"/>
+                    <space dur="8"/>
+                    <space dur="8"/>
+                  </tuplet>
+                </layer>
+              </staff>
+            </measure>
+          </section>
+        </score>
+      </mdiv>
+    </body>
+  </music>
+</mei>

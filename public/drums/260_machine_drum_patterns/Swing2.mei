@@ -1,0 +1,101 @@
+<?xml version="1.0" ?>
+<mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="5.1">
+  <meiHead>
+    <fileDesc>
+      <titleStmt>
+        <title>Swing2</title>
+      </titleStmt>
+      <pubStmt/>
+    </fileDesc>
+  </meiHead>
+  <music>
+    <body>
+      <mdiv>
+        <score>
+          <scoreDef>
+            <staffGrp>
+              <staffDef n="1" lines="5" clef.shape="perc">
+                <meterSig xml:id="mfuj2otb" count="4" unit="4"/>
+              </staffDef>
+            </staffGrp>
+          </scoreDef>
+          <section>
+            <measure n="0">
+              <staff n="1">
+                <layer>
+                  <rest dur="4"/>
+                </layer>
+              </staff>
+            </measure>
+            <measure n="1">
+              <staff n="1">
+                <layer n="1">
+                  <tuplet num="3" numbase="2">
+                    <note dur="4" breaksec="1" stem.dir="up" pname="a" oct="5" head.shape="x"/>
+                    <space dur="8"/>
+                  </tuplet>
+                  <tuplet num="3" numbase="2">
+                    <beam>
+                      <note dur="4" breaksec="1" stem.dir="up" pname="a" oct="5" head.shape="x">
+                        <artic artic="acc"/>
+                      </note>
+                      <note dur="8" breaksec="1" stem.dir="up" pname="a" oct="5" head.shape="x"/>
+                    </beam>
+                  </tuplet>
+                  <tuplet num="3" numbase="2">
+                    <note dur="4" breaksec="1" stem.dir="up" pname="a" oct="5" head.shape="x"/>
+                    <space dur="8"/>
+                  </tuplet>
+                  <tuplet num="3" numbase="2">
+                    <beam>
+                      <note dur="4" breaksec="1" stem.dir="up" pname="a" oct="5" head.shape="x">
+                        <artic artic="acc"/>
+                      </note>
+                      <note dur="8" breaksec="1" stem.dir="up" pname="a" oct="5" head.shape="x"/>
+                    </beam>
+                  </tuplet>
+                </layer>
+                <layer n="2">
+                  <tuplet num="3" numbase="2">
+                    <chord dur="4" stem.dir="down">
+                      <note breaksec="1" pname="f" oct="4"/>
+                    </chord>
+                    <space dur="8"/>
+                  </tuplet>
+                  <tuplet num="3" numbase="2">
+                    <beam>
+                      <chord dur="4" stem.dir="down">
+                        <note breaksec="1" pname="c" oct="5"/>
+                        <artic artic="acc"/>
+                      </chord>
+                      <chord dur="8" stem.dir="down">
+                        <note breaksec="1" pname="f" oct="4"/>
+                      </chord>
+                    </beam>
+                  </tuplet>
+                  <tuplet num="3" numbase="2">
+                    <chord dur="4" stem.dir="down">
+                      <note breaksec="1" pname="f" oct="4"/>
+                    </chord>
+                    <space dur="8"/>
+                  </tuplet>
+                  <tuplet num="3" numbase="2">
+                    <beam>
+                      <chord dur="4" stem.dir="down">
+                        <note breaksec="1" pname="c" oct="5"/>
+                        <artic artic="acc"/>
+                      </chord>
+                      <chord dur="8" stem.dir="down">
+                        <note breaksec="1" pname="c" oct="5"/>
+                      </chord>
+                    </beam>
+                  </tuplet>
+                </layer>
+              </staff>
+            </measure>
+          </section>
+        </score>
+      </mdiv>
+    </body>
+  </music>
+</mei>

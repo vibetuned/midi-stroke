@@ -1,0 +1,79 @@
+<?xml version="1.0" ?>
+<mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="5.1">
+  <meiHead>
+    <fileDesc>
+      <titleStmt>
+        <title>Cha-ChaMeasureA</title>
+      </titleStmt>
+      <pubStmt/>
+    </fileDesc>
+  </meiHead>
+  <music>
+    <body>
+      <mdiv>
+        <score>
+          <scoreDef>
+            <staffGrp>
+              <staffDef n="1" lines="5" clef.shape="perc">
+                <meterSig xml:id="myqn0oc1" count="4" unit="4"/>
+              </staffDef>
+            </staffGrp>
+          </scoreDef>
+          <section>
+            <measure n="0">
+              <staff n="1">
+                <layer>
+                  <rest dur="4"/>
+                </layer>
+              </staff>
+            </measure>
+            <measure n="1">
+              <staff n="1">
+                <layer n="1">
+                  <beam>
+                    <note dur="8" breaksec="1" stem.dir="up" pname="f" oct="5" head.shape="diamond"/>
+                    <note dur="8" breaksec="1" stem.dir="up" pname="e" oct="5"/>
+                  </beam>
+                  <beam>
+                    <note dur="8" breaksec="1" stem.dir="up" pname="g" oct="5" head.shape="x"/>
+                    <note dur="8" breaksec="1" stem.dir="up" pname="e" oct="5"/>
+                  </beam>
+                  <note dur="4" breaksec="1" stem.dir="up" pname="f" oct="5" head.shape="diamond"/>
+                  <beam>
+                    <note dur="8" breaksec="1" stem.dir="up" pname="g" oct="5" head.shape="x"/>
+                    <note dur="8" breaksec="1" stem.dir="up" pname="a" oct="4"/>
+                  </beam>
+                </layer>
+                <layer n="2">
+                  <chord dur="4" stem.dir="down">
+                    <note breaksec="1" pname="f" oct="4"/>
+                  </chord>
+                  <beam>
+                    <chord dur="8" stem.dir="down">
+                      <note breaksec="1" pname="f" oct="5" head.shape="diamond"/>
+                    </chord>
+                    <chord dur="8" stem.dir="down">
+                      <note breaksec="1" pname="f" oct="4"/>
+                    </chord>
+                  </beam>
+                  <chord dur="4" stem.dir="down">
+                    <note breaksec="1" pname="f" oct="4"/>
+                  </chord>
+                  <beam>
+                    <chord dur="8" stem.dir="down">
+                      <note breaksec="1" pname="f" oct="5" head.shape="diamond"/>
+                      <note breaksec="1" pname="a" oct="4"/>
+                    </chord>
+                    <chord dur="8" stem.dir="down">
+                      <note breaksec="1" pname="f" oct="4"/>
+                    </chord>
+                  </beam>
+                </layer>
+              </staff>
+            </measure>
+          </section>
+        </score>
+      </mdiv>
+    </body>
+  </music>
+</mei>

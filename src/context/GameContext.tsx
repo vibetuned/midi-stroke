@@ -35,11 +35,12 @@ interface GameState {
     waitingForNotesRef: React.MutableRefObject<number[]>;
     selectedSong: string | null;
     setSelectedSong: (song: string | null) => void;
+    instrument: 'piano' | 'drums';
 }
 
 const GameContext = createContext<GameState | undefined>(undefined);
 
-export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' | 'drums' }> = ({ children, instrument = 'piano' }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [tempo, setTempo] = useState(120);
     const [currentMeasure, setCurrentMeasure] = useState(1);
@@ -149,7 +150,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             seek,
             waitingForNotesRef,
             selectedSong,
-            setSelectedSong
+            setSelectedSong,
+            instrument
         }}>
             {children}
         </GameContext.Provider>
@@ -259,3 +261,97 @@ export const useMidiFile = () => {
         return () => clearInterval(interval);
     }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, waitingForNotes, setWaitingForNotes]);
 };
+
+// Hook to manage Drum Loop Duration and Limits
+export const useDrumsMidiFile = () => {
+    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, setWaitingForNotes, waitingForNotes, seek } = useGame();
+
+    const { waitingForNotesRef } = useGame();
+
+    useEffect(() => {
+        if (!playSizeTicks || !isPlaying) return;
+
+        const interval = setInterval(() => {
+            const now = Tone.Transport.ticks;
+            setPlayPosition(now);
+
+            // END OF SONG CHECK
+            if (now >= playSizeTicks) {
+                // Instantly loop back to the start of the pattern (skipping intro measure)
+                seek(192);
+                return;
+            }
+
+            // PRACTICE MODE CHECK
+            if (gameMode === 'practice' && midiData) {
+
+                if (waitingForNotesRef.current.length > 0) {
+                    if (Tone.getTransport().state !== 'paused') {
+                        Tone.getTransport().pause();
+                    }
+                    return;
+                }
+
+                // Lookahead Calculation based on Tempo and Poll Interval
+
+                const intervalSec = 0.050; // 50ms
+                const currentBpm = Tone.getTransport().bpm.value;
+                const ppq = Tone.getTransport().PPQ;
+                const ticksPerSecond = (currentBpm / 60) * ppq;
+                const ticksPerPoll = ticksPerSecond * intervalSec;
+
+                // Safety factor of 1.5 to ensure overlap between checks
+                const dynamicCheckAhead = Math.max(20, ticksPerPoll * 1.5);
+
+                const OFFSET_TICKS = 0 * 192; // 4 beats count-in
+
+                // 1. Find the Closest Next Target Time
+                let closestTick = Infinity;
+
+                midiData.tracks.forEach(track => {
+                    track.notes.forEach(note => {
+                        const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
+                        // Determine if this note is in the future
+                        if (start > now && start < closestTick) {
+                            closestTick = start;
+                        }
+                    });
+                });
+
+                // 2. If closest tick is imminent, Gather ALL notes at that tick
+                if (closestTick !== Infinity && (closestTick - now) < dynamicCheckAhead) {
+                    // Tolerance for "At that tick" since floating point math
+                    // Increased to 15 ticks (~30-40ms) to group humanized chords
+                    const TICK_EPSILON = 15;
+
+                    // Anti-bounce handled by resumePractice jumping forward +16 ticks
+                    const notesAtTick: number[] = [];
+
+                    midiData.tracks.forEach(track => {
+                        track.notes.forEach(note => {
+                            const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
+                            if (Math.abs(start - closestTick) < TICK_EPSILON) {
+                                notesAtTick.push(note.midi);
+                            }
+                        });
+                    });
+
+                    // Remove duplicates
+                    const uniqueNotes = Array.from(new Set(notesAtTick));
+
+                    if (uniqueNotes.length > 0) {
+                        console.log(`Pausing for notes [${uniqueNotes.join(', ')}] at ${closestTick} (Lookahead: ${dynamicCheckAhead.toFixed(1)})`);
+                        Tone.getTransport().pause();
+                        Tone.getTransport().ticks = closestTick;
+                        setPlayPosition(closestTick);
+                        setWaitingForNotes(uniqueNotes);
+                    }
+                }
+            }
+
+        }, 50); // 50ms interval
+
+        return () => clearInterval(interval);
+    }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, waitingForNotes, setWaitingForNotes, seek]);
+};
+

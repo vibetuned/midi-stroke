@@ -14,7 +14,7 @@ interface MeasureData {
 
 export const ScoreView: React.FC = () => {
     const { toolkit } = useVerovio();
-    const { isPlaying, setIsPlaying, loadMidiData, seek, selectedSong, playPosition, setPlayPosition, setWaitingForNotes } = useGame();
+    const { isPlaying, setIsPlaying, loadMidiData, seek, selectedSong, playPosition } = useGame();
 
     const [loadingMsg, setLoadingMsg] = useState<string>('Initializing Engine...');
     const pixiContainerRef = useRef<HTMLDivElement>(null);
@@ -218,7 +218,9 @@ export const ScoreView: React.FC = () => {
 
         app.ticker.add(update);
         return () => {
-            app.ticker.remove(update);
+            if (app.ticker) {
+                app.ticker.remove(update);
+            }
         };
     }, [playPosition]);
 
