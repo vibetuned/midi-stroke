@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useGame } from '../context/GameContext';
 
 interface SongFile {
@@ -14,6 +14,7 @@ export const SongSelector: React.FC = () => {
     const [availableRecords, setAvailableRecords] = useState<string[]>([]);
     const [selectedRecord, setSelectedRecord] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
+    const [isCached, setIsCached] = useState<boolean | null>(null);
 
     // Load files.json
     useEffect(() => {
@@ -49,10 +50,49 @@ export const SongSelector: React.FC = () => {
         }
     }, [selectedPath, files]);
 
+    // Check cache status whenever the selected record changes
+    useEffect(() => {
+        if (!selectedPath || !selectedRecord || !('caches' in window)) {
+            setIsCached(null);
+            return;
+        }
+        const url = `/${selectedPath}/${selectedRecord}`;
+        caches.open('mei-files')
+            .then(cache => cache.match(url))
+            .then(response => setIsCached(!!response))
+            .catch(() => setIsCached(null));
+    }, [selectedPath, selectedRecord]);
+
+    const handleEvict = async () => {
+        if (!selectedPath || !selectedRecord) return;
+        const url = `/${selectedPath}/${selectedRecord}`;
+        const cache = await caches.open('mei-files');
+        await cache.delete(url);
+        setIsCached(false);
+    };
+
+    const handleCacheNow = async () => {
+        if (!selectedPath || !selectedRecord) return;
+        const url = `/${selectedPath}/${selectedRecord}`;
+        const cache = await caches.open('mei-files');
+        const response = await fetch(url);
+        await cache.put(url, response);
+        setIsCached(true);
+    };
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const handleConfirm = () => {
         if (selectedPath && selectedRecord) {
             const songUrl = `${selectedPath}/${selectedRecord}`;
             setSelectedSong(songUrl);
+        }
+    };
+
+    const handleLocalFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSelectedSong(URL.createObjectURL(file));
         }
     };
 
@@ -124,6 +164,46 @@ export const SongSelector: React.FC = () => {
                                 <option key={r} value={r}>{r}</option>
                             ))}
                         </select>
+                        {isCached !== null && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.4rem' }}>
+                                <span style={{ fontSize: '0.85rem', color: '#aaa' }}>
+                                    {isCached ? '💾 Cached offline' : '☁️ Not cached'}
+                                </span>
+                                {isCached ? (
+                                    <button
+                                        onClick={handleEvict}
+                                        title="Remove from cache"
+                                        style={{
+                                            background: 'transparent',
+                                            border: 'none',
+                                            color: '#888',
+                                            fontSize: '1rem',
+                                            cursor: 'pointer',
+                                            lineHeight: 1,
+                                            padding: '0 0.2rem',
+                                        }}
+                                    >
+                                        ✕
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleCacheNow}
+                                        title="Save for offline"
+                                        style={{
+                                            background: 'transparent',
+                                            border: 'none',
+                                            color: '#888',
+                                            fontSize: '1rem',
+                                            cursor: 'pointer',
+                                            lineHeight: 1,
+                                            padding: '0 0.2rem',
+                                        }}
+                                    >
+                                        📥
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <button
@@ -142,6 +222,34 @@ export const SongSelector: React.FC = () => {
                         }}
                     >
                         Start Playing
+                    </button>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '0.5rem 0' }}>
+                        <div style={{ flex: 1, height: '1px', background: '#444' }} />
+                        <span style={{ color: '#666', fontSize: '0.85rem' }}>or</span>
+                        <div style={{ flex: 1, height: '1px', background: '#444' }} />
+                    </div>
+
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".mei"
+                        style={{ display: 'none' }}
+                        onChange={handleLocalFile}
+                    />
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        style={{
+                            padding: '0.8rem',
+                            fontSize: '1rem',
+                            background: 'transparent',
+                            color: '#aaa',
+                            border: '1px solid #444',
+                            borderRadius: '50px',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        Load Local MEI File
                     </button>
                 </div>
             )}

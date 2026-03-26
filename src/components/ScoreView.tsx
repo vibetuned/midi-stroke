@@ -242,7 +242,9 @@ export const ScoreView: React.FC = () => {
         };
         toolkit.setOptions(options);
 
-        const path = selectedSong.startsWith('/') ? selectedSong : `/${selectedSong}`;
+        const path = (selectedSong.startsWith('/') || selectedSong.startsWith('blob:'))
+            ? selectedSong
+            : `/${selectedSong}`;
 
         fetch(path)
             .then(response => {
