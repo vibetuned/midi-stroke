@@ -1,8 +1,63 @@
+import React, { useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
 import * as Tone from 'tone';
 
 export const PlayControls: React.FC = () => {
-    const { isPlaying, setIsPlaying, tempo, setTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes } = useGame();
+    const { isPlaying, setIsPlaying, tempo, setTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek } = useGame();
+
+    // Fix 10: stable refs so the keydown closure never captures stale values
+    const isPlayingRef = useRef(isPlaying);
+    const tempoRef = useRef(tempo);
+    useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+    useEffect(() => { tempoRef.current = tempo; }, [tempo]);
+
+    // Fix 10: global keyboard shortcuts
+    // Space = play/pause, ←/→ = seek ±1 beat, ↑/↓ = tempo ±5 BPM
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Never intercept events from text inputs
+            if (
+                e.target instanceof HTMLInputElement ||
+                e.target instanceof HTMLSelectElement ||
+                e.target instanceof HTMLTextAreaElement
+            ) return;
+
+            switch (e.key) {
+                case ' ':
+                    e.preventDefault();
+                    {
+                        const next = !isPlayingRef.current;
+                        setIsPlaying(next);
+                        if (next) {
+                            Tone.start()
+                                .then(() => Tone.getTransport().start())
+                                .catch(console.error);
+                        } else {
+                            Tone.getTransport().pause();
+                        }
+                    }
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    seek(Math.max(0, Tone.getTransport().ticks - 192));
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    seek(Tone.getTransport().ticks + 192);
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    setTempo(Math.min(120, tempoRef.current + 5));
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    setTempo(Math.max(30, tempoRef.current - 5));
+                    break;
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [setIsPlaying, seek, setTempo]);
 
     const handleReset = () => {
         setIsPlaying(false);

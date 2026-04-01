@@ -12,9 +12,34 @@ interface MeasureData {
     endTick: number;
 }
 
+// Fix 11: ordered loading steps used by the progress dots
+const LOADING_STEPS = ['Loading Score...', 'Rendering SVG...', 'Slicing Textures...'];
+
+// Fix 1: binary search helpers — O(log n) instead of O(n) findIndex
+function findMeasureAtTick(mData: MeasureData[], tick: number): number {
+    let lo = 0, hi = mData.length - 1;
+    while (lo < hi) {
+        const mid = (lo + hi + 1) >> 1;
+        if (mData[mid].startTick <= tick) lo = mid;
+        else hi = mid - 1;
+    }
+    return lo;
+}
+
+function findMeasureAtX(mData: MeasureData[], x: number): number {
+    let lo = 0, hi = mData.length - 1;
+    while (lo < hi) {
+        const mid = (lo + hi + 1) >> 1;
+        if (mData[mid].x <= x) lo = mid;
+        else hi = mid - 1;
+    }
+    return lo;
+}
+
 export const DrumsScoreView: React.FC = () => {
     const { toolkit } = useVerovio();
-    const { isPlaying, setIsPlaying, loadMidiData, seek, selectedSong, playPosition } = useGame();
+    // Fix 7: destructure setSelectedSong for error-recovery back button
+    const { isPlaying, setIsPlaying, loadMidiData, seek, selectedSong, setSelectedSong, playPosition } = useGame();
 
     const [loadingMsg, setLoadingMsg] = useState<string>('Initializing Engine...');
     const pixiContainerRef = useRef<HTMLDivElement>(null);
@@ -30,6 +55,12 @@ export const DrumsScoreView: React.FC = () => {
     useEffect(() => {
         isPlayingRef.current = isPlaying;
     }, [isPlaying]);
+
+    // Fix 3: keep playPosition in a ref so the ticker never needs to be re-registered
+    const playPositionRef = useRef(playPosition);
+    useEffect(() => {
+        playPositionRef.current = playPosition;
+    }, [playPosition]);
 
     // Extracted Measure Data
     const measureDataRef = useRef<MeasureData[]>([]);
@@ -50,7 +81,6 @@ export const DrumsScoreView: React.FC = () => {
                 resolution: window.devicePixelRatio || 1,
             });
             if (isMounted && pixiContainerRef.current) {
-                // Force Canvas to respect CSS bounds and not stretch parent div
                 app.canvas.style.width = '100%';
                 app.canvas.style.height = '100%';
                 app.canvas.style.display = 'block';
@@ -58,17 +88,14 @@ export const DrumsScoreView: React.FC = () => {
                 pixiContainerRef.current.appendChild(app.canvas);
                 appRef.current = app;
 
-                // Create main score container
                 const scrollContainer = new PIXI.Container();
                 app.stage.addChild(scrollContainer);
                 scrollContainerRef.current = scrollContainer;
 
-                // Create cursor
                 const cursor = new PIXI.Graphics();
                 app.stage.addChild(cursor);
                 cursorRef.current = cursor;
 
-                // Add Drag Interactions on the Canvas
                 app.stage.eventMode = 'static';
                 app.stage.hitArea = new PIXI.Rectangle(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
 
@@ -81,11 +108,9 @@ export const DrumsScoreView: React.FC = () => {
                         setIsPlaying(false);
                         Tone.getTransport().pause();
                     }
-                    // We don't drag the scroll container anymore, we just seek to the clicked/dragged position
                     const scale = scaleRef.current;
                     const scoreDisplayWidth = totalWidthRef.current * scale;
                     const offsetX = (window.innerWidth - scoreDisplayWidth) / 2;
-                    // The global X of the score where the user clicked, taking into account the screen offset
                     const targetGlobalX = (e.global.x - offsetX) / scale;
                     seekToGlobalX(targetGlobalX);
                 });
@@ -107,6 +132,7 @@ export const DrumsScoreView: React.FC = () => {
                 });
 
                 const seekToGlobalX = (targetGlobalX: number) => {
+                    // Fix 1: binary search instead of findIndex
                     const mData = measureDataRef.current;
                     let targetTick = 0;
                     if (mData.length > 0) {
@@ -115,28 +141,70 @@ export const DrumsScoreView: React.FC = () => {
                         } else if (targetGlobalX >= mData[mData.length - 1].x + mData[mData.length - 1].width) {
                             targetTick = mData[mData.length - 1].endTick;
                         } else {
-                            const mIndex = mData.findIndex(m => targetGlobalX >= m.x && targetGlobalX <= m.x + m.width);
-                            if (mIndex !== -1) {
-                                const m = mData[mIndex];
-                                const progress = (targetGlobalX - m.x) / m.width;
-                                targetTick = m.startTick + progress * (m.endTick - m.startTick);
-                            }
+                            const mIndex = findMeasureAtX(mData, targetGlobalX);
+                            const m = mData[mIndex];
+                            const progress = (targetGlobalX - m.x) / m.width;
+                            targetTick = m.startTick + progress * (m.endTick - m.startTick);
                         }
                     }
 
-                    // Add offset
-                    const OFFSET_TICKS = 192; // 1 beat count-in
+                    const OFFSET_TICKS = 192;
                     seek(targetTick + OFFSET_TICKS);
                 };
 
-                // Add explicit window resize listener to trigger Pixi layout update
+                // Fix 3: ticker registered here so it runs after the app is live.
+                // Reads playPosition via ref; only redraws the cursor when it has moved.
+                let lastCursorX = -1;
+                const update = () => {
+                    if (!scrollContainerRef.current || !cursorRef.current) return;
+
+                    const scale = scaleRef.current;
+
+                    if (!isDragging.current && measureDataRef.current.length > 0) {
+                        const OFFSET_TICKS = 192;
+                        const scoreTick = playPositionRef.current - OFFSET_TICKS;
+
+                        const mData = measureDataRef.current;
+                        let globalX = 0;
+
+                        if (scoreTick <= 0) {
+                            globalX = mData.length > 1 ? mData[1].x : mData[0].x;
+                        } else if (scoreTick >= mData[mData.length - 1].endTick) {
+                            globalX = mData[mData.length - 1].x + mData[mData.length - 1].width;
+                        } else {
+                            // Fix 1: binary search
+                            const mIndex = findMeasureAtTick(mData, scoreTick);
+                            const m = mData[mIndex];
+                            const progress = (scoreTick - m.startTick) / (m.endTick - m.startTick);
+                            globalX = m.x + progress * m.width;
+                        }
+
+                        const scoreDisplayWidth = totalWidthRef.current * scale;
+                        const offsetX = (window.innerWidth - scoreDisplayWidth) / 2;
+                        const targetCursorX = offsetX + globalX * scale;
+
+                        // Fix 3: skip cursor redraw when position hasn't changed
+                        if (Math.abs(targetCursorX - lastCursorX) > 0.5) {
+                            cursor.clear();
+                            cursor.rect(targetCursorX, 0, 4, app.screen.height);
+                            cursor.fill(0xf5576c);
+                            lastCursorX = targetCursorX;
+                        }
+
+                        // Keep the score centered (no-op once positioned)
+                        if (Math.abs(scrollContainerRef.current.x - offsetX) > 0.5) {
+                            scrollContainerRef.current.x = offsetX;
+                        }
+                    }
+                };
+                app.ticker.add(update);
+
                 const handleResize = () => {
                     if (appRef.current && hiddenSvgRef.current) {
                         // appRef.current.resize();
                     }
                 };
                 window.addEventListener('resize', handleResize);
-
             }
         };
 
@@ -155,71 +223,6 @@ export const DrumsScoreView: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Ticker Loop
-    useEffect(() => {
-        if (!appRef.current) return;
-        const app = appRef.current;
-
-        const update = () => {
-            if (!scrollContainerRef.current || !cursorRef.current) return;
-
-            const scale = scaleRef.current;
-            // (Cursor drawing moved inside the isDragging/measureData check)
-
-            // (Cursor drawing moved inside the isDragging/measureData check)
-
-            if (!isDragging.current && measureDataRef.current.length > 0) {
-                const OFFSET_TICKS = 192; // Match GameContext count-in
-
-                // Use game context's playPosition instead of raw Tone.js ticks
-                // This correctly handles practice mode when tone transport is paused
-                const scoreTick = playPosition - OFFSET_TICKS;
-
-                const mData = measureDataRef.current;
-                let globalX = 0;
-
-                if (mData.length > 0) {
-                    if (scoreTick <= 0) {
-                        globalX = mData.length > 1 ? mData[1].x : mData[0].x;
-                    } else if (scoreTick >= mData[mData.length - 1].endTick) {
-                        globalX = mData[mData.length - 1].x + mData[mData.length - 1].width;
-                    } else {
-                        const mIndex = mData.findIndex(m => scoreTick >= m.startTick && scoreTick < m.endTick);
-                        if (mIndex !== -1) {
-                            const m = mData[mIndex];
-                            const progress = (scoreTick - m.startTick) / (m.endTick - m.startTick);
-                            globalX = m.x + progress * m.width;
-                        } else {
-                            // Fallback if between gaps or exact bounds
-                            globalX = mData[0].x;
-                        }
-                    }
-                }
-
-                // Center the score horizontally
-                const scoreDisplayWidth = totalWidthRef.current * scale;
-                const offsetX = (window.innerWidth - scoreDisplayWidth) / 2;
-
-                // Move the cursor across the static score
-                const targetCursorX = offsetX + globalX * scale;
-                const cursor = cursorRef.current;
-                cursor.clear();
-                cursor.rect(targetCursorX, 0, 4, app.screen.height);
-                cursor.fill(0xf5576c);
-
-                // Keep the score centered horizontally
-                scrollContainerRef.current.x = offsetX;
-            }
-        };
-
-        app.ticker.add(update);
-        return () => {
-            if (app.ticker) {
-                app.ticker.remove(update);
-            }
-        };
-    }, [playPosition]);
-
     // Load Verovio SVG
     useEffect(() => {
         if (!toolkit || !selectedSong) return;
@@ -227,8 +230,8 @@ export const DrumsScoreView: React.FC = () => {
 
         const options = {
             pageWidth: 60000,
-            pageHeight: 1500, // Make it larger since it's a single voice
-            scale: 85, // Scale it up significantly
+            pageHeight: 1500,
+            scale: 85,
             adjustPageHeight: true,
             header: 'none',
             footer: 'none',
@@ -249,8 +252,7 @@ export const DrumsScoreView: React.FC = () => {
                 try {
                     setLoadingMsg('Rendering SVG...');
 
-                    // Parse MEI to find ticksInMeasure
-                    let parsedTicksInMeasure = 768; // default to 4/4
+                    let parsedTicksInMeasure = 768;
                     try {
                         const parser = new DOMParser();
                         const xmlDoc = parser.parseFromString(data, "text/xml");
@@ -276,11 +278,12 @@ export const DrumsScoreView: React.FC = () => {
                     if (hiddenSvgRef.current) {
                         hiddenSvgRef.current.innerHTML = svgData;
 
-                        setTimeout(() => {
+                        // Fix 4/11: requestAnimationFrame instead of arbitrary 50ms setTimeout
+                        requestAnimationFrame(() => {
                             if (hiddenSvgRef.current) {
                                 processSvgToPixi(svgData, hiddenSvgRef.current, parsedTicksInMeasure);
                             }
-                        }, 50);
+                        });
                     }
 
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -308,12 +311,15 @@ export const DrumsScoreView: React.FC = () => {
             return;
         }
 
+        // Fix 4: batch all getBoundingClientRect reads up front
+        const svgOuterBBox = hiddenDiv.querySelector('svg')?.getBoundingClientRect() || { left: 0, width: 0 };
+        const measureBBoxes = measures.map(m => m.getBoundingClientRect());
+
         const mData: MeasureData[] = [];
         let currentTick = 0;
-        const svgOuterBBox = hiddenDiv.querySelector('svg')?.getBoundingClientRect() || { left: 0, width: 0 };
 
         measures.forEach((m, index) => {
-            const bbox = m.getBoundingClientRect();
+            const bbox = measureBBoxes[index];
             const ticksInMeasure = index === 0 ? 0 : ticksInMeasureVal;
 
             mData.push({
@@ -346,7 +352,7 @@ export const DrumsScoreView: React.FC = () => {
         const TEXTURE_HEIGHT = Math.max(200, img.height || 1000);
         const totalW = Math.max(1, img.width || totalWidthRef.current);
 
-        const scaleFactor = Math.min(1.5, appRef.current.screen.height / TEXTURE_HEIGHT); // Allow scaling up slightly more for clarity
+        const scaleFactor = Math.min(1.5, appRef.current.screen.height / TEXTURE_HEIGHT);
         scaleRef.current = scaleFactor;
 
         if (scrollContainerRef.current) {
@@ -370,27 +376,62 @@ export const DrumsScoreView: React.FC = () => {
             scrollContainerRef.current?.addChild(sprite);
         }
 
-        // No sticky container for drums - the cursor stays in the center and the score scrolls past it
-
         if (cursorRef.current) {
             appRef.current.stage.setChildIndex(cursorRef.current, appRef.current.stage.children.length - 1);
         }
 
         setLoadingMsg('');
 
-        const OFFSET_TICKS = 192; // 1 beat count-in
+        const OFFSET_TICKS = 192;
         seek(OFFSET_TICKS);
     };
+
+    // Fix 11: compute step index for progress dots
+    const stepIndex = LOADING_STEPS.indexOf(loadingMsg);
+    const isError = loadingMsg.startsWith('Error');
 
     return (
         <div style={{ position: 'relative', width: '100%', height: '25vh', overflow: 'hidden', background: '#888888', touchAction: 'none' }}>
             {loadingMsg && (
                 <div style={{
                     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    zIndex: 20, color: 'white', background: '#888888'
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 20, color: 'white', background: '#888888',
                 }}>
-                    <h2>{loadingMsg}</h2>
+                    {/* Fix 7: error recovery back button */}
+                    {isError ? (
+                        <>
+                            <h2 style={{ color: '#ff6b6b', marginBottom: '1rem' }}>{loadingMsg}</h2>
+                            <button
+                                onClick={() => { setLoadingMsg(''); setSelectedSong(null); }}
+                                style={{
+                                    padding: '0.6rem 1.4rem',
+                                    background: 'transparent',
+                                    border: '1px solid #ff6b6b',
+                                    color: '#ff6b6b',
+                                    borderRadius: '20px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.95rem',
+                                }}
+                            >
+                                ← Back to Song Selection
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            {/* Fix 11: progress dots */}
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                                {LOADING_STEPS.map((_, i) => (
+                                    <div key={i} style={{
+                                        width: '8px', height: '8px', borderRadius: '50%',
+                                        background: i <= stepIndex ? '#f5576c' : '#555',
+                                        transition: 'background 0.3s',
+                                    }} />
+                                ))}
+                            </div>
+                            <h2>{loadingMsg}</h2>
+                        </>
+                    )}
                 </div>
             )}
 

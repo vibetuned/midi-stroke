@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useGame } from '../context/GameContext';
 import { useGameLogic } from '../hooks/useGameLogic';
 import { useMidi } from '../hooks/useMidi';
 import * as Tone from 'tone';
 
-export const VirtualPiano: React.FC = () => {
+// Fix 5: memo prevents re-renders driven by unrelated GameContext state changes
+// (isPlaying, selectedSong, tempo, etc.) — the component only re-renders when
+// its own hooks (activeNotes, expectedNotes, pianoRange) actually change.
+export const VirtualPiano: React.FC = memo(() => {
     const { pianoRange } = useGame();
     const { activeNotes } = useMidi();
     const { expectedNotes } = useGameLogic();
@@ -165,4 +168,4 @@ export const VirtualPiano: React.FC = () => {
             </div>
         </div>
     );
-};
+});

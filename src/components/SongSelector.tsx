@@ -6,7 +6,14 @@ interface SongFile {
     name: string;
 }
 
-export const SongSelector: React.FC = () => {
+interface SongSelectorProps {
+    // Fix 9: optional dismiss handler — shown as a close button and wired to Escape.
+    // Only provided when a song was already loaded (i.e. user clicked "Change Song"),
+    // so first-launch flow still requires a selection.
+    onDismiss?: () => void;
+}
+
+export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
     const { isAudioStarted, pianoRange, selectedSong, setSelectedSong, instrument } = useGame();
     const [files, setFiles] = useState<SongFile[]>([]);
     const [availablePaths, setAvailablePaths] = useState<string[]>([]);
@@ -80,6 +87,16 @@ export const SongSelector: React.FC = () => {
         setIsCached(true);
     };
 
+    // Fix 9: Escape key to dismiss (only when onDismiss is provided)
+    useEffect(() => {
+        if (!onDismiss) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onDismiss();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onDismiss]);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleConfirm = () => {
@@ -111,6 +128,32 @@ export const SongSelector: React.FC = () => {
             justifyContent: 'center',
             color: 'white'
         }}>
+            {/* Fix 9: close button — only rendered when a song was already active */}
+            {onDismiss && (
+                <button
+                    onClick={onDismiss}
+                    title="Cancel (Esc)"
+                    style={{
+                        position: 'absolute',
+                        top: '1rem',
+                        right: '1rem',
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '50%',
+                        border: '1px solid #555',
+                        background: 'transparent',
+                        color: '#aaa',
+                        fontSize: '1.1rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        lineHeight: 1,
+                    }}
+                >
+                    ✕
+                </button>
+            )}
             <h2 style={{ fontSize: '2rem', marginBottom: '2rem' }}>🎵 Select Music</h2>
 
             {isLoading ? (

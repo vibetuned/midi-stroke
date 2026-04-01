@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DrumsScoreView } from './DrumsScoreView';
 import { VirtualDrums } from './VirtualDrums';
 import { MidiStatus } from './MidiStatus';
@@ -20,10 +20,23 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
     useGameLogic();
     const { selectedSong, setSelectedSong } = useGame();
 
+    // Fix 9: same dismiss pattern as PianoApp
+    const [prevSong, setPrevSong] = useState<string | null>(null);
+
+    const handleChangeSong = () => {
+        setPrevSong(selectedSong);
+        setSelectedSong(null);
+    };
+
+    const handleDismissSelector = () => {
+        setSelectedSong(prevSong);
+        setPrevSong(null);
+    };
+
     return (
         <div className="app-container theme-drums">
             <StartOverlay />
-            <SongSelector />
+            <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
 
             <header style={{
                 padding: '1rem',
@@ -62,7 +75,7 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
                             {selectedSong.split('/').pop()}
                         </span>
                         <button
-                            onClick={() => setSelectedSong(null)}
+                            onClick={handleChangeSong}
                             style={{
                                 padding: '0.5rem 1rem',
                                 background: '#444',

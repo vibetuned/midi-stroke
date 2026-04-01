@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScoreView } from './ScoreView';
 import { MidiStatus } from './MidiStatus';
 import { PlayControls } from './PlayControls';
@@ -19,11 +19,25 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
     useMidiFile();
     const { selectedSong, setSelectedSong } = useGame();
 
+    // Fix 9: track the song that was loaded before "Change Song" was clicked so
+    // SongSelector can offer a dismiss/cancel that restores it.
+    const [prevSong, setPrevSong] = useState<string | null>(null);
+
+    const handleChangeSong = () => {
+        setPrevSong(selectedSong);
+        setSelectedSong(null);
+    };
+
+    const handleDismissSelector = () => {
+        setSelectedSong(prevSong);
+        setPrevSong(null);
+    };
+
     return (
         <div className="app-container">
             <StartOverlay />
             <PianoSetup />
-            <SongSelector />
+            <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
             <header style={{
                 padding: '1rem',
                 borderBottom: '1px solid var(--color-bg-secondary)',
@@ -61,7 +75,7 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
                             {selectedSong.split('/').pop()}
                         </span>
                         <button
-                            onClick={() => setSelectedSong(null)}
+                            onClick={handleChangeSong}
                             style={{
                                 padding: '0.5rem 1rem',
                                 background: '#444',
