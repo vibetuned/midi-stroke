@@ -49,22 +49,23 @@ export function useGameLogic() {
         const notes: ExpectedNote[] = [];
 
         // Helper to check if a note is valid
-        const isNoteValid = (noteStart: number, noteMidi: number) => {
+        const isNoteValid = (noteStart: number, noteEnd: number, noteMidi: number) => {
             // Strict match for practice mode waiting notes
             if (gameMode === 'practice' && waitingForNotes.length > 0) {
                 const TICK_EPSILON = 20;
                 return waitingForNotes.includes(noteMidi) && Math.abs(noteStart - currentTicks) < TICK_EPSILON;
             }
 
-            // Standard mode tolerance
-            return noteStart >= currentTicks - TOLERANCE_TICKS && noteStart <= currentTicks + TOLERANCE_TICKS;
+            // Standard mode: note is hittable from slightly before start until it ends
+            return currentTicks >= noteStart - TOLERANCE_TICKS && currentTicks <= noteEnd;
         };
 
         midiData.tracks.forEach((track, trackIndex) => {
             track.notes.forEach(note => {
                 const OFFSET_TICKS = 0 * 192;
                 const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
-                if (isNoteValid(start, note.midi)) {
+                const end = start + (note.durationTicks * ppqRatio);
+                if (isNoteValid(start, end, note.midi)) {
                     notes.push({ note: note.midi, trackIndex });
                 }
             });
@@ -173,8 +174,9 @@ export function useGameLogic() {
                 if (note.midi !== noteToMatch) continue;
                 const OFFSET_TICKS = 0 * 192;
                 const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
+                const end = start + (note.durationTicks * ppqRatio);
 
-                if (Math.abs(start - hitTime) <= TOLERANCE_TICKS) {
+                if (hitTime >= start - TOLERANCE_TICKS && hitTime <= end) {
                     hit = true;
                     break;
                 }
