@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useGame } from '../context/GameContext';
-import { useMidi } from './useMidi';
+import { useStats } from '../context/StatsContext';
+import { useMidi, MIDI_PAD_MAP } from './useMidi';
 
 // Tolerance in ticks (approx 100ms at 120bpm is ~192 ticks, but depends on PPQ)
 // Let's assume standard PPQ 192 (Tone default).
@@ -22,11 +23,23 @@ export interface GameLogicState {
 }
 
 export function useGameLogic() {
-    const { midiData, playPosition, ppqRatio, gameMode, waitingForNotes, resumePractice } = useGame();
+    const { midiData, playPosition, ppqRatio, gameMode, waitingForNotes, resumePractice, isPlaying, selectedSong, instrument } = useGame();
     const { lastNote, activeNotes } = useMidi();
+    const { recordHit, recordWrong, recordGood } = useStats();
+
     const [feedback, setFeedback] = useState<string | null>(null);
     const lastProcessedTimeRef = useRef<number>(0);
+    // Tracks the last wrong-note timestamp in practice mode.
+    // Gated against lastProcessedTimeRef so notes that were part of a
+    // successful "Good!" can never be re-counted as wrong on the next pause.
+    const lastWrongTimeRef = useRef<number>(0);
+    // Deduplicates standard-mode events: activeNotes dep causes the effect to
+    // re-fire on every note-off, but lastNote stays the same → without this
+    // guard a single key press would score once per subsequent note release.
+    const lastProcessedStandardRef = useRef<number>(0);
 
+    // Derive a stable display name from the song path
+    const songName = selectedSong ? (selectedSong.split('/').pop() ?? selectedSong) : '';
 
     // Calculate expected notes based on current play position
     const expectedNotes = useMemo(() => {
@@ -51,7 +64,6 @@ export function useGameLogic() {
             track.notes.forEach(note => {
                 const OFFSET_TICKS = 0 * 192;
                 const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
-                console.log(`Checking note ${note.midi} at ticks ${start} against play position ${currentTicks}`);
                 if (isNoteValid(start, note.midi)) {
                     notes.push({ note: note.midi, trackIndex });
                 }
@@ -78,6 +90,19 @@ export function useGameLogic() {
         // Practice Mode Validation
         if (gameMode === 'practice' && waitingForNotes.length > 0) {
 
+            // Wrong note while waiting — count it but don't block resumption.
+            // Must be newer than BOTH the wrong-gate AND the last successful
+            // interaction so held/lingering correct notes from the previous
+            // "Good!" don't get miscounted on the next pause.
+            if (lastNote && selectedSong
+                && lastNote.timestamp > lastWrongTimeRef.current
+                && lastNote.timestamp > lastProcessedTimeRef.current) {
+                if (!waitingForNotes.includes(lastNote.note)) {
+                    lastWrongTimeRef.current = lastNote.timestamp;
+                    recordWrong(selectedSong, songName, 'practice');
+                }
+            }
+
             // Scenario A: Single Note -> Responsive "Hit" Logic (Don't need to hold)
             if (waitingForNotes.length === 1) {
                 const target = waitingForNotes[0];
@@ -86,9 +111,9 @@ export function useGameLogic() {
                 if (noteData) {
                     // Check freshness: event timestamp must be > last processed success
                     if (noteData.timestamp > lastProcessedTimeRef.current) {
-                        console.log(`Single Note Hit: ${target}. Resuming.`);
                         lastProcessedTimeRef.current = Math.max(lastProcessedTimeRef.current, noteData.timestamp);
 
+                        if (selectedSong) recordGood(selectedSong, songName);
                         setFeedback("Good!");
                         resumePractice();
                         setTimeout(() => setFeedback(null), 500);
@@ -106,9 +131,6 @@ export function useGameLogic() {
                     });
 
                     if (hasFreshAttack) {
-
-                        console.log(`Chord Satisfied! [${waitingForNotes.join(', ')}]. Resuming.`);
-
                         let maxTimestamp = lastProcessedTimeRef.current;
                         waitingForNotes.forEach(note => {
                             const data = activeNotes.get(note);
@@ -118,6 +140,7 @@ export function useGameLogic() {
                         });
                         lastProcessedTimeRef.current = maxTimestamp;
 
+                        if (selectedSong) recordGood(selectedSong, songName);
                         setFeedback("Good!");
                         resumePractice();
                         setTimeout(() => setFeedback(null), 500);
@@ -125,23 +148,29 @@ export function useGameLogic() {
                 }
             }
             return;
-            return;
         }
 
-        // Standard Mode Validation (stays event-based via lastNote)
-        if (!lastNote) return;
+        // Practice mode: don't fall through to standard mode scoring
+        if (gameMode === 'practice') return;
 
-        // Standard Mode Validation
+        // Standard Mode Validation (event-based via lastNote)
+        if (!lastNote) return;
         if (!midiData) return;
+        // Only score when the transport is actually playing
+        if (!isPlaying) return;
+        if (!selectedSong) return;
+        // activeNotes is a dep so the effect re-fires on every note-off while
+        // lastNote stays the same — skip if we already scored this key press.
+        if (lastNote.timestamp <= lastProcessedStandardRef.current) return;
+        lastProcessedStandardRef.current = lastNote.timestamp;
 
         const hitTime = playPosition;
         let hit = false;
+        const noteToMatch = instrument === 'drums' ? (MIDI_PAD_MAP[lastNote.note] ?? lastNote.note) : lastNote.note;
 
-        // Check all tracks
         for (const track of midiData.tracks) {
             for (const note of track.notes) {
-                // Check pitch
-                if (note.midi !== lastNote.note) continue;
+                if (note.midi !== noteToMatch) continue;
                 const OFFSET_TICKS = 0 * 192;
                 const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
 
@@ -154,15 +183,17 @@ export function useGameLogic() {
         }
 
         if (hit) {
-            console.log(`Hit! Note: ${lastNote.note} at Ticks: ${hitTime}`);
+            recordHit(selectedSong, songName);
             setFeedback("Hit!");
             setTimeout(() => setFeedback(null), 1000);
         } else {
-            //console.log(`Miss! Note: ${lastNote.note} at Ticks: ${hitTime}`);
-            // Optional: setFeedback("Miss");
+            recordWrong(selectedSong, songName, 'rhythm');
+            setFeedback("Miss!");
+            setTimeout(() => setFeedback(null), 500);
         }
 
-    }, [lastNote, activeNotes, midiData, playPosition, gameMode, waitingForNotes, resumePractice, ppqRatio]);
+    }, [lastNote, activeNotes, midiData, playPosition, gameMode, waitingForNotes, resumePractice, ppqRatio,
+        isPlaying, selectedSong, songName, instrument, recordHit, recordWrong, recordGood]);
 
     return { expectedNotes, feedback };
 }

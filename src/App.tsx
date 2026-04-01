@@ -3,6 +3,7 @@ import { SplashScreen } from './components/SplashScreen';
 import { DrumsApp } from './components/DrumsApp';
 import { PianoApp } from './components/PianoApp';
 import { GameProvider } from './context/GameContext';
+import { StatsProvider } from './context/StatsContext';
 
 function App() {
   const [currentApp, setCurrentApp] = useState<'splash' | 'piano' | 'drums'>('splash');
@@ -11,19 +12,24 @@ function App() {
     return <SplashScreen onSelectApp={setCurrentApp} />;
   }
 
+  // StatsProvider wraps both instruments so stats persist across switches
   if (currentApp === 'drums') {
     return (
-      <GameProvider instrument="drums">
-        <DrumsApp onBack={() => setCurrentApp('splash')} />
-      </GameProvider>
+      <StatsProvider>
+        <GameProvider instrument="drums">
+          <DrumsApp onBack={() => setCurrentApp('splash')} />
+        </GameProvider>
+      </StatsProvider>
     );
   }
 
   return (
-    <GameProvider instrument="piano">
-      <PianoApp onBack={() => setCurrentApp('splash')} />
-    </GameProvider>
-  )
+    <StatsProvider>
+      <GameProvider instrument="piano">
+        <PianoApp onBack={() => setCurrentApp('splash')} />
+      </GameProvider>
+    </StatsProvider>
+  );
 }
 
 export default App

@@ -293,8 +293,8 @@ const MEI_TO_PAD: Record<number, number> = {
     72: 38, // SnareDrum   (c5)
     79: 42, // ClosedHiHat (g5)
     81: 49, // Cymbal      (a5)
-    69: 41, // LowTom      (a4)
-    74: 45, // MediumTom   (d5)
+    69: 43, // LowTom      (a4)
+    74: 47, // MediumTom   (d5)
     76: 48, // HighTom     (e5)
 };
 

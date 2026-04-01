@@ -9,7 +9,7 @@ export interface MidiNote {
 
 // Maps pad MIDI note → MEI-derived MIDI note (from pname+oct in DRUM_MAP)
 // Formula: (oct + 1) * 12 + semitone, where C=0 D=2 E=4 F=5 G=7 A=9 B=11
-const MIDI_PAD_MAP: Record<number, number> = {
+export const MIDI_PAD_MAP: Record<number, number> = {
     36: 65, // BassDrum    f4
     38: 72, // SnareDrum   c5
     37: 72, // RimShot     c5
