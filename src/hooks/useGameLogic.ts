@@ -51,7 +51,7 @@ export function useGameLogic() {
             track.notes.forEach(note => {
                 const OFFSET_TICKS = 0 * 192;
                 const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
-
+                console.log(`Checking note ${note.midi} at ticks ${start} against play position ${currentTicks}`);
                 if (isNoteValid(start, note.midi)) {
                     notes.push({ note: note.midi, trackIndex });
                 }

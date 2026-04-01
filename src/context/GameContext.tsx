@@ -262,6 +262,18 @@ export const useMidiFile = () => {
     }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, waitingForNotes, setWaitingForNotes]);
 };
 
+// MEI pitch-based MIDI note → primary pad MIDI note
+// Verovio renders drum notes as pitched MIDI (f4=65, c5=72, etc.)
+const MEI_TO_PAD: Record<number, number> = {
+    65: 36, // BassDrum    (f4)
+    72: 38, // SnareDrum   (c5)
+    79: 42, // ClosedHiHat (g5)
+    81: 49, // Cymbal      (a5)
+    69: 41, // LowTom      (a4)
+    74: 45, // MediumTom   (d5)
+    76: 48, // HighTom     (e5)
+};
+
 // Hook to manage Drum Loop Duration and Limits
 export const useDrumsMidiFile = () => {
     const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, setWaitingForNotes, waitingForNotes, seek } = useGame();
@@ -278,7 +290,7 @@ export const useDrumsMidiFile = () => {
             // END OF SONG CHECK
             if (now >= playSizeTicks) {
                 // Instantly loop back to the start of the pattern (skipping intro measure)
-                seek(192);
+                seek(144);
                 return;
             }
 
@@ -303,7 +315,7 @@ export const useDrumsMidiFile = () => {
                 // Safety factor of 1.5 to ensure overlap between checks
                 const dynamicCheckAhead = Math.max(20, ticksPerPoll * 1.5);
 
-                const OFFSET_TICKS = 0 * 192; // 4 beats count-in
+                const OFFSET_TICKS = 0 * 144; // 4 beats count-in
 
                 // 1. Find the Closest Next Target Time
                 let closestTick = Infinity;
@@ -331,7 +343,8 @@ export const useDrumsMidiFile = () => {
                         track.notes.forEach(note => {
                             const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
                             if (Math.abs(start - closestTick) < TICK_EPSILON) {
-                                notesAtTick.push(note.midi);
+                                const padNote = MEI_TO_PAD[note.midi];
+                                if (padNote !== undefined) notesAtTick.push(padNote);
                             }
                         });
                     });

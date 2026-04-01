@@ -5,6 +5,7 @@ import { MidiStatus } from './MidiStatus';
 import { PlayControls } from './PlayControls';
 import { useDrumsMidiFile, useGame } from '../context/GameContext';
 import { useAudio } from '../hooks/useAudio';
+import { useGameLogic } from '../hooks/useGameLogic';
 import { StartOverlay } from './StartOverlay';
 import { SongSelector } from './SongSelector';
 
@@ -16,6 +17,7 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
     // Initialize Audio
     useAudio();
     useDrumsMidiFile();
+    useGameLogic();
     const { selectedSong, setSelectedSong } = useGame();
 
     return (
