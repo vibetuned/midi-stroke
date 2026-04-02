@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStats, type ModeStats } from '../context/StatsContext';
 
 interface StatsPanelProps {
     onClose: () => void;
 }
+
+type Tab = 'rhythm' | 'practice';
 
 function accuracy(s: ModeStats): string {
     const correct = s.hits + s.goods;
@@ -53,16 +55,24 @@ const headerCell: React.CSSProperties = {
     borderBottom: '1px solid #444',
 };
 
+const TAB_COLORS: Record<Tab, string> = {
+    rhythm: '#646cff',
+    practice: '#f5576c',
+};
+
 export const StatsPanel: React.FC<StatsPanelProps> = ({ onClose }) => {
     const { getAllStats, clearStats } = useStats();
     const allStats = getAllStats();
+    const [tab, setTab] = useState<Tab>('rhythm');
 
-    // Escape key to close
     useEffect(() => {
         const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
         window.addEventListener('keydown', handler);
         return () => window.removeEventListener('keydown', handler);
     }, [onClose]);
+
+    const accentColor = TAB_COLORS[tab];
+    const correctLabel = tab === 'rhythm' ? 'Hits' : 'Goods';
 
     return (
         <div
@@ -85,7 +95,7 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ onClose }) => {
                     borderRadius: '12px',
                     padding: '1.5rem',
                     width: '100%',
-                    maxWidth: '960px',
+                    maxWidth: '700px',
                     maxHeight: '80vh',
                     overflowY: 'auto',
                     color: 'white',
@@ -133,6 +143,31 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ onClose }) => {
                     </div>
                 </div>
 
+                {/* Tabs */}
+                <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.25rem', borderBottom: '1px solid #333', paddingBottom: '0' }}>
+                    {(['rhythm', 'practice'] as Tab[]).map(t => (
+                        <button
+                            key={t}
+                            onClick={() => setTab(t)}
+                            style={{
+                                padding: '0.4rem 1rem',
+                                background: 'transparent',
+                                border: 'none',
+                                borderBottom: tab === t ? `2px solid ${TAB_COLORS[t]}` : '2px solid transparent',
+                                color: tab === t ? TAB_COLORS[t] : '#666',
+                                fontWeight: tab === t ? 700 : 400,
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                textTransform: 'capitalize',
+                                marginBottom: '-1px',
+                                transition: 'color 0.15s',
+                            }}
+                        >
+                            {t}
+                        </button>
+                    ))}
+                </div>
+
                 {allStats.length === 0 ? (
                     <p style={{ color: '#666', textAlign: 'center', padding: '2rem 0' }}>
                         No data yet — play some songs first!
@@ -142,16 +177,8 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ onClose }) => {
                         <thead>
                             <tr>
                                 <th style={{ ...headerCell, textAlign: 'left' }}>Song</th>
-                                {/* Rhythm columns */}
-                                <th style={{ ...headerCell, color: '#646cff' }}>Rhythm plays</th>
-                                <th style={{ ...headerCell, color: '#4ade80' }}>Hits</th>
-                                <th style={{ ...headerCell, color: '#f87171' }}>Wrong</th>
-                                <th style={{ ...headerCell }}>Acc.</th>
-                                <th style={{ ...headerCell, color: '#fb923c' }}>Max combo</th>
-                                <th style={{ ...headerCell }}>Precision</th>
-                                {/* Practice columns */}
-                                <th style={{ ...headerCell, color: '#f5576c' }}>Practice plays</th>
-                                <th style={{ ...headerCell, color: '#4ade80' }}>Goods</th>
+                                <th style={{ ...headerCell, color: accentColor }}>Plays</th>
+                                <th style={{ ...headerCell, color: '#4ade80' }}>{correctLabel}</th>
                                 <th style={{ ...headerCell, color: '#f87171' }}>Wrong</th>
                                 <th style={{ ...headerCell }}>Acc.</th>
                                 <th style={{ ...headerCell, color: '#fb923c' }}>Max combo</th>
@@ -160,60 +187,44 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ onClose }) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {allStats.map(({ songPath, record }) => (
-                                <tr key={songPath} style={{ background: 'transparent' }}
-                                    onMouseOver={e => (e.currentTarget.style.background = '#222')}
-                                    onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
-                                >
-                                    <td style={{ ...cell, textAlign: 'left', color: '#ccc', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                                        title={songPath}>
-                                        {record.songName}
-                                    </td>
-                                    {/* Rhythm */}
-                                    <td style={{ ...cell, color: '#646cff' }}>{record.rhythm.plays}</td>
-                                    <td style={{ ...cell, color: '#4ade80' }}>{record.rhythm.hits}</td>
-                                    <td style={{ ...cell, color: '#f87171' }}>{record.rhythm.wrongs}</td>
-                                    <td style={{ ...cell, color: accColor(record.rhythm), fontWeight: 700 }}>
-                                        {accuracy(record.rhythm)}
-                                    </td>
-                                    <td style={{ ...cell, color: '#fb923c', fontWeight: 700 }}>
-                                        {record.rhythm.maxCombo > 0 ? `×${record.rhythm.maxCombo}` : '—'}
-                                    </td>
-                                    <td style={{ ...cell, color: precisionColor(record.rhythm), fontWeight: 700 }}>
-                                        {precision(record.rhythm)}
-                                    </td>
-                                    {/* Practice */}
-                                    <td style={{ ...cell, color: '#f5576c' }}>{record.practice.plays}</td>
-                                    <td style={{ ...cell, color: '#4ade80' }}>{record.practice.goods}</td>
-                                    <td style={{ ...cell, color: '#f87171' }}>{record.practice.wrongs}</td>
-                                    <td style={{ ...cell, color: accColor(record.practice), fontWeight: 700 }}>
-                                        {accuracy(record.practice)}
-                                    </td>
-                                    <td style={{ ...cell, color: '#fb923c', fontWeight: 700 }}>
-                                        {record.practice.maxCombo > 0 ? `×${record.practice.maxCombo}` : '—'}
-                                    </td>
-                                    <td style={{ ...cell, color: precisionColor(record.practice), fontWeight: 700 }}>
-                                        {precision(record.practice)}
-                                    </td>
-                                    {/* Clear row */}
-                                    <td style={cell}>
-                                        <button
-                                            onClick={() => clearStats(songPath)}
-                                            title="Clear this song's stats"
-                                            style={{
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: '#555',
-                                                cursor: 'pointer',
-                                                fontSize: '0.85rem',
-                                                padding: '0 0.25rem',
-                                            }}
-                                        >
-                                            ✕
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                            {allStats.map(({ songPath, record }) => {
+                                const m = record[tab];
+                                return (
+                                    <tr key={songPath} style={{ background: 'transparent' }}
+                                        onMouseOver={e => (e.currentTarget.style.background = '#222')}
+                                        onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
+                                    >
+                                        <td style={{ ...cell, textAlign: 'left', color: '#ccc', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                            title={songPath}>
+                                            {record.songName}
+                                        </td>
+                                        <td style={{ ...cell, color: accentColor }}>{m.plays}</td>
+                                        <td style={{ ...cell, color: '#4ade80' }}>{tab === 'rhythm' ? m.hits : m.goods}</td>
+                                        <td style={{ ...cell, color: '#f87171' }}>{m.wrongs}</td>
+                                        <td style={{ ...cell, color: accColor(m), fontWeight: 700 }}>{accuracy(m)}</td>
+                                        <td style={{ ...cell, color: '#fb923c', fontWeight: 700 }}>
+                                            {m.maxCombo > 0 ? `×${m.maxCombo}` : '—'}
+                                        </td>
+                                        <td style={{ ...cell, color: precisionColor(m), fontWeight: 700 }}>{precision(m)}</td>
+                                        <td style={cell}>
+                                            <button
+                                                onClick={() => clearStats(songPath)}
+                                                title="Clear this song's stats"
+                                                style={{
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    color: '#555',
+                                                    cursor: 'pointer',
+                                                    fontSize: '0.85rem',
+                                                    padding: '0 0.25rem',
+                                                }}
+                                            >
+                                                ✕
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 )}

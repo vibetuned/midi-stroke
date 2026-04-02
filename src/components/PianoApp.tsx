@@ -10,6 +10,7 @@ import { SongSelector } from './SongSelector';
 import { VirtualPiano } from './VirtualPiano';
 import { LiveStats } from './LiveStats';
 import { StatsPanel } from './StatsPanel';
+import { SongMarqueeButton } from './SongMarqueeButton';
 import { useStats } from '../context/StatsContext';
 
 interface PianoAppProps {
@@ -95,31 +96,14 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
                     <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Midi Stroke</h1>
                 </div>
 
-                {/* Live session stats — centre of header */}
-                <LiveStats />
-
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     {selectedSong && (
                         <>
-                            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
-                                {selectedSong.split('/').pop()}
-                            </span>
-                            <button
+                            <LiveStats />
+                            <SongMarqueeButton
+                                songName={selectedSong.split('/').pop() ?? selectedSong}
                                 onClick={handleChangeSong}
-                                style={{
-                                    padding: '0.5rem 1rem',
-                                    background: '#444',
-                                    border: '1px solid #666',
-                                    color: 'white',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    transition: 'background 0.2s'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.background = '#555'}
-                                onMouseOut={(e) => e.currentTarget.style.background = '#444'}
-                            >
-                                Change Song
-                            </button>
+                            />
                         </>
                     )}
                     {/* Stats history button — to the right of Change Song */}
