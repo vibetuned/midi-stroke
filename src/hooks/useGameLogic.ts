@@ -37,6 +37,9 @@ export function useGameLogic() {
     // re-fire on every note-off, but lastNote stays the same → without this
     // guard a single key press would score once per subsequent note release.
     const lastProcessedStandardRef = useRef<number>(0);
+    // True when the current practice note group received at least one wrong
+    // before the correct note — prevents that group from counting toward n/total.
+    const groupWrongedRef = useRef<boolean>(false);
 
     // Derive a stable display name from the song path
     const songName = selectedSong ? (selectedSong.split('/').pop() ?? selectedSong) : '';
@@ -100,6 +103,7 @@ export function useGameLogic() {
                 && lastNote.timestamp > lastProcessedTimeRef.current) {
                 if (!waitingForNotes.includes(lastNote.note)) {
                     lastWrongTimeRef.current = lastNote.timestamp;
+                    groupWrongedRef.current = true;
                     recordWrong(selectedSong, songName, 'practice');
                 }
             }
@@ -114,7 +118,9 @@ export function useGameLogic() {
                     if (noteData.timestamp > lastProcessedTimeRef.current) {
                         lastProcessedTimeRef.current = Math.max(lastProcessedTimeRef.current, noteData.timestamp);
 
-                        if (selectedSong) recordGood(selectedSong, songName);
+                        const firstAttempt = !groupWrongedRef.current;
+                        groupWrongedRef.current = false;
+                        if (selectedSong) recordGood(selectedSong, songName, firstAttempt);
                         setFeedback("Good!");
                         resumePractice();
                         setTimeout(() => setFeedback(null), 500);
@@ -141,7 +147,9 @@ export function useGameLogic() {
                         });
                         lastProcessedTimeRef.current = maxTimestamp;
 
-                        if (selectedSong) recordGood(selectedSong, songName);
+                        const firstAttempt = !groupWrongedRef.current;
+                        groupWrongedRef.current = false;
+                        if (selectedSong) recordGood(selectedSong, songName, firstAttempt);
                         setFeedback("Good!");
                         resumePractice();
                         setTimeout(() => setFeedback(null), 500);
@@ -196,6 +204,12 @@ export function useGameLogic() {
 
     }, [lastNote, activeNotes, midiData, playPosition, gameMode, waitingForNotes, resumePractice, ppqRatio,
         isPlaying, selectedSong, songName, instrument, recordHit, recordWrong, recordGood]);
+
+    // Reset the wronged-flag whenever a new note group arrives so each group
+    // starts with a clean first-attempt slate.
+    useEffect(() => {
+        groupWrongedRef.current = false;
+    }, [waitingForNotes]);
 
     return { expectedNotes, feedback };
 }

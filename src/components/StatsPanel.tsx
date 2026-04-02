@@ -22,6 +22,19 @@ function accColor(s: ModeStats): string {
     return '#f87171';
 }
 
+function precision(s: ModeStats): string {
+    if (s.plays === 0) return '—';
+    return `${Math.round((s.scoreAccum / s.plays) * 100)}%`;
+}
+
+function precisionColor(s: ModeStats): string {
+    if (s.plays === 0) return '#666';
+    const pct = s.scoreAccum / s.plays;
+    if (pct >= 0.8) return '#4ade80';
+    if (pct >= 0.6) return '#facc15';
+    return '#f87171';
+}
+
 const cell: React.CSSProperties = {
     padding: '0.5rem 0.75rem',
     textAlign: 'right',
@@ -72,7 +85,7 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ onClose }) => {
                     borderRadius: '12px',
                     padding: '1.5rem',
                     width: '100%',
-                    maxWidth: '800px',
+                    maxWidth: '960px',
                     maxHeight: '80vh',
                     overflowY: 'auto',
                     color: 'white',
@@ -133,12 +146,16 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ onClose }) => {
                                 <th style={{ ...headerCell, color: '#646cff' }}>Rhythm plays</th>
                                 <th style={{ ...headerCell, color: '#4ade80' }}>Hits</th>
                                 <th style={{ ...headerCell, color: '#f87171' }}>Wrong</th>
-                                <th style={{ ...headerCell }}>Rhythm acc.</th>
+                                <th style={{ ...headerCell }}>Acc.</th>
+                                <th style={{ ...headerCell, color: '#fb923c' }}>Max combo</th>
+                                <th style={{ ...headerCell }}>Precision</th>
                                 {/* Practice columns */}
                                 <th style={{ ...headerCell, color: '#f5576c' }}>Practice plays</th>
                                 <th style={{ ...headerCell, color: '#4ade80' }}>Goods</th>
                                 <th style={{ ...headerCell, color: '#f87171' }}>Wrong</th>
-                                <th style={{ ...headerCell }}>Practice acc.</th>
+                                <th style={{ ...headerCell }}>Acc.</th>
+                                <th style={{ ...headerCell, color: '#fb923c' }}>Max combo</th>
+                                <th style={{ ...headerCell }}>Precision</th>
                                 <th style={{ ...headerCell }}></th>
                             </tr>
                         </thead>
@@ -159,12 +176,24 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ onClose }) => {
                                     <td style={{ ...cell, color: accColor(record.rhythm), fontWeight: 700 }}>
                                         {accuracy(record.rhythm)}
                                     </td>
+                                    <td style={{ ...cell, color: '#fb923c', fontWeight: 700 }}>
+                                        {record.rhythm.maxCombo > 0 ? `×${record.rhythm.maxCombo}` : '—'}
+                                    </td>
+                                    <td style={{ ...cell, color: precisionColor(record.rhythm), fontWeight: 700 }}>
+                                        {precision(record.rhythm)}
+                                    </td>
                                     {/* Practice */}
                                     <td style={{ ...cell, color: '#f5576c' }}>{record.practice.plays}</td>
                                     <td style={{ ...cell, color: '#4ade80' }}>{record.practice.goods}</td>
                                     <td style={{ ...cell, color: '#f87171' }}>{record.practice.wrongs}</td>
                                     <td style={{ ...cell, color: accColor(record.practice), fontWeight: 700 }}>
                                         {accuracy(record.practice)}
+                                    </td>
+                                    <td style={{ ...cell, color: '#fb923c', fontWeight: 700 }}>
+                                        {record.practice.maxCombo > 0 ? `×${record.practice.maxCombo}` : '—'}
+                                    </td>
+                                    <td style={{ ...cell, color: precisionColor(record.practice), fontWeight: 700 }}>
+                                        {precision(record.practice)}
                                     </td>
                                     {/* Clear row */}
                                     <td style={cell}>

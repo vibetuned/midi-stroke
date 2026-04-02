@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DrumsScoreView } from './DrumsScoreView';
 import { VirtualDrums } from './VirtualDrums';
 import { MidiStatus } from './MidiStatus';
@@ -20,8 +20,8 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
     useAudio();
     useDrumsMidiFile();
     useGameLogic();
-    const { selectedSong, setSelectedSong, isPlaying, gameMode } = useGame();
-    const { recordPlay, resetSession } = useStats();
+    const { selectedSong, setSelectedSong, gameMode, midiData, songCompleted, setSongCompleted } = useGame();
+    const { recordPlay, recordSessionEnd, resetSession, sessionStats } = useStats();
 
     const [prevSong, setPrevSong] = useState<string | null>(null);
     const [showStats, setShowStats] = useState(false);
@@ -41,16 +41,20 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
         resetSession();
     }, [selectedSong, resetSession]);
 
-    // Record one play entry each time the user starts a new play session
-    const lastPlayKeyRef = useRef('');
+    // When a loop completes: record the play, persist maxCombo + precision, then reset
     useEffect(() => {
-        if (!isPlaying || !selectedSong) return;
-        const key = `${selectedSong}::${gameMode}`;
-        if (key === lastPlayKeyRef.current) return;
-        lastPlayKeyRef.current = key;
+        if (!songCompleted || !selectedSong) return;
         const statsMode = gameMode === 'standard' ? 'rhythm' : 'practice';
-        recordPlay(selectedSong, selectedSong.split('/').pop() ?? selectedSong, statsMode);
-    }, [isPlaying, selectedSong, gameMode, recordPlay]);
+        const songName = selectedSong.split('/').pop() ?? selectedSong;
+        const totalNotes = midiData
+            ? new Set(midiData.tracks.flatMap(t => t.notes.map(n => n.ticks))).size
+            : 0;
+        const precision = totalNotes > 0 ? sessionStats.score / totalNotes : 0;
+        recordPlay(selectedSong, songName, statsMode);
+        recordSessionEnd(selectedSong, songName, statsMode, precision, sessionStats.maxCombo);
+        resetSession();
+        setSongCompleted(false);
+    }, [songCompleted]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div className="app-container theme-drums">

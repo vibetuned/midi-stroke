@@ -36,6 +36,8 @@ interface GameState {
     selectedSong: string | null;
     setSelectedSong: (song: string | null) => void;
     instrument: 'piano' | 'drums';
+    songCompleted: boolean;
+    setSongCompleted: (v: boolean) => void;
 }
 
 const GameContext = createContext<GameState | undefined>(undefined);
@@ -56,6 +58,7 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
     const [waitingForNotes, setWaitingForNotesState] = useState<number[]>([]);
     const waitingForNotesRef = React.useRef<number[]>([]);
     const [selectedSong, setSelectedSong] = useState<string | null>(null);
+    const [songCompleted, setSongCompleted] = useState(false);
 
     const setWaitingForNotes = useCallback((notes: number[]) => {
         waitingForNotesRef.current = notes;
@@ -151,7 +154,9 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
             waitingForNotesRef,
             selectedSong,
             setSelectedSong,
-            instrument
+            instrument,
+            songCompleted,
+            setSongCompleted,
         }}>
             {children}
         </GameContext.Provider>
@@ -181,7 +186,7 @@ function buildSortedNotes(midi: Midi, ratio: number): Array<{ tick: number; midi
 
 // Hook to manage MIDI File Duration and Limits
 export const useMidiFile = () => {
-    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, setWaitingForNotes, waitingForNotes } = useGame();
+    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, setWaitingForNotes, waitingForNotes, setSongCompleted } = useGame();
 
     const { waitingForNotesRef } = useGame();
 
@@ -210,6 +215,7 @@ export const useMidiFile = () => {
                 Tone.getTransport().ticks = 0;
                 setPlayPosition(0);
                 setWaitingForNotes([]);
+                setSongCompleted(true);
                 return;
             }
 
@@ -300,7 +306,7 @@ const MEI_TO_PAD: Record<number, number> = {
 
 // Hook to manage Drum Loop Duration and Limits
 export const useDrumsMidiFile = () => {
-    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, setWaitingForNotes, waitingForNotes, seek } = useGame();
+    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, setWaitingForNotes, waitingForNotes, seek, setSongCompleted } = useGame();
 
     const { waitingForNotesRef } = useGame();
 
@@ -324,7 +330,7 @@ export const useDrumsMidiFile = () => {
 
             // END OF SONG CHECK
             if (now >= playSizeTicks) {
-                // Instantly loop back to the start of the pattern (skipping intro measure)
+                setSongCompleted(true);
                 seek(144);
                 return;
             }
