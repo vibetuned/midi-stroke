@@ -18,6 +18,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onSelectApp }) => {
                     className="app-card card-piano"
                     onClick={() => onSelectApp('piano')}
                 >
+                    <div className="app-badge">New Features</div>
                     <div className="app-icon">🎹</div>
                     <div className="app-name">Piano</div>
                 </div>
@@ -26,7 +27,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onSelectApp }) => {
                     className="app-card card-drums"
                     onClick={() => onSelectApp('drums')}
                 >
-                    <div className="app-badge">New</div>
+                    
                     <div className="app-icon">🥁</div>
                     <div className="app-name">Drums</div>
                 </div>

@@ -10,7 +10,7 @@ import { SongSelector } from './SongSelector';
 import { VirtualPiano } from './VirtualPiano';
 import { LiveStats } from './LiveStats';
 import { StatsPanel } from './StatsPanel';
-import { SongMarqueeButton } from './SongMarqueeButton';
+import { SongNavigator } from './SongNavigator';
 import { useStats } from '../context/StatsContext';
 
 interface PianoAppProps {
@@ -100,10 +100,7 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
                     {selectedSong && (
                         <>
                             <LiveStats />
-                            <SongMarqueeButton
-                                songName={selectedSong.split('/').pop() ?? selectedSong}
-                                onClick={handleChangeSong}
-                            />
+                            <SongNavigator onChangeRequest={handleChangeSong} />
                         </>
                     )}
                     {/* Stats history button — to the right of Change Song */}
