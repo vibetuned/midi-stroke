@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
+import { useStats } from '../context/StatsContext';
 import * as Tone from 'tone';
 
 export const PlayControls: React.FC = () => {
     const { isPlaying, setIsPlaying, tempo, setTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek } = useGame();
+    const { resetSession } = useStats();
 
     // Fix 10: stable refs so the keydown closure never captures stale values
     const isPlayingRef = useRef(isPlaying);
@@ -65,6 +67,7 @@ export const PlayControls: React.FC = () => {
         Tone.getTransport().ticks = 0;
         setPlayPosition(0);
         setWaitingForNotes([]);
+        resetSession();
     };
 
     return (

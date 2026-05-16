@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import * as Tone from 'tone';
 import { useVerovio } from '../hooks/useVerovio';
 import { useGame } from '../context/GameContext';
+import { useStats } from '../context/StatsContext';
 import * as PIXI from 'pixi.js';
 
 interface MeasureData {
@@ -44,6 +45,7 @@ export const ScoreView: React.FC = () => {
     const { toolkit } = useVerovio();
     // Fix 7: destructure setSelectedSong for error-recovery back button
     const { isPlaying, setIsPlaying, loadMidiData, seek, selectedSong, setSelectedSong, playPosition } = useGame();
+    const { sessionStats } = useStats();
 
     const [loadingMsg, setLoadingMsg] = useState<string>('Initializing Engine...');
     const pixiContainerRef = useRef<HTMLDivElement>(null);
@@ -71,6 +73,32 @@ export const ScoreView: React.FC = () => {
     const stickyWidthRef = useRef<number>(0);
     const totalWidthRef = useRef<number>(0);
     const scaleRef = useRef<number>(1);
+
+    // Minimap state + refs
+    const [tickPositions, setTickPositions] = useState<number[]>([]);
+    const totalScoreTicksRef = useRef<number>(0);
+    const minimapRef = useRef<HTMLDivElement>(null);
+    const playheadRef = useRef<HTMLDivElement>(null);
+    const isMinimapDragging = useRef<boolean>(false);
+
+    // Error markers: capture the score-tick whenever sessionStats.wrongs goes up;
+    // clear when it decreases (session reset on song change / restart / completion).
+    const [errorTicks, setErrorTicks] = useState<number[]>([]);
+    const prevWrongsRef = useRef<number>(0);
+    useEffect(() => {
+        const w = sessionStats.wrongs;
+        if (w > prevWrongsRef.current) {
+            const total = totalScoreTicksRef.current;
+            if (total > 0) {
+                const OFFSET_TICKS = 192;
+                const scoreTick = Math.max(0, Math.min(total, playPositionRef.current - OFFSET_TICKS));
+                setErrorTicks(prev => [...prev, scoreTick]);
+            }
+        } else if (w < prevWrongsRef.current) {
+            setErrorTicks([]);
+        }
+        prevWrongsRef.current = w;
+    }, [sessionStats.wrongs]);
 
     // Initialize Pixi
     useEffect(() => {
@@ -204,6 +232,16 @@ export const ScoreView: React.FC = () => {
                         if (Math.abs(scrollContainerRef.current.x - targetScrollX) > 0.5) {
                             scrollContainerRef.current.x = targetScrollX;
                         }
+                    }
+
+                    // Drive the minimap playhead in lockstep with the score scroll
+                    const playheadEl = playheadRef.current;
+                    const totalTicks = totalScoreTicksRef.current;
+                    if (playheadEl && totalTicks > 0) {
+                        const OFFSET_TICKS = 192;
+                        const scoreTick = playPositionRef.current - OFFSET_TICKS;
+                        const pct = Math.max(0, Math.min(100, (scoreTick / totalTicks) * 100));
+                        playheadEl.style.left = `${pct}%`;
                     }
                 };
                 app.ticker.add(update);
@@ -350,6 +388,21 @@ export const ScoreView: React.FC = () => {
         stickyWidthRef.current = mData[0].width + 25;
         totalWidthRef.current = svgOuterBBox.width;
 
+        // Minimap: derive total tick range and per-measure boundary percentages.
+        // mData[0] is the sticky/clef-only measure (zero ticks), so its startTick
+        // gives us 0% and we append 100% for the final endTick.
+        const totalTicks = mData[mData.length - 1].endTick;
+        totalScoreTicksRef.current = totalTicks;
+        if (totalTicks > 0) {
+            const positions = mData
+                .slice(1)
+                .map(m => (m.startTick / totalTicks) * 100)
+                .concat(100);
+            setTickPositions(positions);
+        } else {
+            setTickPositions([]);
+        }
+
         if (scrollContainerRef.current) {
             scrollContainerRef.current.removeChildren().forEach(child => child.destroy({ texture: true }));
         }
@@ -440,6 +493,37 @@ export const ScoreView: React.FC = () => {
     const stepIndex = LOADING_STEPS.indexOf(loadingMsg);
     const isError = loadingMsg.startsWith('Error');
 
+    const seekFromMinimap = (clientX: number) => {
+        const el = minimapRef.current;
+        const totalTicks = totalScoreTicksRef.current;
+        if (!el || totalTicks <= 0) return;
+        const rect = el.getBoundingClientRect();
+        const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        const OFFSET_TICKS = 192;
+        seek(pct * totalTicks + OFFSET_TICKS);
+    };
+
+    const onMinimapDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (totalScoreTicksRef.current <= 0) return;
+        isMinimapDragging.current = true;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        if (isPlayingRef.current) {
+            setIsPlaying(false);
+            Tone.getTransport().pause();
+        }
+        seekFromMinimap(e.clientX);
+    };
+    const onMinimapMove = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (isMinimapDragging.current) seekFromMinimap(e.clientX);
+    };
+    const onMinimapUp = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!isMinimapDragging.current) return;
+        isMinimapDragging.current = false;
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId);
+        }
+    };
+
     return (
         <div style={{ position: 'relative', width: '100%', height: '25vh', overflow: 'hidden', background: SCORE_BG_COLOR, touchAction: 'none' }}>
             {loadingMsg && (
@@ -486,6 +570,80 @@ export const ScoreView: React.FC = () => {
             )}
 
             <div ref={pixiContainerRef} style={{ width: '100%', height: '100%' }} />
+
+            {/* Minimap: overlay strip at the top showing measure boundaries + playhead.
+                Click & drag to seek. Hidden while the loading overlay is up. */}
+            {!loadingMsg && tickPositions.length > 0 && (
+                <div
+                    ref={minimapRef}
+                    onPointerDown={onMinimapDown}
+                    onPointerMove={onMinimapMove}
+                    onPointerUp={onMinimapUp}
+                    onPointerCancel={onMinimapUp}
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '14px',
+                        background: 'rgba(0, 0, 0, 0.35)',
+                        cursor: 'pointer',
+                        zIndex: 10,
+                        touchAction: 'none',
+                        userSelect: 'none',
+                    }}
+                >
+                    {tickPositions.map((pct, i) => (
+                        <div
+                            key={i}
+                            style={{
+                                position: 'absolute',
+                                top: '3px',
+                                bottom: '3px',
+                                left: `${pct}%`,
+                                width: '1px',
+                                background: 'rgba(255, 255, 255, 0.35)',
+                                pointerEvents: 'none',
+                            }}
+                        />
+                    ))}
+                    {/* Wrong-note markers — matches LiveStats red (#f87171) */}
+                    {errorTicks.map((tick, i) => {
+                        const total = totalScoreTicksRef.current;
+                        const pct = total > 0 ? Math.max(0, Math.min(100, (tick / total) * 100)) : 0;
+                        return (
+                            <div
+                                key={`err-${i}`}
+                                style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    bottom: 0,
+                                    left: `${pct}%`,
+                                    width: '2px',
+                                    marginLeft: '-1px',
+                                    background: '#f87171',
+                                    boxShadow: '0 0 3px rgba(248, 113, 113, 0.7)',
+                                    pointerEvents: 'none',
+                                }}
+                            />
+                        );
+                    })}
+                    <div
+                        ref={playheadRef}
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            bottom: 0,
+                            left: '0%',
+                            width: '3px',
+                            marginLeft: '-1.5px',
+                            background: '#646cff',
+                            boxShadow: '0 0 4px rgba(100, 108, 255, 0.8)',
+                            pointerEvents: 'none',
+                        }}
+                    />
+                </div>
+            )}
 
             <div
                 ref={hiddenSvgRef}

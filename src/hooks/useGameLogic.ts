@@ -41,8 +41,41 @@ export function useGameLogic() {
     // before the correct note — prevents that group from counting toward n/total.
     const groupWrongedRef = useRef<boolean>(false);
 
+    // Rhythm-mode miss detection: track which note-groups (keyed by source
+    // MIDI tick — chords across tracks share a tick) have been resolved either
+    // by a hit or by their window expiring. Also track the previous playback
+    // position so we can detect seeks and only count misses on natural advance.
+    const resolvedTicksRef = useRef<Set<number>>(new Set());
+    const prevPlayPositionRef = useRef<number>(0);
+
     // Derive a stable display name from the song path
     const songName = selectedSong ? (selectedSong.split('/').pop() ?? selectedSong) : '';
+
+    // Precomputed note groups for miss detection: one entry per source MIDI tick
+    // (chord notes share a tick), with `end` being the latest end across the chord.
+    const noteGroups = useMemo(() => {
+        if (!midiData) return [] as Array<{ tick: number; end: number; sourceTick: number }>;
+        const map = new Map<number, { tick: number; end: number; sourceTick: number }>();
+        midiData.tracks.forEach(track => {
+            track.notes.forEach(note => {
+                const start = note.ticks * ppqRatio;
+                const end = start + note.durationTicks * ppqRatio;
+                const existing = map.get(note.ticks);
+                if (existing) {
+                    if (end > existing.end) existing.end = end;
+                } else {
+                    map.set(note.ticks, { tick: start, end, sourceTick: note.ticks });
+                }
+            });
+        });
+        return Array.from(map.values()).sort((a, b) => a.end - b.end);
+    }, [midiData, ppqRatio]);
+
+    // Clear resolved set whenever the song changes (new midiData → new groups).
+    useEffect(() => {
+        resolvedTicksRef.current = new Set();
+        prevPlayPositionRef.current = 0;
+    }, [midiData]);
 
     // Calculate expected notes based on current play position
     const expectedNotes = useMemo(() => {
@@ -175,6 +208,7 @@ export function useGameLogic() {
 
         const hitTime = playPosition;
         let hit = false;
+        let hitSourceTick: number | null = null;
         const noteToMatch = instrument === 'drums' ? (MIDI_PAD_MAP[lastNote.note] ?? lastNote.note) : lastNote.note;
 
         for (const track of midiData.tracks) {
@@ -186,6 +220,7 @@ export function useGameLogic() {
 
                 if (hitTime >= start - TOLERANCE_TICKS && hitTime <= end) {
                     hit = true;
+                    hitSourceTick = note.ticks;
                     break;
                 }
             }
@@ -193,6 +228,7 @@ export function useGameLogic() {
         }
 
         if (hit) {
+            if (hitSourceTick !== null) resolvedTicksRef.current.add(hitSourceTick);
             recordHit(selectedSong, songName);
             setFeedback("Hit!");
             setTimeout(() => setFeedback(null), 1000);
@@ -210,6 +246,36 @@ export function useGameLogic() {
     useEffect(() => {
         groupWrongedRef.current = false;
     }, [waitingForNotes]);
+
+    // Rhythm-mode miss detection: as playPosition advances, any chord whose
+    // hit window has fully expired without being resolved counts as a wrong.
+    // A backward jump (reset / rewind / drag-back) clears the resolved set so
+    // the player can re-attempt the section; a large forward jump (seek) is
+    // skipped so seeking over a passage doesn't fabricate misses.
+    useEffect(() => {
+        if (gameMode !== 'standard' || !isPlaying || !selectedSong) {
+            prevPlayPositionRef.current = playPosition;
+            return;
+        }
+        const prev = prevPlayPositionRef.current;
+        prevPlayPositionRef.current = playPosition;
+
+        if (playPosition < prev) {
+            resolvedTicksRef.current = new Set();
+            return;
+        }
+        // 50ms poll at 120 BPM ≈ 19 ticks; anything past ~300 is a seek.
+        if (playPosition > prev + 300) return;
+
+        for (const group of noteGroups) {
+            if (group.end <= prev) continue;
+            if (group.end > playPosition) break; // sorted by end → rest are future
+            if (!resolvedTicksRef.current.has(group.sourceTick)) {
+                resolvedTicksRef.current.add(group.sourceTick);
+                recordWrong(selectedSong, songName, 'rhythm');
+            }
+        }
+    }, [playPosition, gameMode, isPlaying, selectedSong, songName, noteGroups, recordWrong]);
 
     return { expectedNotes, feedback };
 }
