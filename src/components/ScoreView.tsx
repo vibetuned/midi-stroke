@@ -44,7 +44,7 @@ function findMeasureAtX(mData: MeasureData[], x: number): number {
 export const ScoreView: React.FC = () => {
     const { toolkit } = useVerovio();
     // Fix 7: destructure setSelectedSong for error-recovery back button
-    const { isPlaying, setIsPlaying, loadMidiData, seek, selectedSong, setSelectedSong, playPosition } = useGame();
+    const { isPlaying, setIsPlaying, loadMidiData, seek, selectedSong, setSelectedSong, playPosition, instrument, handSelection } = useGame();
     const { sessionStats } = useStats();
 
     const [loadingMsg, setLoadingMsg] = useState<string>('Initializing Engine...');
@@ -80,6 +80,27 @@ export const ScoreView: React.FC = () => {
     const minimapRef = useRef<HTMLDivElement>(null);
     const playheadRef = useRef<HTMLDivElement>(null);
     const isMinimapDragging = useRef<boolean>(false);
+
+    // Hand-selection visual overlays (piano only). Top covers the right-hand
+    // staff (treble); bottom covers the left-hand staff (bass). Created inside
+    // processSvgToPixi once the staff Y bounds are known, then their visibility
+    // is driven by handSelection via a useEffect below.
+    const handTopOverlayRef = useRef<PIXI.Graphics | null>(null);
+    const handBottomOverlayRef = useRef<PIXI.Graphics | null>(null);
+    // Mirror so processSvgToPixi can apply the current state on first create
+    // without depending on a stale closure.
+    const handSelectionRef = useRef(handSelection);
+    useEffect(() => { handSelectionRef.current = handSelection; }, [handSelection]);
+
+    // Toggle hand overlays whenever the selection changes after the score loads.
+    useEffect(() => {
+        if (handTopOverlayRef.current) {
+            handTopOverlayRef.current.visible = handSelection === 'left';
+        }
+        if (handBottomOverlayRef.current) {
+            handBottomOverlayRef.current.visible = handSelection === 'right';
+        }
+    }, [handSelection]);
 
     // Error markers: capture the score-tick whenever sessionStats.wrongs goes up;
     // clear when it decreases (session reset on song change / restart / completion).
@@ -363,8 +384,49 @@ export const ScoreView: React.FC = () => {
         }
 
         // Fix 4: batch all getBoundingClientRect reads up front to avoid repeated layout reflows
-        const svgOuterBBox = hiddenDiv.querySelector('svg')?.getBoundingClientRect() || { left: 0, width: 0 };
+        const svgOuterBBox = hiddenDiv.querySelector('svg')?.getBoundingClientRect() || { left: 0, top: 0, width: 0 };
         const measureBBoxes = measures.map(m => m.getBoundingClientRect());
+
+        // Detect grand-staff midpoint for hand-selection overlays.
+        // Cluster .staff elements by top-Y: smaller-Y cluster = treble (right
+        // hand), larger-Y cluster = bass (left hand). Single-staff pieces
+        // (only one cluster) leave staffMidY null and no overlay is created.
+        let staffMidY: number | null = null;
+        if (instrument === 'piano') {
+            const staffEls = Array.from(hiddenDiv.querySelectorAll('.staff'));
+            if (staffEls.length > 0) {
+                const tops = staffEls.map(s => s.getBoundingClientRect().top - svgOuterBBox.top);
+                const minTop = Math.min(...tops);
+                const maxTop = Math.max(...tops);
+                if (maxTop - minTop > 5) {
+                    let trebleBottom = -Infinity;
+                    let bassTop = Infinity;
+                    for (const s of staffEls) {
+                        const r = s.getBoundingClientRect();
+                        const topRel = r.top - svgOuterBBox.top;
+                        const bottomRel = r.bottom - svgOuterBBox.top;
+                        if (Math.abs(topRel - minTop) < Math.abs(topRel - maxTop)) {
+                            if (bottomRel > trebleBottom) trebleBottom = bottomRel;
+                        } else {
+                            if (topRel < bassTop) bassTop = topRel;
+                        }
+                    }
+                    if (isFinite(trebleBottom) && isFinite(bassTop)) {
+                        staffMidY = (trebleBottom + bassTop) / 2;
+                    }
+                }
+            }
+        }
+
+        // Dispose any overlays left over from a previous song load.
+        if (handTopOverlayRef.current) {
+            handTopOverlayRef.current.destroy();
+            handTopOverlayRef.current = null;
+        }
+        if (handBottomOverlayRef.current) {
+            handBottomOverlayRef.current.destroy();
+            handBottomOverlayRef.current = null;
+        }
 
         const mData: MeasureData[] = [];
         let currentTick = 0;
@@ -479,6 +541,32 @@ export const ScoreView: React.FC = () => {
         stickyContainer.addChild(stickySprite);
 
         appRef.current.stage.addChild(stickyContainer);
+
+        // Piano hand-selection overlays — full-width translucent bands over
+        // each staff. Mounted on the stage so they cover both the scrolling
+        // score and the sticky clef strip. Cursor is reordered to stay on top.
+        if (staffMidY !== null && appRef.current) {
+            const app = appRef.current;
+            const overlayWidth = Math.max(app.screen.width, window.innerWidth) * 2;
+            const topScreenY = targetY * scaleFactor;
+            const midScreenY = (targetY + staffMidY) * scaleFactor;
+            const bottomScreenY = (targetY + TEXTURE_HEIGHT) * scaleFactor;
+
+            const topOv = new PIXI.Graphics();
+            topOv.rect(0, topScreenY, overlayWidth, midScreenY - topScreenY);
+            topOv.fill({ color: SCORE_BG_HEX, alpha: 0.8 });
+            topOv.visible = handSelectionRef.current === 'left';
+            app.stage.addChild(topOv);
+            handTopOverlayRef.current = topOv;
+
+            const botOv = new PIXI.Graphics();
+            botOv.rect(0, midScreenY, overlayWidth, bottomScreenY - midScreenY);
+            botOv.fill({ color: SCORE_BG_HEX, alpha: 0.8 });
+            botOv.visible = handSelectionRef.current === 'right';
+            app.stage.addChild(botOv);
+            handBottomOverlayRef.current = botOv;
+        }
+
         if (cursorRef.current) {
             appRef.current.stage.setChildIndex(cursorRef.current, appRef.current.stage.children.length - 1);
         }

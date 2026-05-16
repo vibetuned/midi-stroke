@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { useGame } from '../context/GameContext';
+import { useGame, isTrackActiveForHand } from '../context/GameContext';
 import { useStats } from '../context/StatsContext';
 import { useMidi, MIDI_PAD_MAP } from './useMidi';
 
@@ -23,7 +23,9 @@ export interface GameLogicState {
 }
 
 export function useGameLogic() {
-    const { midiData, playPosition, ppqRatio, gameMode, waitingForNotes, resumePractice, isPlaying, selectedSong, instrument } = useGame();
+    const { midiData, playPosition, ppqRatio, gameMode, waitingForNotes, resumePractice, isPlaying, selectedSong, instrument, handSelection } = useGame();
+    // Drums never filter by hand; piano uses the user's L/R/Both selection.
+    const activeHand = instrument === 'piano' ? handSelection : 'both';
     const { lastNote, activeNotes } = useMidi();
     const { recordHit, recordWrong, recordGood } = useStats();
 
@@ -56,7 +58,8 @@ export function useGameLogic() {
     const noteGroups = useMemo(() => {
         if (!midiData) return [] as Array<{ tick: number; end: number; sourceTick: number }>;
         const map = new Map<number, { tick: number; end: number; sourceTick: number }>();
-        midiData.tracks.forEach(track => {
+        midiData.tracks.forEach((track, trackIndex) => {
+            if (!isTrackActiveForHand(trackIndex, activeHand)) return;
             track.notes.forEach(note => {
                 const start = note.ticks * ppqRatio;
                 const end = start + note.durationTicks * ppqRatio;
@@ -69,13 +72,14 @@ export function useGameLogic() {
             });
         });
         return Array.from(map.values()).sort((a, b) => a.end - b.end);
-    }, [midiData, ppqRatio]);
+    }, [midiData, ppqRatio, activeHand]);
 
-    // Clear resolved set whenever the song changes (new midiData → new groups).
+    // Clear resolved set when the song changes OR when the hand selection
+    // changes (active groups differ, so old "resolved" markers shouldn't carry over).
     useEffect(() => {
         resolvedTicksRef.current = new Set();
         prevPlayPositionRef.current = 0;
-    }, [midiData]);
+    }, [midiData, activeHand]);
 
     // Calculate expected notes based on current play position
     const expectedNotes = useMemo(() => {
@@ -97,6 +101,7 @@ export function useGameLogic() {
         };
 
         midiData.tracks.forEach((track, trackIndex) => {
+            if (!isTrackActiveForHand(trackIndex, activeHand)) return;
             track.notes.forEach(note => {
                 const OFFSET_TICKS = 0 * 192;
                 const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
@@ -119,7 +124,7 @@ export function useGameLogic() {
             i === self.findIndex(t => t.note === n.note && t.trackIndex === n.trackIndex)
         );
 
-    }, [midiData, playPosition, ppqRatio, gameMode, waitingForNotes]);
+    }, [midiData, playPosition, ppqRatio, gameMode, waitingForNotes, activeHand]);
 
 
     // Validation Logic
@@ -211,7 +216,9 @@ export function useGameLogic() {
         let hitSourceTick: number | null = null;
         const noteToMatch = instrument === 'drums' ? (MIDI_PAD_MAP[lastNote.note] ?? lastNote.note) : lastNote.note;
 
-        for (const track of midiData.tracks) {
+        for (let trackIndex = 0; trackIndex < midiData.tracks.length; trackIndex++) {
+            if (!isTrackActiveForHand(trackIndex, activeHand)) continue;
+            const track = midiData.tracks[trackIndex];
             for (const note of track.notes) {
                 if (note.midi !== noteToMatch) continue;
                 const OFFSET_TICKS = 0 * 192;

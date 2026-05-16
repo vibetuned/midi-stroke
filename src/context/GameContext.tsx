@@ -3,6 +3,15 @@ import * as Tone from 'tone';
 
 import { Midi } from '@tonejs/midi';
 
+export type HandSelection = 'right' | 'left' | 'both';
+
+/** Piano-only: which hand(s) should be played. Track 0 = right (treble), track 1 = left (bass). */
+export function isTrackActiveForHand(trackIndex: number, hand: HandSelection): boolean {
+    if (hand === 'both') return true;
+    if (hand === 'right') return trackIndex === 0;
+    return trackIndex === 1; // left
+}
+
 interface GameState {
     isPlaying: boolean;
     setIsPlaying: (playing: boolean) => void;
@@ -38,6 +47,8 @@ interface GameState {
     instrument: 'piano' | 'drums';
     songCompleted: boolean;
     setSongCompleted: (v: boolean) => void;
+    handSelection: HandSelection;
+    setHandSelection: (h: HandSelection) => void;
 }
 
 const GameContext = createContext<GameState | undefined>(undefined);
@@ -59,6 +70,7 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
     const waitingForNotesRef = React.useRef<number[]>([]);
     const [selectedSong, setSelectedSong] = useState<string | null>(null);
     const [songCompleted, setSongCompleted] = useState(false);
+    const [handSelection, setHandSelection] = useState<HandSelection>('both');
 
     const setWaitingForNotes = useCallback((notes: number[]) => {
         waitingForNotesRef.current = notes;
@@ -157,6 +169,8 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
             instrument,
             songCompleted,
             setSongCompleted,
+            handSelection,
+            setHandSelection,
         }}>
             {children}
         </GameContext.Provider>
@@ -174,11 +188,12 @@ export const useGame = () => {
 // Fix 2: pre-sort all notes into a flat array once per MIDI load so the
 // practice-mode interval can use a forward-advancing cursor instead of
 // scanning every note on every 50 ms tick (O(1) amortised vs O(n)).
-function buildSortedNotes(midi: Midi, ratio: number): Array<{ tick: number; midi: number }> {
-    const flat: Array<{ tick: number; midi: number }> = [];
-    midi.tracks.forEach(track => {
+// trackIndex is carried so piano hand-selection can filter per-iteration.
+function buildSortedNotes(midi: Midi, ratio: number): Array<{ tick: number; midi: number; trackIndex: number }> {
+    const flat: Array<{ tick: number; midi: number; trackIndex: number }> = [];
+    midi.tracks.forEach((track, trackIndex) => {
         track.notes.forEach(note => {
-            flat.push({ tick: note.ticks * ratio, midi: note.midi });
+            flat.push({ tick: note.ticks * ratio, midi: note.midi, trackIndex });
         });
     });
     return flat.sort((a, b) => a.tick - b.tick);
@@ -186,12 +201,12 @@ function buildSortedNotes(midi: Midi, ratio: number): Array<{ tick: number; midi
 
 // Hook to manage MIDI File Duration and Limits
 export const useMidiFile = () => {
-    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, setWaitingForNotes, waitingForNotes, setSongCompleted } = useGame();
+    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, setWaitingForNotes, waitingForNotes, setSongCompleted, handSelection } = useGame();
 
     const { waitingForNotesRef } = useGame();
 
     // Fix 2: sorted notes cache + forward cursor (rebuilt whenever midiData changes)
-    const sortedNotesRef = useRef<Array<{ tick: number; midi: number }>>([]);
+    const sortedNotesRef = useRef<Array<{ tick: number; midi: number; trackIndex: number }>>([]);
     const noteCursorRef = useRef(0);
     const prevNowRef = useRef(0);
 
@@ -258,10 +273,15 @@ export const useMidiFile = () => {
                     noteCursorRef.current++;
                 }
 
-                const cursorPos = noteCursorRef.current;
+                // Skip ahead past notes whose hand is currently muted — the
+                // pause point should be the next *active-hand* note.
+                let cursorPos = noteCursorRef.current;
+                while (cursorPos < sorted.length && !isTrackActiveForHand(sorted[cursorPos].trackIndex, handSelection)) {
+                    cursorPos++;
+                }
                 const closestTick = cursorPos < sorted.length ? sorted[cursorPos].tick : Infinity;
 
-                // If closest tick is imminent, gather ALL notes at that tick
+                // If closest tick is imminent, gather ALL active-hand notes at that tick
                 if (closestTick !== Infinity && (closestTick - now) < dynamicCheckAhead) {
                     // Fix 6: scale epsilon with tempo so difficulty feels consistent
                     // at 120 BPM = 15 ticks; at 60 BPM = 30 ticks; at 180 BPM = 10 ticks
@@ -270,7 +290,9 @@ export const useMidiFile = () => {
                     const notesAtTick: number[] = [];
                     let i = cursorPos;
                     while (i < sorted.length && sorted[i].tick - closestTick < TICK_EPSILON) {
-                        notesAtTick.push(sorted[i].midi);
+                        if (isTrackActiveForHand(sorted[i].trackIndex, handSelection)) {
+                            notesAtTick.push(sorted[i].midi);
+                        }
                         i++;
                     }
 
@@ -289,7 +311,7 @@ export const useMidiFile = () => {
         }, 50); // 50ms interval
 
         return () => clearInterval(interval);
-    }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, waitingForNotes, setWaitingForNotes]);
+    }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, waitingForNotes, setWaitingForNotes, handSelection]);
 };
 
 // MEI pitch-based MIDI note → primary pad MIDI note
@@ -311,7 +333,7 @@ export const useDrumsMidiFile = () => {
     const { waitingForNotesRef } = useGame();
 
     // Fix 2: sorted notes cache + forward cursor
-    const sortedNotesRef = useRef<Array<{ tick: number; midi: number }>>([]);
+    const sortedNotesRef = useRef<Array<{ tick: number; midi: number; trackIndex: number }>>([]);
     const noteCursorRef = useRef(0);
     const prevNowRef = useRef(0);
 

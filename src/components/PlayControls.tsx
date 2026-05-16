@@ -1,10 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
 import { useStats } from '../context/StatsContext';
 import * as Tone from 'tone';
 
 export const PlayControls: React.FC = () => {
-    const { isPlaying, setIsPlaying, tempo, setTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek } = useGame();
+    const { isPlaying, setIsPlaying, tempo, setTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection } = useGame();
     const { resetSession } = useStats();
 
     // Fix 10: stable refs so the keydown closure never captures stale values
@@ -61,14 +61,27 @@ export const PlayControls: React.FC = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [setIsPlaying, seek, setTempo]);
 
-    const handleReset = () => {
+    const handleReset = useCallback(() => {
         setIsPlaying(false);
         Tone.getTransport().pause();
         Tone.getTransport().ticks = 0;
         setPlayPosition(0);
         setWaitingForNotes([]);
         resetSession();
-    };
+    }, [setIsPlaying, setPlayPosition, setWaitingForNotes, resetSession]);
+
+    // Changing hands invalidates the run-in-progress (different note set,
+    // different misses possible) — reset to the start so stats and minimap
+    // markers reflect a fresh attempt. Skip the very first render so we
+    // don't kick the transport before any song is loaded.
+    const isFirstHandRender = useRef(true);
+    useEffect(() => {
+        if (isFirstHandRender.current) {
+            isFirstHandRender.current = false;
+            return;
+        }
+        handleReset();
+    }, [handSelection, handleReset]);
 
     return (
         <div style={{
@@ -121,6 +134,44 @@ export const PlayControls: React.FC = () => {
                     Practice
                 </button>
             </div>
+
+            {/* Hand Selection — piano only. Drums never see this control. */}
+            {instrument === 'piano' && (
+                <div style={{
+                    display: 'flex',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '20px',
+                    padding: '4px',
+                    marginRight: '1rem',
+                }}>
+                    {(['left', 'both', 'right'] as const).map(hand => {
+                        const active = handSelection === hand;
+                        const label = hand === 'left' ? 'L' : hand === 'right' ? 'R' : 'L+R';
+                        const title = hand === 'left' ? 'Left hand only' : hand === 'right' ? 'Right hand only' : 'Both hands';
+                        return (
+                            <button
+                                key={hand}
+                                onClick={() => setHandSelection(hand)}
+                                title={title}
+                                style={{
+                                    background: active ? 'var(--color-accent)' : 'transparent',
+                                    color: active ? 'white' : 'var(--color-text-secondary)',
+                                    border: 'none',
+                                    borderRadius: '16px',
+                                    padding: '0.5rem 0.9rem',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    minWidth: '2.5rem',
+                                }}
+                            >
+                                {label}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
 
             {/* Reset Button (Always visible) */}
             <button
