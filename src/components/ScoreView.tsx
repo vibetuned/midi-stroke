@@ -121,6 +121,26 @@ export const ScoreView: React.FC = () => {
         prevWrongsRef.current = w;
     }, [sessionStats.wrongs]);
 
+    // When the cursor is moved (score drag, minimap drag, arrow-key seek),
+    // erase any error markers that now sit ahead of it. Natural playback
+    // advances ~20 ticks per 50 ms poll — well below the 80-tick threshold
+    // — so markers behind the playhead aren't disturbed.
+    const lastPlayPosRef = useRef<number>(0);
+    useEffect(() => {
+        const prev = lastPlayPosRef.current;
+        lastPlayPosRef.current = playPosition;
+
+        const isSeeking =
+            isDragging.current ||
+            isMinimapDragging.current ||
+            Math.abs(playPosition - prev) > 80;
+        if (!isSeeking) return;
+
+        const OFFSET_TICKS = 192;
+        const cutoff = Math.max(0, playPosition - OFFSET_TICKS);
+        setErrorTicks(curr => curr.filter(t => t <= cutoff));
+    }, [playPosition]);
+
     // Initialize Pixi
     useEffect(() => {
         let isMounted = true;
