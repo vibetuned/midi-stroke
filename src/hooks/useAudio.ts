@@ -4,17 +4,34 @@ import { useMidi } from './useMidi';
 import { useGame } from '../context/GameContext';
 
 export function useAudio() {
-    const samplerRef = useRef<Tone.Sampler | null>(null);
+    // Sampler for piano/drums; a reed-ish PolySynth for saxo. Both expose
+    // triggerAttack(freq, time, vel) / triggerRelease(freq), so the note-handling
+    // code below is instrument-agnostic.
+    const samplerRef = useRef<Tone.Sampler | Tone.PolySynth | null>(null);
+    const extraNodesRef = useRef<Tone.ToneAudioNode[]>([]);
     const metronomeRef = useRef<Tone.MembraneSynth | null>(null);
     const { activeNotes } = useMidi();
-    const { isAudioStarted, tempo, isMetronomeMuted, gameMode } = useGame();
+    const { isAudioStarted, tempo, isMetronomeMuted, gameMode, instrument } = useGame();
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Initialize Audio Engine
     useEffect(() => {
         if (!isAudioStarted) return;
 
-        // 1. Create Sampler
+        // 1. Create the player-input instrument.
+        if (instrument === 'saxo') {
+            // Reed-ish tone: sawtooth through a lowpass + gentle vibrato.
+            const filter = new Tone.Filter({ type: 'lowpass', frequency: 2600, Q: 0.7 }).toDestination();
+            const vibrato = new Tone.Vibrato({ frequency: 5, depth: 0.08 }).connect(filter);
+            const synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: 'sawtooth' },
+                envelope: { attack: 0.04, decay: 0.18, sustain: 0.82, release: 0.3 },
+                volume: -10,
+            }).connect(vibrato);
+            samplerRef.current = synth;
+            extraNodesRef.current = [vibrato, filter];
+            setIsLoaded(true);
+        } else {
         const sampler = new Tone.Sampler({
             urls: {
                 "A0": "A0.mp3",
@@ -57,6 +74,7 @@ export function useAudio() {
         }).toDestination();
 
         samplerRef.current = sampler;
+        }
 
         // 2. Create Metronome Synth
         const metro = new Tone.MembraneSynth({
@@ -80,13 +98,15 @@ export function useAudio() {
         console.log("Audio Engine Initialized");
 
         return () => {
-            sampler.dispose();
+            samplerRef.current?.dispose();
+            extraNodesRef.current.forEach(n => n.dispose());
+            extraNodesRef.current = [];
             metro.dispose();
             Tone.getTransport().clear(loopId);
             samplerRef.current = null;
             metronomeRef.current = null;
         };
-    }, [isAudioStarted, gameMode]);
+    }, [isAudioStarted, gameMode, instrument]);
 
     // Handle Metronome Mute
     useEffect(() => {

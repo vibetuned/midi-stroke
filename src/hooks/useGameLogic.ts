@@ -12,6 +12,13 @@ import { useMidi, MIDI_PAD_MAP } from './useMidi';
 // Let's use a generous tolerance for now, say 10 ticks.
 const TOLERANCE_TICKS = 10;
 
+// Saxo input domain: baked saxo scores are in WRITTEN (transposed) pitch, so
+// incoming notes are shifted into that domain before matching. Measured against
+// a TravelSax: it sends the written pitch CLASS but one octave below the staff,
+// so +12. (Alternatively raise the controller's octave by one and set this to 0.)
+// See docs/saxo-app.md §3.
+export const SAXO_INPUT_TRANSPOSE_SEMITONES = 12;
+
 export interface ExpectedNote {
     note: number;
     trackIndex: number;
@@ -26,6 +33,10 @@ export function useGameLogic() {
     const { midiData, playPosition, ppqRatio, gameMode, waitingForNotes, resumePractice, isPlaying, selectedSong, instrument, handSelection } = useGame();
     // Drums never filter by hand; piano uses the user's L/R/Both selection.
     const activeHand = instrument === 'piano' ? handSelection : 'both';
+    // Saxo: shift incoming controller notes into the written score domain before
+    // matching (both rhythm and practice). 0 for piano/drums. A written note W is
+    // produced by device note (W - inputOffset). See SAXO_INPUT_TRANSPOSE_SEMITONES.
+    const inputOffset = instrument === 'saxo' ? SAXO_INPUT_TRANSPOSE_SEMITONES : 0;
     const { lastNote, activeNotes } = useMidi();
     const { recordHit, recordWrong, recordGood } = useStats();
 
@@ -139,7 +150,7 @@ export function useGameLogic() {
             if (lastNote && selectedSong
                 && lastNote.timestamp > lastWrongTimeRef.current
                 && lastNote.timestamp > lastProcessedTimeRef.current) {
-                if (!waitingForNotes.includes(lastNote.note)) {
+                if (!waitingForNotes.includes(lastNote.note + inputOffset)) {
                     lastWrongTimeRef.current = lastNote.timestamp;
                     groupWrongedRef.current = true;
                     recordWrong(selectedSong, songName, 'practice');
@@ -149,7 +160,7 @@ export function useGameLogic() {
             // Scenario A: Single Note -> Responsive "Hit" Logic (Don't need to hold)
             if (waitingForNotes.length === 1) {
                 const target = waitingForNotes[0];
-                const noteData = activeNotes.get(target);
+                const noteData = activeNotes.get(target - inputOffset);
 
                 if (noteData) {
                     // Check freshness: event timestamp must be > last processed success
@@ -167,18 +178,18 @@ export function useGameLogic() {
             }
             else {
                 // Check if ALL waiting notes are currently present
-                const allNotesHeld = waitingForNotes.every(note => activeNotes.has(note));
+                const allNotesHeld = waitingForNotes.every(note => activeNotes.has(note - inputOffset));
 
                 if (allNotesHeld) {
                     const hasFreshAttack = waitingForNotes.some(note => {
-                        const data = activeNotes.get(note);
+                        const data = activeNotes.get(note - inputOffset);
                         return data && data.timestamp > lastProcessedTimeRef.current;
                     });
 
                     if (hasFreshAttack) {
                         let maxTimestamp = lastProcessedTimeRef.current;
                         waitingForNotes.forEach(note => {
-                            const data = activeNotes.get(note);
+                            const data = activeNotes.get(note - inputOffset);
                             if (data && data.timestamp > maxTimestamp) {
                                 maxTimestamp = data.timestamp;
                             }
@@ -214,7 +225,9 @@ export function useGameLogic() {
         const hitTime = playPosition;
         let hit = false;
         let hitSourceTick: number | null = null;
-        const noteToMatch = instrument === 'drums' ? (MIDI_PAD_MAP[lastNote.note] ?? lastNote.note) : lastNote.note;
+        const noteToMatch =
+            instrument === 'drums' ? (MIDI_PAD_MAP[lastNote.note] ?? lastNote.note)
+            : lastNote.note + inputOffset;
 
         for (let trackIndex = 0; trackIndex < midiData.tracks.length; trackIndex++) {
             if (!isTrackActiveForHand(trackIndex, activeHand)) continue;

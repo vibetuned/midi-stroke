@@ -44,7 +44,7 @@ interface GameState {
     waitingForNotesRef: React.MutableRefObject<number[]>;
     selectedSong: string | null;
     setSelectedSong: (song: string | null) => void;
-    instrument: 'piano' | 'drums';
+    instrument: 'piano' | 'drums' | 'saxo';
     songCompleted: boolean;
     setSongCompleted: (v: boolean) => void;
     handSelection: HandSelection;
@@ -53,7 +53,7 @@ interface GameState {
 
 const GameContext = createContext<GameState | undefined>(undefined);
 
-export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' | 'drums' }> = ({ children, instrument = 'piano' }) => {
+export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' | 'drums' | 'saxo' }> = ({ children, instrument = 'piano' }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [tempo, setTempo] = useState(120);
     const [currentMeasure, setCurrentMeasure] = useState(1);

@@ -34,6 +34,10 @@ export function useMidi() {
     const [inputs, setInputs] = useState<MIDIInput[]>([]);
     const [activeNotes, setActiveNotes] = useState<Map<number, { velocity: number, timestamp: number }>>(new Map());
     const [lastNote, setLastNote] = useState<MidiNote | null>(null);
+    // Breath-controller level (0–127) from a wind controller: CC#2 (breath),
+    // CC#11 (expression), or channel pressure. Only updated when the value
+    // actually changes, so instruments that send no breath trigger no re-renders.
+    const [breath, setBreath] = useState(0);
 
     const handleMidiMessage = useCallback((event: MIDIMessageEvent) => {
         const data = event.data;
@@ -62,6 +66,17 @@ export function useMidi() {
                 next.delete(note);
                 return next;
             });
+        }
+        // Control Change — breath. CC#7 is the TravelSax default (nominally
+        // "Channel Volume"); CC#2 (breath) / CC#11 (expression) are the
+        // MIDI-standard alternatives. `note` here is the controller number.
+        else if (command === 176 && (note === 2 || note === 7 || note === 11)) {
+            setBreath(prev => (prev === velocity ? prev : velocity));
+        }
+        // Channel Pressure (aftertouch) — some wind controllers send breath here.
+        // For 0xD0 the second data byte (`note`) carries the pressure value.
+        else if (command === 208) {
+            setBreath(prev => (prev === note ? prev : note));
         }
     }, []);
 
@@ -101,5 +116,5 @@ export function useMidi() {
         });
     }, [handleMidiMessage]);
 
-    return { midiAccess, inputs, activeNotes, lastNote };
+    return { midiAccess, inputs, activeNotes, lastNote, breath };
 }

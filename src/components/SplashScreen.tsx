@@ -2,7 +2,7 @@ import React from 'react';
 import './SplashScreen.css';
 
 interface SplashScreenProps {
-    onSelectApp: (app: 'piano' | 'drums') => void;
+    onSelectApp: (app: 'piano' | 'drums' | 'saxo') => void;
 }
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onSelectApp }) => {
@@ -27,9 +27,18 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onSelectApp }) => {
                     className="app-card card-drums"
                     onClick={() => onSelectApp('drums')}
                 >
-                    
+
                     <div className="app-icon">🥁</div>
                     <div className="app-name">Drums</div>
+                </div>
+
+                <div
+                    className="app-card card-saxo"
+                    onClick={() => onSelectApp('saxo')}
+                >
+                    <div className="app-badge">Experimental</div>
+                    <div className="app-icon">🎷</div>
+                    <div className="app-name">Saxo</div>
                 </div>
             </div>
         </div>
