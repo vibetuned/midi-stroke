@@ -1,6 +1,6 @@
-# Saxo App — Design & Implementation Plan
+# Saxo App — Design & Implementation
 
-> Status: **design / pre-implementation**. Read [architecture.md](architecture.md),
+> Status: **implemented**. Read [architecture.md](architecture.md),
 > [piano-app.md](piano-app.md), and [drums-app.md](drums-app.md) first — this doc only describes
 > what is *new* for the saxophone.
 

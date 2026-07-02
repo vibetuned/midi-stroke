@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 
 import * as Tone from 'tone';
 
@@ -121,6 +121,23 @@ const OFF = '#2b2b2e';
 
 const STROKE = 'rgba(212,160,23,0.7)';
 
+// "Release me" red — drums-theme red family (#f5576c), muted for the fill.
+const WRONG_FILL = '#8f3a46';
+const WRONG_STROKE = '#f5576c';
+
+// viewBox width — used to mirror the display horizontally.
+const VB_W = 300;
+
+// Mirror a key's geometry around the vertical axis. Done numerically (rather
+// than scaleX(-1) on the svg) so the text labels stay readable.
+function mirrorKey(k: SaxoKey): SaxoKey {
+    const m = { ...k };
+    if (k.cx != null) m.cx = VB_W - k.cx;
+    if (k.x != null && k.w != null) m.x = VB_W - k.x - k.w;
+    if (k.rot != null) m.rot = -k.rot;
+    return m;
+}
+
 
 
 function isPressed(ref: KeyRef, f: SaxoFingering | null): boolean {
@@ -139,19 +156,21 @@ function isPressed(ref: KeyRef, f: SaxoFingering | null): boolean {
 
 
 
-const Key: React.FC<{ k: SaxoKey; expected: boolean; active: boolean }> = ({ k, expected, active }) => {
+const Key: React.FC<{ k: SaxoKey; expected: boolean; active: boolean; markWrong: boolean }> = ({ k, expected, active, markWrong }) => {
 
-    const fill = active ? ON : OFF;
+    // Pressed-but-not-needed → red "release me"; only while a note is actually
+    // expected (markWrong), so free play / window gaps don't flash red.
+    const wrong = active && !expected && markWrong;
 
-    const stroke = expected ? '#ffe08a' : active ? '#ffffff' : STROKE;
+    const fill = wrong ? WRONG_FILL : active ? ON : OFF;
+
+    const stroke = wrong ? WRONG_STROKE : expected ? '#ffe08a' : STROKE;
 
     const sw = expected ? 3 : active ? 2 : 1.4;
 
     const style = expected
         ? { filter: 'drop-shadow(0 0 7px var(--color-accent-glow))' }
-        : active
-            ? { filter: 'drop-shadow(0 0 4px var(--color-accent-glow))' }
-            : undefined;
+        : undefined;
 
 
 
@@ -201,7 +220,7 @@ const Key: React.FC<{ k: SaxoKey; expected: boolean; active: boolean }> = ({ k, 
 
                     fontSize="11" fontFamily="monospace"
 
-                    fill={active ? '#1a1a1a' : expected ? '#ffe08a' : '#9a9aa2'}
+                    fill={wrong ? '#ffc7cf' : active ? '#1a1a1a' : expected ? '#ffe08a' : '#9a9aa2'}
 
                     style={{ userSelect: 'none', pointerEvents: 'none' }}>
 
@@ -290,6 +309,11 @@ export const VirtualSaxo: React.FC = memo(() => {
 
     const held = target != null && activeNotes.has(target - SAXO_INPUT_TRANSPOSE_SEMITONES);
 
+    // Mirrored view (default): shows the sax as the player sees their own
+    // hands, which beginners find easier to follow than a front-facing chart.
+    const [mirrored, setMirrored] = useState(true);
+    const keys = mirrored ? KEYS.map(mirrorKey) : KEYS;
+
 
 
     return (
@@ -352,15 +376,41 @@ export const VirtualSaxo: React.FC = memo(() => {
 
 
 
-            <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '8px', position: 'relative' }}>
+                <button
+                    onClick={() => setMirrored(m => !m)}
+                    title={mirrored ? 'Mirrored (player view) — click for front view' : 'Front view — click for mirrored (player view)'}
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: '0.25rem',
+                        width: '28px',
+                        height: '28px',
+                        padding: 0,
+                        background: 'transparent',
+                        border: `1px solid ${mirrored ? 'var(--color-accent)' : 'rgba(255,255,255,0.15)'}`,
+                        color: mirrored ? 'var(--color-accent)' : '#777',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        lineHeight: 1,
+                        zIndex: 2,
+                    }}
+                >
+                    ⇄
+                </button>
                 <svg
                     viewBox="0 0 300 560"
                     style={{ height: '100%', maxWidth: '170px', minHeight: 0 }}
                     preserveAspectRatio="xMidYMid meet"
                 >
-                    <path d={OUTLINE_D} fill="none" stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
-                    {KEYS.map((k, i) => (
-                        <Key key={i} k={k} expected={isPressed(k.ref, fingering)} active={isPressed(k.ref, activeFingering)} />
+                    <path
+                        d={OUTLINE_D}
+                        transform={mirrored ? `translate(${VB_W} 0) scale(-1 1)` : undefined}
+                        fill="none" stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round"
+                    />
+                    {keys.map((k, i) => (
+                        <Key key={i} k={k} expected={isPressed(k.ref, fingering)} active={isPressed(k.ref, activeFingering)} markWrong={fingering != null} />
                     ))}
                 </svg>
                 <BreathMeter value={breath} />

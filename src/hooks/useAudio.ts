@@ -14,6 +14,14 @@ export function useAudio() {
     const { isAudioStarted, tempo, isMetronomeMuted, gameMode, instrument } = useGame();
     const [isLoaded, setIsLoaded] = useState(false);
 
+    // Master mute: silences the metronome AND the player-input instrument.
+    // Mirrored in a ref so the (re)init effect can apply the current state
+    // when it recreates the engine without re-running on every toggle.
+    const mutedRef = useRef(isMetronomeMuted);
+    useEffect(() => { mutedRef.current = isMetronomeMuted; }, [isMetronomeMuted]);
+    // Base (unmuted) volume of the player-input instrument.
+    const instrumentBaseVolume = instrument === 'saxo' ? -10 : 0;
+
     // Initialize Audio Engine
     useEffect(() => {
         if (!isAudioStarted) return;
@@ -26,7 +34,7 @@ export function useAudio() {
             const synth = new Tone.PolySynth(Tone.Synth, {
                 oscillator: { type: 'sawtooth' },
                 envelope: { attack: 0.04, decay: 0.18, sustain: 0.82, release: 0.3 },
-                volume: -10,
+                volume: mutedRef.current ? -100 : -10,
             }).connect(vibrato);
             samplerRef.current = synth;
             extraNodesRef.current = [vibrato, filter];
@@ -66,6 +74,7 @@ export function useAudio() {
                 "C8": "C8.mp3"
             },
             release: 1,
+            volume: mutedRef.current ? -100 : 0,
             baseUrl: "https://tonejs.github.io/audio/salamander/",
             onload: () => {
                 console.log("Sampler loaded");
@@ -84,7 +93,7 @@ export function useAudio() {
                 sustain: 0,
                 release: 0.1
             },
-            volume: -10
+            volume: mutedRef.current ? -100 : -10
         }).toDestination();
         metronomeRef.current = metro;
 
@@ -108,12 +117,15 @@ export function useAudio() {
         };
     }, [isAudioStarted, gameMode, instrument]);
 
-    // Handle Metronome Mute
+    // Handle Mute — master mute: metronome + player-input instrument
     useEffect(() => {
         if (metronomeRef.current) {
             metronomeRef.current.volume.value = isMetronomeMuted ? -100 : -10;
         }
-    }, [isMetronomeMuted]);
+        if (samplerRef.current) {
+            samplerRef.current.volume.value = isMetronomeMuted ? -100 : instrumentBaseVolume;
+        }
+    }, [isMetronomeMuted, instrumentBaseVolume]);
 
     // Handle Transport Play/Pause & Tempo
     useEffect(() => {

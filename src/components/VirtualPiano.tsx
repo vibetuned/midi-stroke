@@ -4,6 +4,10 @@ import { useGameLogic } from '../hooks/useGameLogic';
 import { useMidi } from '../hooks/useMidi';
 import * as Tone from 'tone';
 
+// Pressed-but-not-expected keys light up in this red ("release me") — same
+// feature as the saxo fingering view, drums-theme red family.
+const WRONG_RED = '#f5576c';
+
 // Fix 5: memo prevents re-renders driven by unrelated GameContext state changes
 // (isPlaying, selectedSong, tempo, etc.) — the component only re-renders when
 // its own hooks (activeNotes, expectedNotes, pianoRange) actually change.
@@ -13,6 +17,10 @@ export const VirtualPiano: React.FC = memo(() => {
     const { expectedNotes } = useGameLogic();
 
     if (!pianoRange) return null;
+
+    // Only flag wrong presses while some note is actually expected, so free
+    // play (nothing loaded / between note windows) doesn't flash red.
+    const hasExpectation = expectedNotes.length > 0;
 
     const { min, max } = pianoRange;
     const keys: { note: number; isBlack: boolean; isActive: boolean; isExpected: boolean; glowColor: string; noteName: string }[] = [];
@@ -64,7 +72,7 @@ export const VirtualPiano: React.FC = memo(() => {
                                 textAlign: 'center',
                                 fontSize: '8px',
                                 fontFamily: 'monospace',
-                                color: key.isActive ? '#646cff' : '#555',
+                                color: key.isActive ? (hasExpectation && !key.isExpected ? WRONG_RED : '#646cff') : '#555',
                                 transition: 'color 0.05s ease',
                                 userSelect: 'none',
                                 letterSpacing: '-0.5px',
@@ -82,7 +90,7 @@ export const VirtualPiano: React.FC = memo(() => {
                                     textAlign: 'center',
                                     fontSize: '7px',
                                     fontFamily: 'monospace',
-                                    color: blackActive ? '#646cff' : '#444',
+                                    color: blackActive ? (hasExpectation && blackKey && !blackKey.isExpected ? WRONG_RED : '#646cff') : '#444',
                                     transition: 'color 0.05s ease',
                                     userSelect: 'none',
                                     zIndex: 11,
@@ -113,11 +121,14 @@ export const VirtualPiano: React.FC = memo(() => {
                             blackGlowColor = blackExpectedData.trackIndex % 2 === 0 ? '#51A0CF' : '#A351CF';
                         }
 
+                        const whiteWrong = key.isActive && hasExpectation && !key.isExpected;
+                        const blackWrong = blackActive && hasExpectation && !blackExpected;
+
                         const whiteKeyStyle: React.CSSProperties = {
                             width: '24px',
                             height: '100%',
                             background: key.isActive
-                                ? 'var(--color-accent)'
+                                ? (whiteWrong ? WRONG_RED : 'var(--color-accent)')
                                 : 'linear-gradient(to bottom, #e8e8e8 0%, #ffffff 60%, #f5f5f5 100%)',
                             boxSizing: 'border-box',
                             borderRadius: '0 0 4px 4px',
@@ -140,7 +151,7 @@ export const VirtualPiano: React.FC = memo(() => {
                             width: '16px',
                             height: 'calc(60% + 2px)',
                             background: blackActive
-                                ? 'var(--color-accent)'
+                                ? (blackWrong ? WRONG_RED : 'var(--color-accent)')
                                 : 'linear-gradient(to bottom, #444 0%, #111 40%, #000 100%)',
                             boxSizing: 'border-box',
                             zIndex: 10,

@@ -237,7 +237,7 @@ export const PlayControls: React.FC = () => {
 
             <button
                 onClick={() => setMetronomeMuted(!isMetronomeMuted)}
-                title={isMetronomeMuted ? "Unmute Metronome" : "Mute Metronome"}
+                title={isMetronomeMuted ? "Unmute audio" : "Mute audio (metronome + instrument)"}
                 style={{
                     width: '40px',
                     height: '40px',

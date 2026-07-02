@@ -3,8 +3,10 @@
 > Read [architecture.md](architecture.md) first for the shared engine, and [piano-app.md](piano-app.md)
 > for the reference implementation. This doc covers what the Drums app does *differently*.
 
-The Drums app trains rhythm patterns. Scores are short looping patterns (1–2 measures), so instead
-of a scrolling keyboard it shows a **step-sequencer grid** that lights up per measure.
+The Drums app trains rhythm patterns, built for the **Yamaha FGDP-50** finger-drum pad (any
+GM-style pad controller works — see the pad maps below). Scores are short looping patterns
+(1–2 measures), so instead of a scrolling keyboard it shows a **step-sequencer grid** that lights
+up per measure.
 
 ---
 
