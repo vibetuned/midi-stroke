@@ -1,25 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { ScoreView } from './ScoreView';
-import { MidiStatus } from './MidiStatus';
-import { PlayControls } from './PlayControls';
-import { useMidiFile, useGame } from '../context/GameContext';
-import { useAudio } from '../hooks/useAudio';
-import { StartOverlay } from './StartOverlay';
-import { PianoSetup } from './PianoSetup';
-import { SongSelector } from './SongSelector';
-import { VirtualPiano } from './VirtualPiano';
-import { LiveStats } from './LiveStats';
-import { StatsPanel } from './StatsPanel';
-import { SongNavigator } from './SongNavigator';
-import { useStats } from '../context/StatsContext';
+import { DrumsScoreView } from './DrumsScoreView';
+import { VirtualDrums } from './VirtualDrums';
+import { MidiStatus } from '../MidiStatus';
+import { PlayControls } from '../PlayControls';
+import { useDrumsMidiFile, useGame } from '../../context/GameContext';
+import { useAudio } from '../../hooks/useAudio';
+import { useGameLogic } from '../../hooks/useGameLogic';
+import { StartOverlay } from '../StartOverlay';
+import { SongSelector } from '../SongSelector';
+import { LiveStats } from '../LiveStats';
+import { StatsPanel } from '../StatsPanel';
+import { SongNavigator } from '../SongNavigator';
+import { useStats } from '../../context/StatsContext';
 
-interface PianoAppProps {
+interface DrumsAppProps {
     onBack: () => void;
 }
 
-export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
+export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
     useAudio();
-    useMidiFile();
+    useDrumsMidiFile();
+    useGameLogic();
     const { selectedSong, setSelectedSong, gameMode, midiData, songCompleted, setSongCompleted } = useGame();
     const { recordPlay, recordSessionEnd, resetSession, sessionStats } = useStats();
 
@@ -41,7 +42,7 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
         resetSession();
     }, [selectedSong, resetSession]);
 
-    // When the song finishes naturally: record the completed play, persist maxCombo + precision, then reset
+    // When a loop completes: record the play, persist maxCombo + precision, then reset
     useEffect(() => {
         if (!songCompleted || !selectedSong) return;
         const statsMode = gameMode === 'standard' ? 'rhythm' : 'practice';
@@ -57,9 +58,8 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
     }, [songCompleted]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
-        <div className="app-container">
+        <div className="app-container theme-drums">
             <StartOverlay />
-            <PianoSetup />
             <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
             {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
 
@@ -93,7 +93,7 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
                     >
                         ← Back
                     </button>
-                    <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Midi Stroke</h1>
+                    <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Midi Stroke - Drums</h1>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -125,11 +125,11 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
                 </div>
             </header>
 
-            <main style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+            <main style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 <MidiStatus />
-                <ScoreView />
+                <DrumsScoreView />
             </main>
-            <VirtualPiano />
+            <VirtualDrums />
             <PlayControls />
         </div>
     );

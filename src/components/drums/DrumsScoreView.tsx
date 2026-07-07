@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import * as Tone from 'tone';
-import { useVerovio } from '../hooks/useVerovio';
-import { useGame } from '../context/GameContext';
+import { useVerovio } from '../../hooks/useVerovio';
+import { useGame } from '../../context/GameContext';
 import * as PIXI from 'pixi.js';
 
 interface MeasureData {
@@ -14,6 +14,9 @@ interface MeasureData {
 
 // Fix 11: ordered loading steps used by the progress dots
 const LOADING_STEPS = ['Loading Score...', 'Rendering SVG...', 'Slicing Textures...'];
+
+// Offset between MIDI playback ticks and score ticks.
+const OFFSET_TICKS = 192;
 
 // Fix 1: binary search helpers — O(log n) instead of O(n) findIndex
 function findMeasureAtTick(mData: MeasureData[], tick: number): number {
@@ -148,7 +151,6 @@ export const DrumsScoreView: React.FC = () => {
                         }
                     }
 
-                    const OFFSET_TICKS = 192;
                     seek(targetTick + OFFSET_TICKS);
                 };
 
@@ -161,7 +163,6 @@ export const DrumsScoreView: React.FC = () => {
                     const scale = scaleRef.current;
 
                     if (!isDragging.current && measureDataRef.current.length > 0) {
-                        const OFFSET_TICKS = 192;
                         const scoreTick = playPositionRef.current - OFFSET_TICKS;
 
                         const mData = measureDataRef.current;
@@ -382,8 +383,7 @@ export const DrumsScoreView: React.FC = () => {
 
         setLoadingMsg('');
 
-        const OFFSET_TICKS = 192;
-        seek(OFFSET_TICKS);
+        seek(0);
     };
 
     // Fix 11: compute step index for progress dots

@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import * as Tone from 'tone';
-import { useVerovio } from '../hooks/useVerovio';
-import { useGame } from '../context/GameContext';
-import { useStats } from '../context/StatsContext';
+import { useVerovio } from '../../hooks/useVerovio';
+import { useGame } from '../../context/GameContext';
+import { useStats } from '../../context/StatsContext';
 import * as PIXI from 'pixi.js';
 
 interface MeasureData {
@@ -19,6 +19,9 @@ const SCORE_BG_HEX = 0x888888;
 
 // Fix 11: ordered loading steps used by the progress dots
 const LOADING_STEPS = ['Loading Score...', 'Rendering SVG...', 'Slicing Textures...'];
+
+// Offset between MIDI playback ticks and score ticks.
+const OFFSET_TICKS = 192;
 
 // Fix 1: binary search helpers — O(log n) instead of O(n) findIndex
 function findMeasureAtTick(mData: MeasureData[], tick: number): number {
@@ -41,7 +44,7 @@ function findMeasureAtX(mData: MeasureData[], x: number): number {
     return lo;
 }
 
-export const ScoreView: React.FC = () => {
+export const PianoScoreView: React.FC = () => {
     const { toolkit } = useVerovio();
     // Fix 7: destructure setSelectedSong for error-recovery back button
     const { isPlaying, setIsPlaying, loadMidiData, seek, selectedSong, setSelectedSong, playPosition, instrument, handSelection } = useGame();
@@ -111,7 +114,6 @@ export const ScoreView: React.FC = () => {
         if (w > prevWrongsRef.current) {
             const total = totalScoreTicksRef.current;
             if (total > 0) {
-                const OFFSET_TICKS = 192;
                 const scoreTick = Math.max(0, Math.min(total, playPositionRef.current - OFFSET_TICKS));
                 setErrorTicks(prev => [...prev, scoreTick]);
             }
@@ -136,7 +138,6 @@ export const ScoreView: React.FC = () => {
             Math.abs(playPosition - prev) > 80;
         if (!isSeeking) return;
 
-        const OFFSET_TICKS = 192;
         const cutoff = Math.max(0, playPosition - OFFSET_TICKS);
         setErrorTicks(curr => curr.filter(t => t <= cutoff));
     }, [playPosition]);
@@ -226,7 +227,6 @@ export const ScoreView: React.FC = () => {
                             }
                         }
 
-                        const OFFSET_TICKS = 192;
                         seek(targetTick + OFFSET_TICKS);
                     }
                 });
@@ -251,7 +251,6 @@ export const ScoreView: React.FC = () => {
                     }
 
                     if (!isDragging.current && measureDataRef.current.length > 0) {
-                        const OFFSET_TICKS = 192;
                         const scoreTick = playPositionRef.current - OFFSET_TICKS;
 
                         const mData = measureDataRef.current;
@@ -279,7 +278,6 @@ export const ScoreView: React.FC = () => {
                     const playheadEl = playheadRef.current;
                     const totalTicks = totalScoreTicksRef.current;
                     if (playheadEl && totalTicks > 0) {
-                        const OFFSET_TICKS = 192;
                         const scoreTick = playPositionRef.current - OFFSET_TICKS;
                         const pct = Math.max(0, Math.min(100, (scoreTick / totalTicks) * 100));
                         playheadEl.style.left = `${pct}%`;
@@ -592,9 +590,8 @@ export const ScoreView: React.FC = () => {
         }
 
         setLoadingMsg('');
-
-        const OFFSET_TICKS = 192;
-        seek(OFFSET_TICKS);
+        // Fix 12: reset playhead to start on song change
+        seek(0);
     };
 
     // Fix 11: compute step index for progress dots
@@ -607,7 +604,6 @@ export const ScoreView: React.FC = () => {
         if (!el || totalTicks <= 0) return;
         const rect = el.getBoundingClientRect();
         const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-        const OFFSET_TICKS = 192;
         seek(pct * totalTicks + OFFSET_TICKS);
     };
 

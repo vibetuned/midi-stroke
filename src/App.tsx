@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { SplashScreen } from './components/SplashScreen';
-import { DrumsApp } from './components/DrumsApp';
-import { PianoApp } from './components/PianoApp';
+import { DrumsApp } from './components/drums/DrumsApp';
+import { PianoApp } from './components/piano/PianoApp';
 import { SaxoApp } from './components/saxo/SaxoApp';
 import { GameProvider } from './context/GameContext';
 import { StatsProvider } from './context/StatsContext';

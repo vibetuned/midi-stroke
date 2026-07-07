@@ -21,6 +21,9 @@ const CURSOR_HEX = 0xd4a017;
 
 const LOADING_STEPS = ['Loading Score...', 'Rendering SVG...', 'Slicing Textures...'];
 
+// Offset between MIDI playback ticks and score ticks.
+const OFFSET_TICKS = 192;
+
 // Binary search helpers — O(log n) tick/x lookups over measureData.
 function findMeasureAtTick(mData: MeasureData[], tick: number): number {
     let lo = 0, hi = mData.length - 1;
@@ -43,7 +46,7 @@ function findMeasureAtX(mData: MeasureData[], x: number): number {
 }
 
 /**
- * Single-staff score view for the Saxo app. Forked from ScoreView, with two
+ * Single-staff score view for the Saxo app. Forked from PianoScoreView, with two
  * deliberate differences:
  *   1. No grand-staff hand overlays (saxo is one voice).
  *   2. All horizontal layout math uses the Pixi *canvas* width
@@ -92,7 +95,6 @@ export const SaxoScoreView: React.FC = () => {
         if (w > prevWrongsRef.current) {
             const total = totalScoreTicksRef.current;
             if (total > 0) {
-                const OFFSET_TICKS = 192;
                 const scoreTick = Math.max(0, Math.min(total, playPositionRef.current - OFFSET_TICKS));
                 setErrorTicks(prev => [...prev, scoreTick]);
             }
@@ -114,7 +116,6 @@ export const SaxoScoreView: React.FC = () => {
             Math.abs(playPosition - prev) > 80;
         if (!isSeeking) return;
 
-        const OFFSET_TICKS = 192;
         const cutoff = Math.max(0, playPosition - OFFSET_TICKS);
         setErrorTicks(curr => curr.filter(t => t <= cutoff));
     }, [playPosition]);
@@ -204,7 +205,6 @@ export const SaxoScoreView: React.FC = () => {
                             }
                         }
 
-                        const OFFSET_TICKS = 192;
                         seek(targetTick + OFFSET_TICKS);
                     }
                 });
@@ -227,7 +227,6 @@ export const SaxoScoreView: React.FC = () => {
                     }
 
                     if (!isDragging.current && measureDataRef.current.length > 0) {
-                        const OFFSET_TICKS = 192;
                         const scoreTick = playPositionRef.current - OFFSET_TICKS;
 
                         const mData = measureDataRef.current;
@@ -254,7 +253,6 @@ export const SaxoScoreView: React.FC = () => {
                     const playheadEl = playheadRef.current;
                     const totalTicks = totalScoreTicksRef.current;
                     if (playheadEl && totalTicks > 0) {
-                        const OFFSET_TICKS = 192;
                         const scoreTick = playPositionRef.current - OFFSET_TICKS;
                         const pct = Math.max(0, Math.min(100, (scoreTick / totalTicks) * 100));
                         playheadEl.style.left = `${pct}%`;
@@ -489,8 +487,7 @@ export const SaxoScoreView: React.FC = () => {
 
         setLoadingMsg('');
 
-        const OFFSET_TICKS = 192;
-        seek(OFFSET_TICKS);
+        seek(0);
     };
 
     const stepIndex = LOADING_STEPS.indexOf(loadingMsg);
@@ -502,7 +499,6 @@ export const SaxoScoreView: React.FC = () => {
         if (!el || totalTicks <= 0) return;
         const rect = el.getBoundingClientRect();
         const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-        const OFFSET_TICKS = 192;
         seek(pct * totalTicks + OFFSET_TICKS);
     };
 

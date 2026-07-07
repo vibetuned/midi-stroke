@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
-import { useGame } from '../context/GameContext';
-import { useGameLogic } from '../hooks/useGameLogic';
-import { useMidi } from '../hooks/useMidi';
+import { useGame } from '../../context/GameContext';
+import { useGameLogic } from '../../hooks/useGameLogic';
+import { useMidi } from '../../hooks/useMidi';
 import * as Tone from 'tone';
 
 // Pressed-but-not-expected keys light up in this red ("release me") — same
