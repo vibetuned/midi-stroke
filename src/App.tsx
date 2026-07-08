@@ -3,11 +3,12 @@ import { SplashScreen } from './components/SplashScreen';
 import { DrumsApp } from './components/drums/DrumsApp';
 import { PianoApp } from './components/piano/PianoApp';
 import { SaxoApp } from './components/saxo/SaxoApp';
+import { TheoryApp } from './components/theory/TheoryApp';
 import { GameProvider } from './context/GameContext';
 import { StatsProvider } from './context/StatsContext';
 
 function App() {
-  const [currentApp, setCurrentApp] = useState<'splash' | 'piano' | 'drums' | 'saxo'>('splash');
+  const [currentApp, setCurrentApp] = useState<'splash' | 'piano' | 'drums' | 'saxo' | 'theory'>('splash');
 
   if (currentApp === 'splash') {
     return <SplashScreen onSelectApp={setCurrentApp} />;
@@ -29,6 +30,16 @@ function App() {
       <StatsProvider>
         <GameProvider instrument="saxo">
           <SaxoApp onBack={() => setCurrentApp('splash')} />
+        </GameProvider>
+      </StatsProvider>
+    );
+  }
+
+  if (currentApp === 'theory') {
+    return (
+      <StatsProvider>
+        <GameProvider instrument="theory">
+          <TheoryApp onBack={() => setCurrentApp('splash')} />
         </GameProvider>
       </StatsProvider>
     );

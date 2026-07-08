@@ -71,6 +71,10 @@
     animation-delay: 0.6s;
 }
 
+.app-card:nth-child(4) {
+    animation-delay: 0.8s;
+}
+
 .app-card:before {
     content: "";
     position: absolute;
@@ -124,6 +128,20 @@
 .card-saxo .app-badge {
     background: rgba(212, 160, 23, 0.2);
     color: #e8c87a;
+}
+
+.card-theory {
+    box-shadow: 0 10px 30px rgba(47, 174, 118, 0.1);
+}
+
+.card-theory:hover {
+    box-shadow: 0 20px 40px rgba(47, 174, 118, 0.3);
+    border-color: rgba(47, 174, 118, 0.4);
+}
+
+.card-theory .app-badge {
+    background: rgba(47, 174, 118, 0.2);
+    color: #7ee2b3;
 }
 
 .app-icon {

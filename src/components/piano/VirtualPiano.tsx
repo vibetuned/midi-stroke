@@ -8,10 +8,17 @@ import * as Tone from 'tone';
 // feature as the saxo fingering view, drums-theme red family.
 const WRONG_RED = '#f5576c';
 
+interface VirtualPianoProps {
+    /** When set, keys become clickable and report their MIDI number (theory mode input). */
+    onNoteClick?: (midi: number) => void;
+    /** Extra per-key glow colors (MIDI number -> CSS color), e.g. notes entered in an exercise. */
+    highlightNotes?: Map<number, string>;
+}
+
 // Fix 5: memo prevents re-renders driven by unrelated GameContext state changes
 // (isPlaying, selectedSong, tempo, etc.) — the component only re-renders when
 // its own hooks (activeNotes, expectedNotes, pianoRange) actually change.
-export const VirtualPiano: React.FC = memo(() => {
+export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, highlightNotes }) => {
     const { pianoRange } = useGame();
     const { activeNotes } = useMidi();
     const { expectedNotes } = useGameLogic();
@@ -29,11 +36,14 @@ export const VirtualPiano: React.FC = memo(() => {
         const isBlack = [1, 3, 6, 8, 10].includes(i % 12);
         const isActive = activeNotes.has(i);
         const expectedData = expectedNotes.find(e => e.note === i);
-        const isExpected = !!expectedData;
+        const highlight = highlightNotes?.get(i);
+        const isExpected = !!expectedData || !!highlight;
 
         let glowColor = 'none';
-        if (isExpected && expectedData) {
+        if (expectedData) {
             glowColor = expectedData.trackIndex % 2 === 0 ? '#51A0CF' : '#A351CF';
+        } else if (highlight) {
+            glowColor = highlight;
         }
 
         const noteName = Tone.Frequency(i, "midi").toNote();
@@ -72,7 +82,7 @@ export const VirtualPiano: React.FC = memo(() => {
                                 textAlign: 'center',
                                 fontSize: '8px',
                                 fontFamily: 'monospace',
-                                color: key.isActive ? (hasExpectation && !key.isExpected ? WRONG_RED : '#646cff') : '#555',
+                                color: key.isActive ? (hasExpectation && !key.isExpected ? WRONG_RED : 'var(--color-accent)') : '#555',
                                 transition: 'color 0.05s ease',
                                 userSelect: 'none',
                                 letterSpacing: '-0.5px',
@@ -90,7 +100,7 @@ export const VirtualPiano: React.FC = memo(() => {
                                     textAlign: 'center',
                                     fontSize: '7px',
                                     fontFamily: 'monospace',
-                                    color: blackActive ? (hasExpectation && blackKey && !blackKey.isExpected ? WRONG_RED : '#646cff') : '#444',
+                                    color: blackActive ? (hasExpectation && blackKey && !blackKey.isExpected ? WRONG_RED : 'var(--color-accent)') : '#444',
                                     transition: 'color 0.05s ease',
                                     userSelect: 'none',
                                     zIndex: 11,
@@ -115,10 +125,13 @@ export const VirtualPiano: React.FC = memo(() => {
                         const blackActive = activeNotes.has(nextNote);
 
                         const blackExpectedData = expectedNotes.find(e => e.note === nextNote);
-                        const blackExpected = !!blackExpectedData;
+                        const blackHighlight = highlightNotes?.get(nextNote);
+                        const blackExpected = !!blackExpectedData || !!blackHighlight;
                         let blackGlowColor = 'none';
-                        if (blackExpected && blackExpectedData) {
+                        if (blackExpectedData) {
                             blackGlowColor = blackExpectedData.trackIndex % 2 === 0 ? '#51A0CF' : '#A351CF';
+                        } else if (blackHighlight) {
+                            blackGlowColor = blackHighlight;
                         }
 
                         const whiteWrong = key.isActive && hasExpectation && !key.isExpected;
@@ -142,6 +155,7 @@ export const VirtualPiano: React.FC = memo(() => {
                             border: key.isExpected ? `2px solid ${key.glowColor}` : '1px solid #bbb',
                             borderTop: 'none',
                             position: 'relative',
+                            cursor: onNoteClick ? 'pointer' : 'default',
                         };
 
                         const blackKeyStyle: React.CSSProperties = {
@@ -164,13 +178,14 @@ export const VirtualPiano: React.FC = memo(() => {
                             transform: blackActive ? 'translateY(2px)' : 'translateY(0)',
                             transition: 'transform 0.05s ease, box-shadow 0.05s ease',
                             border: blackExpected ? `2px solid ${blackGlowColor}` : 'none',
+                            cursor: onNoteClick ? 'pointer' : 'default',
                         };
 
                         return (
                             <div key={key.note} style={{ position: 'relative', height: '100%', margin: '0 1px' }}>
-                                <div style={whiteKeyStyle} />
+                                <div style={whiteKeyStyle} onPointerDown={onNoteClick ? () => onNoteClick(key.note) : undefined} />
                                 {hasBlack && (
-                                    <div style={blackKeyStyle} />
+                                    <div style={blackKeyStyle} onPointerDown={onNoteClick ? () => onNoteClick(nextNote) : undefined} />
                                 )}
                             </div>
                         );

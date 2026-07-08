@@ -3,6 +3,7 @@ import * as Tone from 'tone';
 import { useVerovio } from '../../hooks/useVerovio';
 import { useGame } from '../../context/GameContext';
 import { useStats } from '../../context/StatsContext';
+import { resolveSongUrl } from '../../utils/songUrl';
 import * as PIXI from 'pixi.js';
 
 interface MeasureData {
@@ -327,9 +328,7 @@ export const PianoScoreView: React.FC = () => {
         };
         toolkit.setOptions(options);
 
-        const path = (selectedSong.startsWith('/') || selectedSong.startsWith('blob:'))
-            ? selectedSong
-            : `/${selectedSong}`;
+        const path = resolveSongUrl(selectedSong);
 
         fetch(path)
             .then(response => {

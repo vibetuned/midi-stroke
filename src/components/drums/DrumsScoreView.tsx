@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import * as Tone from 'tone';
 import { useVerovio } from '../../hooks/useVerovio';
 import { useGame } from '../../context/GameContext';
+import { resolveSongUrl } from '../../utils/songUrl';
 import * as PIXI from 'pixi.js';
 
 interface MeasureData {
@@ -242,7 +243,7 @@ export const DrumsScoreView: React.FC = () => {
         };
         toolkit.setOptions(options);
 
-        const path = selectedSong.startsWith('/') ? selectedSong : `/${selectedSong}`;
+        const path = resolveSongUrl(selectedSong);
 
         fetch(path)
             .then(response => {

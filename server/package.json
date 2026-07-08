@@ -1,0 +1,21 @@
+{
+  "name": "midi-stroke-server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Small CRUD server for MEI score files, backed by SQLite",
+  "scripts": {
+    "dev": "node --disable-warning=ExperimentalWarning --watch src/index.ts",
+    "start": "node --disable-warning=ExperimentalWarning src/index.ts",
+    "seed": "node --disable-warning=ExperimentalWarning scripts/seed.ts",
+    "clean": "node -e \"require('node:fs').rmSync('data', { recursive: true, force: true })\""
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^24.10.1",
+    "typescript": "~5.9.3"
+  }
+}

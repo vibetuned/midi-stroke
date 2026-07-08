@@ -1,5 +1,6 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useGame } from '../../context/GameContext';
+import { resolveSongUrl } from '../../utils/songUrl';
 
 interface DrumMapItem {
     id: string;
@@ -38,7 +39,7 @@ export const VirtualDrums: React.FC = () => {
     useEffect(() => {
         if (!selectedSong) return;
 
-        const path = selectedSong.startsWith('/') ? selectedSong : `/${selectedSong}`;
+        const path = resolveSongUrl(selectedSong);
         fetch(path)
             .then(res => res.text())
             .then(xmlText => {

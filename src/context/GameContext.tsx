@@ -44,7 +44,10 @@ interface GameState {
     waitingForNotesRef: React.MutableRefObject<number[]>;
     selectedSong: string | null;
     setSelectedSong: (song: string | null) => void;
-    instrument: 'piano' | 'drums' | 'saxo';
+    instrument: 'piano' | 'drums' | 'saxo' | 'theory';
+    /** Base URL of the connected score server (see server/README.md), or null when using bundled files. */
+    serverBase: string | null;
+    setServerBase: (base: string | null) => void;
     songCompleted: boolean;
     setSongCompleted: (v: boolean) => void;
     handSelection: HandSelection;
@@ -53,7 +56,7 @@ interface GameState {
 
 const GameContext = createContext<GameState | undefined>(undefined);
 
-export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' | 'drums' | 'saxo' }> = ({ children, instrument = 'piano' }) => {
+export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' | 'drums' | 'saxo' | 'theory' }> = ({ children, instrument = 'piano' }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [tempo, setTempo] = useState(120);
     const [currentMeasure, setCurrentMeasure] = useState(1);
@@ -69,6 +72,7 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
     const [waitingForNotes, setWaitingForNotesState] = useState<number[]>([]);
     const waitingForNotesRef = React.useRef<number[]>([]);
     const [selectedSong, setSelectedSong] = useState<string | null>(null);
+    const [serverBase, setServerBase] = useState<string | null>(null);
     const [songCompleted, setSongCompleted] = useState(false);
     const [handSelection, setHandSelection] = useState<HandSelection>('both');
 
@@ -167,6 +171,8 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
             selectedSong,
             setSelectedSong,
             instrument,
+            serverBase,
+            setServerBase,
             songCompleted,
             setSongCompleted,
             handSelection,
