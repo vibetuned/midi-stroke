@@ -8,6 +8,8 @@
 export interface CourseVideo {
     file: string;   // relative to the module dir, e.g. "videos/TheCircleOfFifths.mp4"
     title: string;
+    /** When set, the video is streamed from YouTube instead of the local file. */
+    youtubeId?: string;
 }
 
 export interface CourseExercise {

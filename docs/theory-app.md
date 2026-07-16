@@ -45,15 +45,27 @@ writes **`public/courses_files.json`** with the yaml metadata embedded, so the a
 YAML parser at runtime. Run it whenever course content changes. It also validates that every
 worksheet/answer pair aligns measure-for-measure.
 
+A course may carry a **`youtube_uploads.json`** (keys `<course>/<module>/<Scene>`, values with
+`youtube_id` and `title`): those videos stream from YouTube (embed in `VideoSplash`, marked
+watched on open) and their local mp4s can be deleted. Local files without a YouTube id remain
+as `<video>` fallbacks.
+
 ## 3. The slot model (`src/utils/musicxml.ts`)
 
-Worksheet and answer come from the same generator: identical measures and rhythm. A **slot** is
-one chord-event the student must complete:
+Worksheet and answer come from the same generator: identical measure counts, grand staff
+(two staves, voices separated by `<backup>`). A **slot** is one chord-event the student must
+complete. Per measure, alignment is:
 
-- a whole-measure rest in the worksheet → every answer event in that measure is a slot with no
-  given pitches;
-- a chorale-style measure (melody given) → each event is a slot whose given pitches are a
-  subset of the answer chord.
+- **pairwise** when worksheet and answer have the same event count and every worksheet event
+  is a pitch-subset of its answer counterpart (a rest is the empty set) — blank events become
+  fully-fillable slots, partial chords become slots with given pitches;
+- **union fallback** otherwise (passing/auxiliary-tone exercises insert events; figured-bass
+  ones redistribute pitches across staves): fillable pitches are exactly those absent from the
+  whole worksheet measure, so students enter just the foreign tones.
+
+Replacement notes must carry the prototype event's `<voice>` and `<staff>` — without them the
+answer's `<backup>` arithmetic breaks and notes jump staves. A placeholder rest is
+`measure="yes"` only when it is its voice's sole event.
 
 Rendering builds MusicXML from the **answer's rhythm skeleton**: given pitches stay black,
 entered pitches are spliced in with a `color` attribute (Verovio renders it as fill), unfilled

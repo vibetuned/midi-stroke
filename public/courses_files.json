@@ -1,1721 +1,1773 @@
 {
   "courses": [
     {
-      "id": "harmony-1",
-      "title": "Harmony 1",
-      "path": "courses/harmony-1",
+      "id": "elementary-1",
+      "title": "Elementary 1",
+      "path": "courses/elementary-1",
       "modules": [
         {
-          "id": "01-sound-and-overtones",
+          "id": "01-ear-training-intervals",
           "number": 1,
-          "title": "Sound and Overtones",
+          "title": "Ear Training Intervals",
           "videos": [
             {
-              "file": "videos/OvertoneSeries.mp4",
-              "title": "Overtone Series"
+              "file": "videos/TheScaleDegrees.mp4",
+              "title": "The major scale: eight steps, seven names",
+              "youtubeId": "EOjQFnz3mGQ"
+            },
+            {
+              "file": "videos/IntervalQualities.mp4",
+              "title": "Intervals from the tonic: number and quality",
+              "youtubeId": "6eDG_vBjMbs"
             }
           ],
           "exercises": [
             {
-              "id": "fifth-kinship-s1-n6",
-              "type": "fifth-kinship",
-              "title": "Every tone points two ways",
-              "instructions": "For each given tone, write the tone it generates (its strongest overtone, a fifth above) and the tone that generates it (its origin, a fifth below).",
+              "id": "ear-test-c-s1-n2",
+              "type": "ear-test",
+              "title": "Ear-tests in C major",
+              "instructions": "Each phrase stays inside one octave of the major scale. The tonic is given and sounded first; hear the phrase played, sing it back on degree names, then write it down. Do not write what you cannot hear.",
               "key": "C",
-              "dir": "exercises/fifth-kinship/fifth-kinship-s1-n6",
-              "slots": 12
+              "dir": "exercises/ear-test/ear-test-c-s1-n2",
+              "slots": 14
             },
             {
-              "id": "fifth-kinship-s2-n6",
-              "type": "fifth-kinship",
-              "title": "Every tone points two ways",
-              "instructions": "For each given tone, write the tone it generates (its strongest overtone, a fifth above) and the tone that generates it (its origin, a fifth below).",
+              "id": "ear-test-c-s2-n2",
+              "type": "ear-test",
+              "title": "Ear-tests in C major",
+              "instructions": "Each phrase stays inside one octave of the major scale. The tonic is given and sounded first; hear the phrase played, sing it back on degree names, then write it down. Do not write what you cannot hear.",
               "key": "C",
-              "dir": "exercises/fifth-kinship/fifth-kinship-s2-n6",
-              "slots": 12
+              "dir": "exercises/ear-test/ear-test-c-s2-n2",
+              "slots": 14
             },
             {
-              "id": "overtone-spelling-s1-n4",
-              "type": "overtone-spelling",
-              "title": "Spell the overtone series",
-              "instructions": "For each fundamental, write the first eight partials. The seventh partial is notated as a flat seventh — remember it is only an approximation of the real overtone.",
+              "id": "interval-spelling-c-s1-n6",
+              "type": "interval-spelling",
+              "title": "Intervals between the degrees of C major",
+              "instructions": "Each pair names two degrees of the scale; the first note is given. Write the second note, reckoning the interval upwards, and name its number and quality (e.g. minor third) before you play it. All intervals lie within one octave.",
               "key": "C",
-              "dir": "exercises/overtone-spelling/overtone-spelling-s1-n4",
-              "slots": 28
+              "dir": "exercises/interval-spelling/interval-spelling-c-s1-n6",
+              "slots": 6
             },
             {
-              "id": "overtone-spelling-s2-n4",
-              "type": "overtone-spelling",
-              "title": "Spell the overtone series",
-              "instructions": "For each fundamental, write the first eight partials. The seventh partial is notated as a flat seventh — remember it is only an approximation of the real overtone.",
+              "id": "interval-spelling-c-s2-n6",
+              "type": "interval-spelling",
+              "title": "Intervals between the degrees of C major",
+              "instructions": "Each pair names two degrees of the scale; the first note is given. Write the second note, reckoning the interval upwards, and name its number and quality (e.g. minor third) before you play it. All intervals lie within one octave.",
               "key": "C",
-              "dir": "exercises/overtone-spelling/overtone-spelling-s2-n4",
-              "slots": 28
+              "dir": "exercises/interval-spelling/interval-spelling-c-s2-n6",
+              "slots": 6
             }
           ]
         },
         {
-          "id": "02-diatonic-triads",
+          "id": "02-primary-triads",
           "number": 2,
-          "title": "Diatonic Triads",
+          "title": "Primary Triads",
           "videos": [
             {
-              "file": "videos/DiatonicTriads.mp4",
-              "title": "Diatonic Triads"
+              "file": "videos/ThePrimaryTriads.mp4",
+              "title": "The three primary triads",
+              "youtubeId": "u7VG88Xq5Ec"
+            },
+            {
+              "file": "videos/FourVoicesSATB.mp4",
+              "title": "Four voices, three notes: arranging a triad",
+              "youtubeId": "CGML5o_-Kuc"
+            },
+            {
+              "file": "videos/TheThreeCadences.mp4",
+              "title": "The cadences: how phrases end",
+              "youtubeId": "WBcb7PqNOc8"
             }
           ],
           "exercises": [
             {
-              "id": "triad-spelling-c-s1-n8",
-              "type": "triad-spelling",
-              "title": "Spell the diatonic triads in C major",
-              "instructions": "For each scale degree shown, write the triad in root position (root, third, fifth).",
+              "id": "cadence-writing-c-s1-n4",
+              "type": "cadence-writing",
+              "title": "Write the cadences in C major",
+              "instructions": "Write each named cadence for four voices, root position, the final chord on the strong accent: perfect V–I, plagal IV–I, imperfect (half-close) ending on V. All the connection rules hold; the leading note rises at the perfect cadence.",
               "key": "C",
-              "dir": "exercises/triad-spelling/triad-spelling-c-s1-n8",
-              "slots": 8
+              "dir": "exercises/cadence-writing/cadence-writing-c-s1-n4",
+              "slots": 16
             },
             {
-              "id": "triad-spelling-c-s2-n8",
-              "type": "triad-spelling",
-              "title": "Spell the diatonic triads in C major",
-              "instructions": "For each scale degree shown, write the triad in root position (root, third, fifth).",
-              "key": "C",
-              "dir": "exercises/triad-spelling/triad-spelling-c-s2-n8",
-              "slots": 8
-            },
-            {
-              "id": "triad-spelling-c-s3-n8",
-              "type": "triad-spelling",
-              "title": "Spell the diatonic triads in C major",
-              "instructions": "For each scale degree shown, write the triad in root position (root, third, fifth).",
-              "key": "C",
-              "dir": "exercises/triad-spelling/triad-spelling-c-s3-n8",
-              "slots": 8
-            },
-            {
-              "id": "triad-spelling-f-s1-n8",
-              "type": "triad-spelling",
-              "title": "Spell the diatonic triads in F major",
-              "instructions": "For each scale degree shown, write the triad in root position (root, third, fifth).",
-              "key": "F",
-              "dir": "exercises/triad-spelling/triad-spelling-f-s1-n8",
-              "slots": 8
-            },
-            {
-              "id": "triad-spelling-f-s2-n8",
-              "type": "triad-spelling",
-              "title": "Spell the diatonic triads in F major",
-              "instructions": "For each scale degree shown, write the triad in root position (root, third, fifth).",
-              "key": "F",
-              "dir": "exercises/triad-spelling/triad-spelling-f-s2-n8",
-              "slots": 8
-            },
-            {
-              "id": "triad-spelling-g-s1-n8",
-              "type": "triad-spelling",
-              "title": "Spell the diatonic triads in G major",
-              "instructions": "For each scale degree shown, write the triad in root position (root, third, fifth).",
+              "id": "cadence-writing-g-s1-n4",
+              "type": "cadence-writing",
+              "title": "Write the cadences in G major",
+              "instructions": "Write each named cadence for four voices, root position, the final chord on the strong accent: perfect V–I, plagal IV–I, imperfect (half-close) ending on V. All the connection rules hold; the leading note rises at the perfect cadence.",
               "key": "G",
-              "dir": "exercises/triad-spelling/triad-spelling-g-s1-n8",
+              "dir": "exercises/cadence-writing/cadence-writing-g-s1-n4",
+              "slots": 16
+            },
+            {
+              "id": "primary-arrangement-c-s1-n4",
+              "type": "primary-arrangement",
+              "title": "Arrange the primary triads in C major",
+              "instructions": "The bass note (the root) is given twice for each chord. Add soprano, alto, and tenor, making two different arrangements: complete chord, root or fifth doubled — not the major third, never the leading note. Keep adjacent upper parts within an octave. (The book labels root position Ia, IVa, Va; we write I, IV, V.)",
+              "key": "C",
+              "dir": "exercises/primary-arrangement/primary-arrangement-c-s1-n4",
               "slots": 8
             },
             {
-              "id": "triad-spelling-g-s2-n8",
-              "type": "triad-spelling",
-              "title": "Spell the diatonic triads in G major",
-              "instructions": "For each scale degree shown, write the triad in root position (root, third, fifth).",
-              "key": "G",
-              "dir": "exercises/triad-spelling/triad-spelling-g-s2-n8",
+              "id": "primary-arrangement-c-s2-n4",
+              "type": "primary-arrangement",
+              "title": "Arrange the primary triads in C major",
+              "instructions": "The bass note (the root) is given twice for each chord. Add soprano, alto, and tenor, making two different arrangements: complete chord, root or fifth doubled — not the major third, never the leading note. Keep adjacent upper parts within an octave. (The book labels root position Ia, IVa, Va; we write I, IV, V.)",
+              "key": "C",
+              "dir": "exercises/primary-arrangement/primary-arrangement-c-s2-n4",
               "slots": 8
+            },
+            {
+              "id": "primary-inner-voices-c-s1-n6",
+              "type": "primary-inner-voices",
+              "title": "Add the inner parts in C major",
+              "instructions": "Soprano and bass are given; add alto and tenor, forming primary triads in root position. Keep the common tone in the same part, move to the nearest note, no consecutive fifths or octaves, and let the leading note rise.",
+              "key": "C",
+              "dir": "exercises/primary-inner-voices/primary-inner-voices-c-s1-n6",
+              "slots": 6
+            },
+            {
+              "id": "primary-inner-voices-c-s2-n6",
+              "type": "primary-inner-voices",
+              "title": "Add the inner parts in C major",
+              "instructions": "Soprano and bass are given; add alto and tenor, forming primary triads in root position. Keep the common tone in the same part, move to the nearest note, no consecutive fifths or octaves, and let the leading note rise.",
+              "key": "C",
+              "dir": "exercises/primary-inner-voices/primary-inner-voices-c-s2-n6",
+              "slots": 6
             }
           ]
         },
         {
-          "id": "03-connecting-chords",
+          "id": "03-primary-triads-minor",
           "number": 3,
-          "title": "Connecting Chords",
+          "title": "Primary Triads Minor",
           "videos": [
             {
-              "file": "videos/FourPartSetting.mp4",
-              "title": "Four Part Setting"
+              "file": "videos/TheMinorPrimaries.mp4",
+              "title": "The primary triads in minor",
+              "youtubeId": "tISbQPjRgTk"
             },
             {
-              "file": "videos/HarmonicBand.mp4",
-              "title": "Harmonic Band"
-            },
-            {
-              "file": "videos/ShortestWay.mp4",
-              "title": "Shortest Way"
+              "file": "videos/ThePicardyThird.mp4",
+              "title": "The Tierce de Picardie",
+              "youtubeId": "fMf6F3Y19zE"
             }
           ],
           "exercises": [
             {
-              "id": "chord-connection-c-s1-n6",
-              "type": "chord-connection",
-              "title": "Connect the triads in C major",
-              "instructions": "Continue in four parts from the given chord. Root position, root doubled. Hold the common tone in the same voice (harmonisches Band); move every other voice the shortest way. No parallel fifths or octaves.",
-              "key": "C",
-              "dir": "exercises/chord-connection/chord-connection-c-s1-n6",
-              "slots": 5
+              "id": "cadence-writing-a-s1-n4",
+              "type": "cadence-writing",
+              "title": "Write the cadences in A minor",
+              "instructions": "Write each named cadence for four voices, root position, the final chord on the strong accent: perfect V–I, plagal IV–I, imperfect (half-close) ending on V. All the connection rules hold; the leading note rises at the perfect cadence.",
+              "key": "a",
+              "dir": "exercises/cadence-writing/cadence-writing-a-s1-n4",
+              "slots": 16
             },
             {
-              "id": "chord-connection-c-s2-n6",
-              "type": "chord-connection",
-              "title": "Connect the triads in C major",
-              "instructions": "Continue in four parts from the given chord. Root position, root doubled. Hold the common tone in the same voice (harmonisches Band); move every other voice the shortest way. No parallel fifths or octaves.",
-              "key": "C",
-              "dir": "exercises/chord-connection/chord-connection-c-s2-n6",
-              "slots": 5
+              "id": "cadence-writing-e-s1-n4",
+              "type": "cadence-writing",
+              "title": "Write the cadences in E minor",
+              "instructions": "Write each named cadence for four voices, root position, the final chord on the strong accent: perfect V–I, plagal IV–I, imperfect (half-close) ending on V. All the connection rules hold; the leading note rises at the perfect cadence.",
+              "key": "e",
+              "dir": "exercises/cadence-writing/cadence-writing-e-s1-n4",
+              "slots": 16
             },
             {
-              "id": "chord-connection-c-s3-n6",
-              "type": "chord-connection",
-              "title": "Connect the triads in C major",
-              "instructions": "Continue in four parts from the given chord. Root position, root doubled. Hold the common tone in the same voice (harmonisches Band); move every other voice the shortest way. No parallel fifths or octaves.",
-              "key": "C",
-              "dir": "exercises/chord-connection/chord-connection-c-s3-n6",
-              "slots": 5
+              "id": "picardy-close-a-s1-n2",
+              "type": "picardy-close",
+              "title": "The Tierce de Picardie in A minor",
+              "instructions": "Write each close for four voices, sharpening the third of the final tonic chord (Tierce de Picardie) — the phrase ends major in a minor key. Watch the leading note (it still rises) and never move by an augmented second.",
+              "key": "a",
+              "dir": "exercises/picardy-close/picardy-close-a-s1-n2",
+              "slots": 8
             },
             {
-              "id": "chord-connection-c-s4-n6",
-              "type": "chord-connection",
-              "title": "Connect the triads in C major",
-              "instructions": "Continue in four parts from the given chord. Root position, root doubled. Hold the common tone in the same voice (harmonisches Band); move every other voice the shortest way. No parallel fifths or octaves.",
-              "key": "C",
-              "dir": "exercises/chord-connection/chord-connection-c-s4-n6",
-              "slots": 5
+              "id": "picardy-close-a-s2-n2",
+              "type": "picardy-close",
+              "title": "The Tierce de Picardie in A minor",
+              "instructions": "Write each close for four voices, sharpening the third of the final tonic chord (Tierce de Picardie) — the phrase ends major in a minor key. Watch the leading note (it still rises) and never move by an augmented second.",
+              "key": "a",
+              "dir": "exercises/picardy-close/picardy-close-a-s2-n2",
+              "slots": 8
             },
             {
-              "id": "chord-connection-g-s1-n6",
-              "type": "chord-connection",
-              "title": "Connect the triads in G major",
-              "instructions": "Continue in four parts from the given chord. Root position, root doubled. Hold the common tone in the same voice (harmonisches Band); move every other voice the shortest way. No parallel fifths or octaves.",
-              "key": "G",
-              "dir": "exercises/chord-connection/chord-connection-g-s1-n6",
-              "slots": 5
+              "id": "primary-arrangement-a-s1-n4",
+              "type": "primary-arrangement",
+              "title": "Arrange the primary triads in A minor",
+              "instructions": "The bass note (the root) is given twice for each chord. Add soprano, alto, and tenor, making two different arrangements: complete chord, root or fifth doubled — not the major third, never the leading note. Keep adjacent upper parts within an octave. (The book labels root position Ia, IVa, Va; we write I, IV, V.)",
+              "key": "a",
+              "dir": "exercises/primary-arrangement/primary-arrangement-a-s1-n4",
+              "slots": 8
             },
             {
-              "id": "chord-connection-g-s2-n6",
-              "type": "chord-connection",
-              "title": "Connect the triads in G major",
-              "instructions": "Continue in four parts from the given chord. Root position, root doubled. Hold the common tone in the same voice (harmonisches Band); move every other voice the shortest way. No parallel fifths or octaves.",
-              "key": "G",
-              "dir": "exercises/chord-connection/chord-connection-g-s2-n6",
-              "slots": 5
+              "id": "primary-arrangement-a-s2-n4",
+              "type": "primary-arrangement",
+              "title": "Arrange the primary triads in A minor",
+              "instructions": "The bass note (the root) is given twice for each chord. Add soprano, alto, and tenor, making two different arrangements: complete chord, root or fifth doubled — not the major third, never the leading note. Keep adjacent upper parts within an octave. (The book labels root position Ia, IVa, Va; we write I, IV, V.)",
+              "key": "a",
+              "dir": "exercises/primary-arrangement/primary-arrangement-a-s2-n4",
+              "slots": 8
             },
             {
-              "id": "saetzchen-c-s1-n8",
-              "type": "saetzchen",
-              "title": "Little phrase (Sätzchen) in C major",
-              "instructions": "Realize the degree plan in four parts, starting from the given chord. Root position, root doubled. Hold the common tone in the same voice; move every other voice the shortest way. The phrase begins and ends on I.",
-              "key": "C",
-              "dir": "exercises/saetzchen/saetzchen-c-s1-n8",
-              "slots": 7
+              "id": "primary-inner-voices-a-s1-n6",
+              "type": "primary-inner-voices",
+              "title": "Add the inner parts in A minor",
+              "instructions": "Soprano and bass are given; add alto and tenor, forming primary triads in root position. Keep the common tone in the same part, move to the nearest note, no consecutive fifths or octaves, and let the leading note rise.",
+              "key": "a",
+              "dir": "exercises/primary-inner-voices/primary-inner-voices-a-s1-n6",
+              "slots": 6
             },
             {
-              "id": "saetzchen-c-s2-n8",
-              "type": "saetzchen",
-              "title": "Little phrase (Sätzchen) in C major",
-              "instructions": "Realize the degree plan in four parts, starting from the given chord. Root position, root doubled. Hold the common tone in the same voice; move every other voice the shortest way. The phrase begins and ends on I.",
-              "key": "C",
-              "dir": "exercises/saetzchen/saetzchen-c-s2-n8",
-              "slots": 7
-            },
-            {
-              "id": "saetzchen-c-s3-n8",
-              "type": "saetzchen",
-              "title": "Little phrase (Sätzchen) in C major",
-              "instructions": "Realize the degree plan in four parts, starting from the given chord. Root position, root doubled. Hold the common tone in the same voice; move every other voice the shortest way. The phrase begins and ends on I.",
-              "key": "C",
-              "dir": "exercises/saetzchen/saetzchen-c-s3-n8",
-              "slots": 7
+              "id": "primary-inner-voices-a-s2-n6",
+              "type": "primary-inner-voices",
+              "title": "Add the inner parts in A minor",
+              "instructions": "Soprano and bass are given; add alto and tenor, forming primary triads in root position. Keep the common tone in the same part, move to the nearest note, no consecutive fifths or octaves, and let the leading note rise.",
+              "key": "a",
+              "dir": "exercises/primary-inner-voices/primary-inner-voices-a-s2-n6",
+              "slots": 6
             }
           ]
         },
         {
-          "id": "04-seventh-degree",
+          "id": "04-supertonic-submediant",
           "number": 4,
-          "title": "Seventh Degree",
+          "title": "Supertonic Submediant",
           "videos": [
             {
-              "file": "videos/SeventhDegree.mp4",
-              "title": "Seventh Degree"
+              "file": "videos/TheSecondaryTriads.mp4",
+              "title": "Two new chords: the supertonic and submediant triads",
+              "youtubeId": "IssByQr7hUI"
+            },
+            {
+              "file": "videos/TheFalseCadence.mp4",
+              "title": "The false cadence",
+              "youtubeId": "OShzW9n_M1s"
             }
           ],
           "exercises": [
             {
-              "id": "vii-resolution-c-s1-n2",
-              "type": "vii-resolution",
-              "title": "The seventh degree in C major",
-              "instructions": "Realize each phrase in four parts from the given chord. In VII the diminished fifth must already stand in the same voice in the chord before (preparation), must fall by step into the next chord (resolution), and is never doubled. Double the third of VII, not its root.",
-              "key": "C",
-              "dir": "exercises/vii-resolution/vii-resolution-c-s1-n2",
-              "slots": 8
+              "id": "close-approach-c-s1-n3",
+              "type": "close-approach",
+              "title": "Approaching the closes in C minor",
+              "instructions": "Write each three-chord formula for four voices. At the false close (V to VI) the leading note rises and the third of VI is doubled; avoid IIa to Ia everywhere; upper parts against the bass wherever the roots move by step.",
+              "key": "c",
+              "dir": "exercises/close-approach/close-approach-c-s1-n3",
+              "slots": 18
             },
             {
-              "id": "vii-resolution-c-s2-n2",
-              "type": "vii-resolution",
-              "title": "The seventh degree in C major",
-              "instructions": "Realize each phrase in four parts from the given chord. In VII the diminished fifth must already stand in the same voice in the chord before (preparation), must fall by step into the next chord (resolution), and is never doubled. Double the third of VII, not its root.",
+              "id": "close-approach-c-s1-n4",
+              "type": "close-approach",
+              "title": "Approaching the closes in C major",
+              "instructions": "Write each three-chord formula for four voices. At the false close (V to VI) the leading note rises and the third of VI is doubled; avoid IIa to Ia everywhere; upper parts against the bass wherever the roots move by step.",
               "key": "C",
-              "dir": "exercises/vii-resolution/vii-resolution-c-s2-n2",
-              "slots": 8
+              "dir": "exercises/close-approach/close-approach-c-s1-n4",
+              "slots": 24
             },
             {
-              "id": "vii-resolution-c-s3-n2",
-              "type": "vii-resolution",
-              "title": "The seventh degree in C major",
-              "instructions": "Realize each phrase in four parts from the given chord. In VII the diminished fifth must already stand in the same voice in the chord before (preparation), must fall by step into the next chord (resolution), and is never doubled. Double the third of VII, not its root.",
+              "id": "close-approach-c-s2-n4",
+              "type": "close-approach",
+              "title": "Approaching the closes in C major",
+              "instructions": "Write each three-chord formula for four voices. At the false close (V to VI) the leading note rises and the third of VI is doubled; avoid IIa to Ia everywhere; upper parts against the bass wherever the roots move by step.",
               "key": "C",
-              "dir": "exercises/vii-resolution/vii-resolution-c-s3-n2",
-              "slots": 8
+              "dir": "exercises/close-approach/close-approach-c-s2-n4",
+              "slots": 24
             },
             {
-              "id": "vii-resolution-g-s1-n2",
-              "type": "vii-resolution",
-              "title": "The seventh degree in G major",
-              "instructions": "Realize each phrase in four parts from the given chord. In VII the diminished fifth must already stand in the same voice in the chord before (preparation), must fall by step into the next chord (resolution), and is never doubled. Double the third of VII, not its root.",
+              "id": "secondary-inner-voices-c-s1-n6",
+              "type": "secondary-inner-voices",
+              "title": "Add the inner parts (with II and VI) in C major",
+              "instructions": "Soprano and bass are given; add alto and tenor. The vocabulary now includes the supertonic and submediant triads: same habits as before, plus — never IIa to Ia, and at V to VI double the third of VI.",
+              "key": "C",
+              "dir": "exercises/secondary-inner-voices/secondary-inner-voices-c-s1-n6",
+              "slots": 6
+            },
+            {
+              "id": "secondary-inner-voices-c-s2-n6",
+              "type": "secondary-inner-voices",
+              "title": "Add the inner parts (with II and VI) in C major",
+              "instructions": "Soprano and bass are given; add alto and tenor. The vocabulary now includes the supertonic and submediant triads: same habits as before, plus — never IIa to Ia, and at V to VI double the third of VI.",
+              "key": "C",
+              "dir": "exercises/secondary-inner-voices/secondary-inner-voices-c-s2-n6",
+              "slots": 6
+            },
+            {
+              "id": "secondary-inner-voices-g-s1-n6",
+              "type": "secondary-inner-voices",
+              "title": "Add the inner parts (with II and VI) in G major",
+              "instructions": "Soprano and bass are given; add alto and tenor. The vocabulary now includes the supertonic and submediant triads: same habits as before, plus — never IIa to Ia, and at V to VI double the third of VI.",
               "key": "G",
-              "dir": "exercises/vii-resolution/vii-resolution-g-s1-n2",
-              "slots": 8
-            },
-            {
-              "id": "vii-resolution-g-s2-n2",
-              "type": "vii-resolution",
-              "title": "The seventh degree in G major",
-              "instructions": "Realize each phrase in four parts from the given chord. In VII the diminished fifth must already stand in the same voice in the chord before (preparation), must fall by step into the next chord (resolution), and is never doubled. Double the third of VII, not its root.",
-              "key": "G",
-              "dir": "exercises/vii-resolution/vii-resolution-g-s2-n2",
-              "slots": 8
+              "dir": "exercises/secondary-inner-voices/secondary-inner-voices-g-s1-n6",
+              "slots": 6
             }
           ]
         },
         {
-          "id": "05-inversions",
+          "id": "05-first-inversions",
           "number": 5,
-          "title": "Inversions",
+          "title": "First Inversions",
           "videos": [
             {
-              "file": "videos/ConnectingSixthChords.mp4",
-              "title": "Connecting Sixth Chords"
+              "file": "videos/TheFirstInversions.mp4",
+              "title": "The first inversion: the third in the bass",
+              "youtubeId": "9QwiJn514wI"
             },
             {
-              "file": "videos/SixFourCadence.mp4",
-              "title": "Six Four Cadence"
-            },
-            {
-              "file": "videos/TheSixthChord.mp4",
-              "title": "The Sixth Chord"
+              "file": "videos/TheSixthChordMoves.mp4",
+              "title": "What the sixth chord is for",
+              "youtubeId": "Trzvzm7BDGo"
             }
           ],
           "exercises": [
             {
-              "id": "cadential-six-four-c-s1-n2",
-              "type": "cadential-six-four",
-              "title": "The cadential six-four in C major",
-              "instructions": "Realize each phrase in four parts. The six-four chord doubles its bass tone, its bass is approached by common tone or step, and the next chord keeps the same bass: I 6/4 goes to V.",
+              "id": "cadence-approach-6-c-s1-n4",
+              "type": "cadence-approach-6",
+              "title": "Cadences through first inversions in C major",
+              "instructions": "Write each formula for four voices; the chord marked 6 stands in first inversion, its bass carrying the third. The stepwise bass into the cadence is the point — smoother than root positions alone.",
               "key": "C",
-              "dir": "exercises/cadential-six-four/cadential-six-four-c-s1-n2",
-              "slots": 8
+              "dir": "exercises/cadence-approach-6/cadence-approach-6-c-s1-n4",
+              "slots": 24
             },
             {
-              "id": "cadential-six-four-c-s2-n2",
-              "type": "cadential-six-four",
-              "title": "The cadential six-four in C major",
-              "instructions": "Realize each phrase in four parts. The six-four chord doubles its bass tone, its bass is approached by common tone or step, and the next chord keeps the same bass: I 6/4 goes to V.",
-              "key": "C",
-              "dir": "exercises/cadential-six-four/cadential-six-four-c-s2-n2",
-              "slots": 8
-            },
-            {
-              "id": "cadential-six-four-c-s3-n2",
-              "type": "cadential-six-four",
-              "title": "The cadential six-four in C major",
-              "instructions": "Realize each phrase in four parts. The six-four chord doubles its bass tone, its bass is approached by common tone or step, and the next chord keeps the same bass: I 6/4 goes to V.",
-              "key": "C",
-              "dir": "exercises/cadential-six-four/cadential-six-four-c-s3-n2",
-              "slots": 8
-            },
-            {
-              "id": "sixth-chords-c-s1-n6",
-              "type": "sixth-chords",
-              "title": "Sixth chords in C major",
-              "instructions": "Realize the plan in four parts. Chords marked 6 take their third in the bass; do not double the bass tone of a sixth chord — double the root (or the fifth). All connection rules still hold.",
-              "key": "C",
-              "dir": "exercises/sixth-chords/sixth-chords-c-s1-n6",
-              "slots": 5
-            },
-            {
-              "id": "sixth-chords-c-s2-n6",
-              "type": "sixth-chords",
-              "title": "Sixth chords in C major",
-              "instructions": "Realize the plan in four parts. Chords marked 6 take their third in the bass; do not double the bass tone of a sixth chord — double the root (or the fifth). All connection rules still hold.",
-              "key": "C",
-              "dir": "exercises/sixth-chords/sixth-chords-c-s2-n6",
-              "slots": 5
-            },
-            {
-              "id": "sixth-chords-c-s3-n6",
-              "type": "sixth-chords",
-              "title": "Sixth chords in C major",
-              "instructions": "Realize the plan in four parts. Chords marked 6 take their third in the bass; do not double the bass tone of a sixth chord — double the root (or the fifth). All connection rules still hold.",
-              "key": "C",
-              "dir": "exercises/sixth-chords/sixth-chords-c-s3-n6",
-              "slots": 5
-            },
-            {
-              "id": "sixth-chords-g-s1-n6",
-              "type": "sixth-chords",
-              "title": "Sixth chords in G major",
-              "instructions": "Realize the plan in four parts. Chords marked 6 take their third in the bass; do not double the bass tone of a sixth chord — double the root (or the fifth). All connection rules still hold.",
+              "id": "cadence-approach-6-g-s1-n4",
+              "type": "cadence-approach-6",
+              "title": "Cadences through first inversions in G major",
+              "instructions": "Write each formula for four voices; the chord marked 6 stands in first inversion, its bass carrying the third. The stepwise bass into the cadence is the point — smoother than root positions alone.",
               "key": "G",
-              "dir": "exercises/sixth-chords/sixth-chords-g-s1-n6",
-              "slots": 5
+              "dir": "exercises/cadence-approach-6/cadence-approach-6-g-s1-n4",
+              "slots": 24
             },
             {
-              "id": "sixth-chords-g-s2-n6",
-              "type": "sixth-chords",
-              "title": "Sixth chords in G major",
-              "instructions": "Realize the plan in four parts. Chords marked 6 take their third in the bass; do not double the bass tone of a sixth chord — double the root (or the fifth). All connection rules still hold.",
-              "key": "G",
-              "dir": "exercises/sixth-chords/sixth-chords-g-s2-n6",
-              "slots": 5
+              "id": "figured-phrase-c-s1-n2",
+              "type": "figured-phrase",
+              "title": "Root positions and first inversions in C major",
+              "instructions": "Soprano and bass are given; add alto and tenor. A label with 6 marks a first inversion — the bass carries the chord's third. Doubling follows the root-position principle; never VIIb to Va; watch the fifths where VIIb is involved.",
+              "key": "C",
+              "dir": "exercises/figured-phrase/figured-phrase-c-s1-n2",
+              "slots": 12
+            },
+            {
+              "id": "figured-phrase-c-s2-n2",
+              "type": "figured-phrase",
+              "title": "Root positions and first inversions in C major",
+              "instructions": "Soprano and bass are given; add alto and tenor. A label with 6 marks a first inversion — the bass carries the chord's third. Doubling follows the root-position principle; never VIIb to Va; watch the fifths where VIIb is involved.",
+              "key": "C",
+              "dir": "exercises/figured-phrase/figured-phrase-c-s2-n2",
+              "slots": 12
+            },
+            {
+              "id": "sixth-arrangement-c-s1-n4",
+              "type": "sixth-arrangement",
+              "title": "Arrange the first inversions in C major",
+              "instructions": "Each given bass note is the THIRD of its chord — the figure 6 beneath a bass means a first inversion (6/3). Add soprano, alto, and tenor two different ways: complete the chord and double the root or the fifth (never the leading note).",
+              "key": "C",
+              "dir": "exercises/sixth-arrangement/sixth-arrangement-c-s1-n4",
+              "slots": 8
+            },
+            {
+              "id": "sixth-arrangement-c-s2-n4",
+              "type": "sixth-arrangement",
+              "title": "Arrange the first inversions in C major",
+              "instructions": "Each given bass note is the THIRD of its chord — the figure 6 beneath a bass means a first inversion (6/3). Add soprano, alto, and tenor two different ways: complete the chord and double the root or the fifth (never the leading note).",
+              "key": "C",
+              "dir": "exercises/sixth-arrangement/sixth-arrangement-c-s2-n4",
+              "slots": 8
             }
           ]
         },
         {
-          "id": "06-seventh-chords",
+          "id": "06-first-inversions-minor",
           "number": 6,
-          "title": "Seventh Chords",
+          "title": "First Inversions Minor",
           "videos": [
             {
-              "file": "videos/ConnectingSevenths.mp4",
-              "title": "Connecting Sevenths"
+              "file": "videos/TheMinorSixths.mp4",
+              "title": "The first inversions of the minor key",
+              "youtubeId": "9TCBKDx-K74"
             },
             {
-              "file": "videos/SeventhInversions.mp4",
-              "title": "Seventh Inversions"
-            },
-            {
-              "file": "videos/TheSeventhChord.mp4",
-              "title": "The Seventh Chord"
+              "file": "videos/MinorSixthCadences.mp4",
+              "title": "Minor cadences through the sixth chords",
+              "youtubeId": "LN42ClAJ5vE"
             }
           ],
           "exercises": [
             {
-              "id": "seventh-chains-c-s1-n2",
-              "type": "seventh-chains",
-              "title": "Chains of seventh chords in C major",
-              "instructions": "Realize each phrase. In a chain of sevenths the falling seventh of one chord becomes preparation for the next; where the voices would deadlock, omit the fifth and double the root.",
-              "key": "C",
-              "dir": "exercises/seventh-chains/seventh-chains-c-s1-n2",
-              "slots": 7
+              "id": "cadence-approach-6-a-s1-n4",
+              "type": "cadence-approach-6",
+              "title": "Cadences through first inversions in A minor",
+              "instructions": "Write each formula for four voices; the chord marked 6 stands in first inversion, its bass carrying the third. The stepwise bass into the cadence is the point — smoother than root positions alone.",
+              "key": "a",
+              "dir": "exercises/cadence-approach-6/cadence-approach-6-a-s1-n4",
+              "slots": 24
             },
             {
-              "id": "seventh-chains-c-s2-n2",
-              "type": "seventh-chains",
-              "title": "Chains of seventh chords in C major",
-              "instructions": "Realize each phrase. In a chain of sevenths the falling seventh of one chord becomes preparation for the next; where the voices would deadlock, omit the fifth and double the root.",
-              "key": "C",
-              "dir": "exercises/seventh-chains/seventh-chains-c-s2-n2",
-              "slots": 6
+              "id": "cadence-approach-6-d-s1-n4",
+              "type": "cadence-approach-6",
+              "title": "Cadences through first inversions in D minor",
+              "instructions": "Write each formula for four voices; the chord marked 6 stands in first inversion, its bass carrying the third. The stepwise bass into the cadence is the point — smoother than root positions alone.",
+              "key": "d",
+              "dir": "exercises/cadence-approach-6/cadence-approach-6-d-s1-n4",
+              "slots": 24
             },
             {
-              "id": "seventh-inversions-c-s1-n2",
-              "type": "seventh-inversions",
-              "title": "Inversions of the seventh chord in C major",
-              "instructions": "Realize each phrase. The seventh keeps its duties in every position; in the 2-chord it lies in the bass, so the BASS falls by step and the next chord is a sixth chord.",
-              "key": "C",
-              "dir": "exercises/seventh-inversions/seventh-inversions-c-s1-n2",
-              "slots": 6
+              "id": "figured-phrase-a-s1-n2",
+              "type": "figured-phrase",
+              "title": "Root positions and first inversions in A minor",
+              "instructions": "Soprano and bass are given; add alto and tenor. A label with 6 marks a first inversion — the bass carries the chord's third. Doubling follows the root-position principle; never VIIb to Va; watch the fifths where VIIb is involved.",
+              "key": "a",
+              "dir": "exercises/figured-phrase/figured-phrase-a-s1-n2",
+              "slots": 12
             },
             {
-              "id": "seventh-inversions-c-s2-n2",
-              "type": "seventh-inversions",
-              "title": "Inversions of the seventh chord in C major",
-              "instructions": "Realize each phrase. The seventh keeps its duties in every position; in the 2-chord it lies in the bass, so the BASS falls by step and the next chord is a sixth chord.",
-              "key": "C",
-              "dir": "exercises/seventh-inversions/seventh-inversions-c-s2-n2",
-              "slots": 6
+              "id": "figured-phrase-a-s2-n2",
+              "type": "figured-phrase",
+              "title": "Root positions and first inversions in A minor",
+              "instructions": "Soprano and bass are given; add alto and tenor. A label with 6 marks a first inversion — the bass carries the chord's third. Doubling follows the root-position principle; never VIIb to Va; watch the fifths where VIIb is involved.",
+              "key": "a",
+              "dir": "exercises/figured-phrase/figured-phrase-a-s2-n2",
+              "slots": 12
             },
             {
-              "id": "seventh-inversions-c-s3-n2",
-              "type": "seventh-inversions",
-              "title": "Inversions of the seventh chord in C major",
-              "instructions": "Realize each phrase. The seventh keeps its duties in every position; in the 2-chord it lies in the bass, so the BASS falls by step and the next chord is a sixth chord.",
-              "key": "C",
-              "dir": "exercises/seventh-inversions/seventh-inversions-c-s3-n2",
-              "slots": 6
+              "id": "sixth-arrangement-a-s1-n4",
+              "type": "sixth-arrangement",
+              "title": "Arrange the first inversions in A minor",
+              "instructions": "Each given bass note is the THIRD of its chord — the figure 6 beneath a bass means a first inversion (6/3). Add soprano, alto, and tenor two different ways: complete the chord and double the root or the fifth (never the leading note).",
+              "key": "a",
+              "dir": "exercises/sixth-arrangement/sixth-arrangement-a-s1-n4",
+              "slots": 8
             },
             {
-              "id": "seventh-resolution-c-s1-n2",
-              "type": "seventh-resolution",
-              "title": "Seventh chords in C major",
-              "instructions": "Realize each phrase in four parts from the given chord. The seventh must already stand in the same voice in the chord before (preparation) and falls by step in the chord after (resolution); the root moves a fourth upward.",
-              "key": "C",
-              "dir": "exercises/seventh-resolution/seventh-resolution-c-s1-n2",
-              "slots": 6
-            },
-            {
-              "id": "seventh-resolution-c-s2-n2",
-              "type": "seventh-resolution",
-              "title": "Seventh chords in C major",
-              "instructions": "Realize each phrase in four parts from the given chord. The seventh must already stand in the same voice in the chord before (preparation) and falls by step in the chord after (resolution); the root moves a fourth upward.",
-              "key": "C",
-              "dir": "exercises/seventh-resolution/seventh-resolution-c-s2-n2",
-              "slots": 6
-            },
-            {
-              "id": "seventh-resolution-c-s3-n2",
-              "type": "seventh-resolution",
-              "title": "Seventh chords in C major",
-              "instructions": "Realize each phrase in four parts from the given chord. The seventh must already stand in the same voice in the chord before (preparation) and falls by step in the chord after (resolution); the root moves a fourth upward.",
-              "key": "C",
-              "dir": "exercises/seventh-resolution/seventh-resolution-c-s3-n2",
-              "slots": 6
-            },
-            {
-              "id": "seventh-resolution-g-s1-n2",
-              "type": "seventh-resolution",
-              "title": "Seventh chords in G major",
-              "instructions": "Realize each phrase in four parts from the given chord. The seventh must already stand in the same voice in the chord before (preparation) and falls by step in the chord after (resolution); the root moves a fourth upward.",
-              "key": "G",
-              "dir": "exercises/seventh-resolution/seventh-resolution-g-s1-n2",
-              "slots": 6
-            },
-            {
-              "id": "seventh-resolution-g-s2-n2",
-              "type": "seventh-resolution",
-              "title": "Seventh chords in G major",
-              "instructions": "Realize each phrase in four parts from the given chord. The seventh must already stand in the same voice in the chord before (preparation) and falls by step in the chord after (resolution); the root moves a fourth upward.",
-              "key": "G",
-              "dir": "exercises/seventh-resolution/seventh-resolution-g-s2-n2",
-              "slots": 6
+              "id": "sixth-arrangement-a-s2-n4",
+              "type": "sixth-arrangement",
+              "title": "Arrange the first inversions in A minor",
+              "instructions": "Each given bass note is the THIRD of its chord — the figure 6 beneath a bass means a first inversion (6/3). Add soprano, alto, and tenor two different ways: complete the chord and double the root or the fifth (never the leading note).",
+              "key": "a",
+              "dir": "exercises/sixth-arrangement/sixth-arrangement-a-s2-n4",
+              "slots": 8
             }
           ]
         },
         {
-          "id": "07-minor-mode",
+          "id": "07-melodic-minor",
           "number": 7,
-          "title": "Minor Mode",
+          "title": "Melodic Minor",
           "videos": [
             {
-              "file": "videos/MinorConnections.mp4",
-              "title": "Minor Connections"
+              "file": "videos/TheMelodicMinor.mp4",
+              "title": "The melodic minor scale",
+              "youtubeId": "8WYfPhvxEXs"
             },
             {
-              "file": "videos/MinorSevenths.mp4",
-              "title": "Minor Sevenths"
-            },
-            {
-              "file": "videos/MinorTriads.mp4",
-              "title": "Minor Triads"
-            },
-            {
-              "file": "videos/TheMinorKey.mp4",
-              "title": "The Minor Key"
+              "file": "videos/HarmonizingTheDescent.mp4",
+              "title": "Harmonizing the melodic line",
+              "youtubeId": "oJmg_8RrPdY"
             }
           ],
           "exercises": [
             {
-              "id": "cadential-six-four-a-s1-n2",
-              "type": "cadential-six-four",
-              "title": "The cadential six-four in A minor",
-              "instructions": "Realize each phrase in four parts. The six-four chord doubles its bass tone, its bass is approached by common tone or step, and the next chord keeps the same bass: I 6/4 goes to V.",
+              "id": "melodic-minor-line-a-s1-n2",
+              "type": "melodic-minor-line",
+              "title": "Harmonize the melodic minor in A minor",
+              "instructions": "The soprano is given; harmonize it in four voices. Going up, the raised sixth avoids the augmented second — harmonize it as II (with its perfect fifth) or IV (with its raised third), and never double it. Coming down, the flattened seventh serves III, v, or VII; the true leading note returns a chord later. The two forms of a degree never meet in consecutive chords.",
               "key": "a",
-              "dir": "exercises/cadential-six-four/cadential-six-four-a-s1-n2",
-              "slots": 8
-            },
-            {
-              "id": "chord-connection-a-s1-n6",
-              "type": "chord-connection",
-              "title": "Connect the triads in A minor",
-              "instructions": "Continue in four parts from the given chord. Root position, root doubled. Hold the common tone in the same voice (harmonisches Band); move every other voice the shortest way. No parallel fifths or octaves.",
-              "key": "a",
-              "dir": "exercises/chord-connection/chord-connection-a-s1-n6",
-              "slots": 5
-            },
-            {
-              "id": "chord-connection-a-s2-n6",
-              "type": "chord-connection",
-              "title": "Connect the triads in A minor",
-              "instructions": "Continue in four parts from the given chord. Root position, root doubled. Hold the common tone in the same voice (harmonisches Band); move every other voice the shortest way. No parallel fifths or octaves.",
-              "key": "a",
-              "dir": "exercises/chord-connection/chord-connection-a-s2-n6",
-              "slots": 5
-            },
-            {
-              "id": "minor-scale-forms-a-s1",
-              "type": "minor-scale-forms",
-              "title": "The two forms of A minor",
-              "instructions": "Write the minor scale ascending with the raised sixth and seventh degrees (the turning points lead upward), then descending in its natural form (they lead downward).",
-              "key": "a",
-              "dir": "exercises/minor-scale-forms/minor-scale-forms-a-s1",
+              "dir": "exercises/melodic-minor-line/melodic-minor-line-a-s1-n2",
               "slots": 14
             },
             {
-              "id": "minor-scale-forms-e-s1",
-              "type": "minor-scale-forms",
-              "title": "The two forms of E minor",
-              "instructions": "Write the minor scale ascending with the raised sixth and seventh degrees (the turning points lead upward), then descending in its natural form (they lead downward).",
+              "id": "melodic-minor-line-a-s2-n2",
+              "type": "melodic-minor-line",
+              "title": "Harmonize the melodic minor in A minor",
+              "instructions": "The soprano is given; harmonize it in four voices. Going up, the raised sixth avoids the augmented second — harmonize it as II (with its perfect fifth) or IV (with its raised third), and never double it. Coming down, the flattened seventh serves III, v, or VII; the true leading note returns a chord later. The two forms of a degree never meet in consecutive chords.",
+              "key": "a",
+              "dir": "exercises/melodic-minor-line/melodic-minor-line-a-s2-n2",
+              "slots": 14
+            },
+            {
+              "id": "melodic-minor-line-d-s1-n2",
+              "type": "melodic-minor-line",
+              "title": "Harmonize the melodic minor in D minor",
+              "instructions": "The soprano is given; harmonize it in four voices. Going up, the raised sixth avoids the augmented second — harmonize it as II (with its perfect fifth) or IV (with its raised third), and never double it. Coming down, the flattened seventh serves III, v, or VII; the true leading note returns a chord later. The two forms of a degree never meet in consecutive chords.",
+              "key": "d",
+              "dir": "exercises/melodic-minor-line/melodic-minor-line-d-s1-n2",
+              "slots": 14
+            },
+            {
+              "id": "melodic-minor-line-e-s1-n2",
+              "type": "melodic-minor-line",
+              "title": "Harmonize the melodic minor in E minor",
+              "instructions": "The soprano is given; harmonize it in four voices. Going up, the raised sixth avoids the augmented second — harmonize it as II (with its perfect fifth) or IV (with its raised third), and never double it. Coming down, the flattened seventh serves III, v, or VII; the true leading note returns a chord later. The two forms of a degree never meet in consecutive chords.",
               "key": "e",
-              "dir": "exercises/minor-scale-forms/minor-scale-forms-e-s1",
+              "dir": "exercises/melodic-minor-line/melodic-minor-line-e-s1-n2",
               "slots": 14
-            },
-            {
-              "id": "saetzchen-a-s1-n8",
-              "type": "saetzchen",
-              "title": "Little phrase (Sätzchen) in A minor",
-              "instructions": "Realize the degree plan in four parts, starting from the given chord. Root position, root doubled. Hold the common tone in the same voice; move every other voice the shortest way. The phrase begins and ends on I.",
-              "key": "a",
-              "dir": "exercises/saetzchen/saetzchen-a-s1-n8",
-              "slots": 7
-            },
-            {
-              "id": "saetzchen-a-s2-n8",
-              "type": "saetzchen",
-              "title": "Little phrase (Sätzchen) in A minor",
-              "instructions": "Realize the degree plan in four parts, starting from the given chord. Root position, root doubled. Hold the common tone in the same voice; move every other voice the shortest way. The phrase begins and ends on I.",
-              "key": "a",
-              "dir": "exercises/saetzchen/saetzchen-a-s2-n8",
-              "slots": 7
-            },
-            {
-              "id": "seventh-chains-a-s1-n2",
-              "type": "seventh-chains",
-              "title": "Chains of seventh chords in A minor",
-              "instructions": "Realize each phrase. In a chain of sevenths the falling seventh of one chord becomes preparation for the next; where the voices would deadlock, omit the fifth and double the root.",
-              "key": "a",
-              "dir": "exercises/seventh-chains/seventh-chains-a-s1-n2",
-              "slots": 7
-            },
-            {
-              "id": "seventh-resolution-a-s1-n2",
-              "type": "seventh-resolution",
-              "title": "Seventh chords in A minor",
-              "instructions": "Realize each phrase in four parts from the given chord. The seventh must already stand in the same voice in the chord before (preparation) and falls by step in the chord after (resolution); the root moves a fourth upward.",
-              "key": "a",
-              "dir": "exercises/seventh-resolution/seventh-resolution-a-s1-n2",
-              "slots": 6
-            },
-            {
-              "id": "seventh-resolution-a-s2-n2",
-              "type": "seventh-resolution",
-              "title": "Seventh chords in A minor",
-              "instructions": "Realize each phrase in four parts from the given chord. The seventh must already stand in the same voice in the chord before (preparation) and falls by step in the chord after (resolution); the root moves a fourth upward.",
-              "key": "a",
-              "dir": "exercises/seventh-resolution/seventh-resolution-a-s2-n2",
-              "slots": 6
-            },
-            {
-              "id": "triad-spelling-a-s1-n8",
-              "type": "triad-spelling",
-              "title": "Spell the diatonic triads in A minor",
-              "instructions": "For each scale degree shown, write the triad in root position (root, third, fifth).",
-              "key": "a",
-              "dir": "exercises/triad-spelling/triad-spelling-a-s1-n8",
-              "slots": 8
-            },
-            {
-              "id": "triad-spelling-a-s2-n8",
-              "type": "triad-spelling",
-              "title": "Spell the diatonic triads in A minor",
-              "instructions": "For each scale degree shown, write the triad in root position (root, third, fifth).",
-              "key": "a",
-              "dir": "exercises/triad-spelling/triad-spelling-a-s2-n8",
-              "slots": 8
             }
           ]
         },
         {
-          "id": "08-root-progressions",
+          "id": "08-passing-notes",
           "number": 8,
-          "title": "Root Progressions",
+          "title": "Passing Notes",
           "videos": [
             {
-              "file": "videos/DesignYourPlan.mp4",
-              "title": "Design Your Plan"
+              "file": "videos/ThePassingNote.mp4",
+              "title": "The passing note",
+              "youtubeId": "W9peShhcrSk"
             },
             {
-              "file": "videos/NoBandConnection.mp4",
-              "title": "No Band Connection"
-            },
-            {
-              "file": "videos/RootProgressions.mp4",
-              "title": "Root Progressions"
+              "file": "videos/ThePassingTrap.mp4",
+              "title": "The passing trap: fifths out of nowhere",
+              "youtubeId": "dX5isDtzBXw"
             }
           ],
           "exercises": [
             {
-              "id": "no-band-connection-a-s1-n2",
-              "type": "no-band-connection",
-              "title": "Connections without a common tone in A minor",
-              "instructions": "Realize each phrase. Where two chords share no tone (roots a second apart), every upper voice moves in contrary motion to the bass, each to the nearest chord tone. In minor, mind the turning points — the leading tone may rise with the bass, and the deceptive V-VI doubles the third of VI.",
-              "key": "a",
-              "dir": "exercises/no-band-connection/no-band-connection-a-s1-n2",
+              "id": "passing-inner-voices-c-s1-n4",
+              "type": "passing-inner-voices",
+              "title": "Add the inner parts under a moving soprano in C major",
+              "instructions": "Soprano and bass are given; the unaccented soprano note approached and quitted by step is a passing note — no chord of its own. Add alto and tenor as whole notes beneath the moving line, all the usual rules holding.",
+              "key": "C",
+              "dir": "exercises/passing-inner-voices/passing-inner-voices-c-s1-n4",
               "slots": 8
             },
             {
-              "id": "no-band-connection-a-s2-n2",
-              "type": "no-band-connection",
-              "title": "Connections without a common tone in A minor",
-              "instructions": "Realize each phrase. Where two chords share no tone (roots a second apart), every upper voice moves in contrary motion to the bass, each to the nearest chord tone. In minor, mind the turning points — the leading tone may rise with the bass, and the deceptive V-VI doubles the third of VI.",
-              "key": "a",
-              "dir": "exercises/no-band-connection/no-band-connection-a-s2-n2",
-              "slots": 6
-            },
-            {
-              "id": "no-band-connection-c-s1-n2",
-              "type": "no-band-connection",
-              "title": "Connections without a common tone in C major",
-              "instructions": "Realize each phrase. Where two chords share no tone (roots a second apart), every upper voice moves in contrary motion to the bass, each to the nearest chord tone. In minor, mind the turning points — the leading tone may rise with the bass, and the deceptive V-VI doubles the third of VI.",
+              "id": "passing-inner-voices-c-s2-n4",
+              "type": "passing-inner-voices",
+              "title": "Add the inner parts under a moving soprano in C major",
+              "instructions": "Soprano and bass are given; the unaccented soprano note approached and quitted by step is a passing note — no chord of its own. Add alto and tenor as whole notes beneath the moving line, all the usual rules holding.",
               "key": "C",
-              "dir": "exercises/no-band-connection/no-band-connection-c-s1-n2",
+              "dir": "exercises/passing-inner-voices/passing-inner-voices-c-s2-n4",
               "slots": 8
             },
             {
-              "id": "no-band-connection-c-s2-n2",
-              "type": "no-band-connection",
-              "title": "Connections without a common tone in C major",
-              "instructions": "Realize each phrase. Where two chords share no tone (roots a second apart), every upper voice moves in contrary motion to the bass, each to the nearest chord tone. In minor, mind the turning points — the leading tone may rise with the bass, and the deceptive V-VI doubles the third of VI.",
+              "id": "passing-rewrite-c-s1-n4",
+              "type": "passing-rewrite",
+              "title": "Add the passing notes in C major",
+              "instructions": "Each pair of chords is given complete; the soprano moves by a third. Re-write the passage, filling the third with an unaccented diatonic passing note on the weak half of the measure. A passing note is approached and quitted by step in one direction, never makes an augmented second, and must not produce consecutive fifths.",
               "key": "C",
-              "dir": "exercises/no-band-connection/no-band-connection-c-s2-n2",
-              "slots": 6
+              "dir": "exercises/passing-rewrite/passing-rewrite-c-s1-n4",
+              "slots": 4
             },
             {
-              "id": "no-band-connection-c-s3-n2",
-              "type": "no-band-connection",
-              "title": "Connections without a common tone in C major",
-              "instructions": "Realize each phrase. Where two chords share no tone (roots a second apart), every upper voice moves in contrary motion to the bass, each to the nearest chord tone. In minor, mind the turning points — the leading tone may rise with the bass, and the deceptive V-VI doubles the third of VI.",
+              "id": "passing-rewrite-c-s2-n4",
+              "type": "passing-rewrite",
+              "title": "Add the passing notes in C major",
+              "instructions": "Each pair of chords is given complete; the soprano moves by a third. Re-write the passage, filling the third with an unaccented diatonic passing note on the weak half of the measure. A passing note is approached and quitted by step in one direction, never makes an augmented second, and must not produce consecutive fifths.",
               "key": "C",
-              "dir": "exercises/no-band-connection/no-band-connection-c-s3-n2",
-              "slots": 10
+              "dir": "exercises/passing-rewrite/passing-rewrite-c-s2-n4",
+              "slots": 4
             },
             {
-              "id": "plan-design-a-s1-n8",
-              "type": "plan-design",
-              "title": "Design your own phrase in A minor",
-              "instructions": "Design a degree plan of 8 chords and realize it in four parts. Rules of the game: begin and end on I; close with IV-I or V-I; use mostly ascending progressions (a fourth up or a third down); use at least one step progression; never two descending progressions in a row. The answer key shows ONE model solution — yours may differ and still be right.",
-              "key": "a",
-              "dir": "exercises/plan-design/plan-design-a-s1-n8",
-              "slots": 7
-            },
-            {
-              "id": "plan-design-a-s2-n8",
-              "type": "plan-design",
-              "title": "Design your own phrase in A minor",
-              "instructions": "Design a degree plan of 8 chords and realize it in four parts. Rules of the game: begin and end on I; close with IV-I or V-I; use mostly ascending progressions (a fourth up or a third down); use at least one step progression; never two descending progressions in a row. The answer key shows ONE model solution — yours may differ and still be right.",
-              "key": "a",
-              "dir": "exercises/plan-design/plan-design-a-s2-n8",
-              "slots": 7
-            },
-            {
-              "id": "plan-design-c-s1-n8",
-              "type": "plan-design",
-              "title": "Design your own phrase in C major",
-              "instructions": "Design a degree plan of 8 chords and realize it in four parts. Rules of the game: begin and end on I; close with IV-I or V-I; use mostly ascending progressions (a fourth up or a third down); use at least one step progression; never two descending progressions in a row. The answer key shows ONE model solution — yours may differ and still be right.",
-              "key": "C",
-              "dir": "exercises/plan-design/plan-design-c-s1-n8",
-              "slots": 7
-            },
-            {
-              "id": "plan-design-c-s2-n8",
-              "type": "plan-design",
-              "title": "Design your own phrase in C major",
-              "instructions": "Design a degree plan of 8 chords and realize it in four parts. Rules of the game: begin and end on I; close with IV-I or V-I; use mostly ascending progressions (a fourth up or a third down); use at least one step progression; never two descending progressions in a row. The answer key shows ONE model solution — yours may differ and still be right.",
-              "key": "C",
-              "dir": "exercises/plan-design/plan-design-c-s2-n8",
-              "slots": 7
-            },
-            {
-              "id": "plan-design-c-s3-n8",
-              "type": "plan-design",
-              "title": "Design your own phrase in C major",
-              "instructions": "Design a degree plan of 8 chords and realize it in four parts. Rules of the game: begin and end on I; close with IV-I or V-I; use mostly ascending progressions (a fourth up or a third down); use at least one step progression; never two descending progressions in a row. The answer key shows ONE model solution — yours may differ and still be right.",
-              "key": "C",
-              "dir": "exercises/plan-design/plan-design-c-s3-n8",
-              "slots": 7
-            },
-            {
-              "id": "plan-design-g-s1-n8",
-              "type": "plan-design",
-              "title": "Design your own phrase in G major",
-              "instructions": "Design a degree plan of 8 chords and realize it in four parts. Rules of the game: begin and end on I; close with IV-I or V-I; use mostly ascending progressions (a fourth up or a third down); use at least one step progression; never two descending progressions in a row. The answer key shows ONE model solution — yours may differ and still be right.",
+              "id": "passing-rewrite-g-s1-n4",
+              "type": "passing-rewrite",
+              "title": "Add the passing notes in G major",
+              "instructions": "Each pair of chords is given complete; the soprano moves by a third. Re-write the passage, filling the third with an unaccented diatonic passing note on the weak half of the measure. A passing note is approached and quitted by step in one direction, never makes an augmented second, and must not produce consecutive fifths.",
               "key": "G",
-              "dir": "exercises/plan-design/plan-design-g-s1-n8",
-              "slots": 7
-            },
-            {
-              "id": "plan-design-g-s2-n8",
-              "type": "plan-design",
-              "title": "Design your own phrase in G major",
-              "instructions": "Design a degree plan of 8 chords and realize it in four parts. Rules of the game: begin and end on I; close with IV-I or V-I; use mostly ascending progressions (a fourth up or a third down); use at least one step progression; never two descending progressions in a row. The answer key shows ONE model solution — yours may differ and still be right.",
-              "key": "G",
-              "dir": "exercises/plan-design/plan-design-g-s2-n8",
-              "slots": 7
+              "dir": "exercises/passing-rewrite/passing-rewrite-g-s1-n4",
+              "slots": 4
             }
           ]
         },
         {
-          "id": "09-cadences",
+          "id": "09-passing-notes-minor",
           "number": 9,
-          "title": "Cadences",
+          "title": "Passing Notes Minor",
           "videos": [
             {
-              "file": "videos/Cadences.mp4",
-              "title": "Cadences"
+              "file": "videos/TheCuriousPassing.mp4",
+              "title": "Curious passing notes: the minor key's workarounds",
+              "youtubeId": "4wvdA8yJ9t4"
             },
             {
-              "file": "videos/DeceptiveCadences.mp4",
-              "title": "Deceptive Cadences"
-            },
-            {
-              "file": "videos/FreerSeventh.mp4",
-              "title": "Freer Seventh"
-            },
-            {
-              "file": "videos/SixFourInCadence.mp4",
-              "title": "Six Four in Cadence"
+              "file": "videos/TheDoubleStep.mp4",
+              "title": "Two passing notes in a row",
+              "youtubeId": "nGxh_S09B7o"
             }
           ],
           "exercises": [
             {
-              "id": "cadences-a-s1-n3",
-              "type": "cadences",
-              "title": "Cadences in A minor",
-              "instructions": "Realize each phrase; its close is named in the exercise data. Authentic: V-I, approached through IV or ii. Half: the phrase rests on V — a comma, not a period. Plagal: IV-I after the authentic close. Full close: the cadential six-four announces V.",
+              "id": "passing-inner-voices-a-s1-n4",
+              "type": "passing-inner-voices",
+              "title": "Add the inner parts under a moving soprano in A minor",
+              "instructions": "Soprano and bass are given; the unaccented soprano note approached and quitted by step is a passing note — no chord of its own. Add alto and tenor as whole notes beneath the moving line, all the usual rules holding.",
               "key": "a",
-              "dir": "exercises/cadences/cadences-a-s1-n3",
-              "slots": 12
-            },
-            {
-              "id": "cadences-a-s2-n3",
-              "type": "cadences",
-              "title": "Cadences in A minor",
-              "instructions": "Realize each phrase; its close is named in the exercise data. Authentic: V-I, approached through IV or ii. Half: the phrase rests on V — a comma, not a period. Plagal: IV-I after the authentic close. Full close: the cadential six-four announces V.",
-              "key": "a",
-              "dir": "exercises/cadences/cadences-a-s2-n3",
-              "slots": 12
-            },
-            {
-              "id": "cadences-c-s1-n3",
-              "type": "cadences",
-              "title": "Cadences in C major",
-              "instructions": "Realize each phrase; its close is named in the exercise data. Authentic: V-I, approached through IV or ii. Half: the phrase rests on V — a comma, not a period. Plagal: IV-I after the authentic close. Full close: the cadential six-four announces V.",
-              "key": "C",
-              "dir": "exercises/cadences/cadences-c-s1-n3",
-              "slots": 12
-            },
-            {
-              "id": "cadences-c-s2-n3",
-              "type": "cadences",
-              "title": "Cadences in C major",
-              "instructions": "Realize each phrase; its close is named in the exercise data. Authentic: V-I, approached through IV or ii. Half: the phrase rests on V — a comma, not a period. Plagal: IV-I after the authentic close. Full close: the cadential six-four announces V.",
-              "key": "C",
-              "dir": "exercises/cadences/cadences-c-s2-n3",
-              "slots": 12
-            },
-            {
-              "id": "cadences-c-s3-n3",
-              "type": "cadences",
-              "title": "Cadences in C major",
-              "instructions": "Realize each phrase; its close is named in the exercise data. Authentic: V-I, approached through IV or ii. Half: the phrase rests on V — a comma, not a period. Plagal: IV-I after the authentic close. Full close: the cadential six-four announces V.",
-              "key": "C",
-              "dir": "exercises/cadences/cadences-c-s3-n3",
-              "slots": 14
-            },
-            {
-              "id": "freer-vii-a-s1-n2",
-              "type": "freer-vii",
-              "title": "The freer seventh degree in A minor",
-              "instructions": "Realize each phrase. In first inversion, vii° needs no preparation: it passes between I and I6 (the bass walks by step), doubling its third. In root position, keep the old care.",
-              "key": "a",
-              "dir": "exercises/freer-vii/freer-vii-a-s1-n2",
-              "slots": 10
-            },
-            {
-              "id": "freer-vii-c-s1-n2",
-              "type": "freer-vii",
-              "title": "The freer seventh degree in C major",
-              "instructions": "Realize each phrase. In first inversion, vii° needs no preparation: it passes between I and I6 (the bass walks by step), doubling its third. In root position, keep the old care.",
-              "key": "C",
-              "dir": "exercises/freer-vii/freer-vii-c-s1-n2",
-              "slots": 10
-            },
-            {
-              "id": "freer-vii-c-s2-n2",
-              "type": "freer-vii",
-              "title": "The freer seventh degree in C major",
-              "instructions": "Realize each phrase. In first inversion, vii° needs no preparation: it passes between I and I6 (the bass walks by step), doubling its third. In root position, keep the old care.",
-              "key": "C",
-              "dir": "exercises/freer-vii/freer-vii-c-s2-n2",
-              "slots": 10
-            }
-          ]
-        },
-        {
-          "id": "10-modulation-1",
-          "number": 10,
-          "title": "Modulation 1",
-          "videos": [
-            {
-              "file": "videos/FlatSide.mp4",
-              "title": "Flat Side"
-            },
-            {
-              "file": "videos/RelativeKeys.mp4",
-              "title": "Relative Keys"
-            },
-            {
-              "file": "videos/TheCircleOfFifths.mp4",
-              "title": "The Circle of Fifths"
-            },
-            {
-              "file": "videos/ThreePhases.mp4",
-              "title": "Three Phases"
-            }
-          ],
-          "exercises": [
-            {
-              "id": "modulation-down-c-s1-n2",
-              "type": "modulation-down",
-              "title": "Modulation from C major to F major",
-              "instructions": "Realize each modulation in three phases: neutral chords that belong to both keys; the modulatory means — the first chord foreign to the old key; then a full cadence in the new key. The pivot chord is named in both keys.",
-              "key": "C",
-              "dir": "exercises/modulation-down/modulation-down-c-s1-n2",
-              "slots": 12
-            },
-            {
-              "id": "modulation-down-c-s2-n2",
-              "type": "modulation-down",
-              "title": "Modulation from C major to F major",
-              "instructions": "Realize each modulation in three phases: neutral chords that belong to both keys; the modulatory means — the first chord foreign to the old key; then a full cadence in the new key. The pivot chord is named in both keys.",
-              "key": "C",
-              "dir": "exercises/modulation-down/modulation-down-c-s2-n2",
-              "slots": 12
-            },
-            {
-              "id": "modulation-relative-a-s1-n2",
-              "type": "modulation-relative",
-              "title": "Modulation from A minor to C major",
-              "instructions": "Realize each modulation in three phases: neutral chords that belong to both keys; the modulatory means — the first chord foreign to the old key; then a full cadence in the new key. The pivot chord is named in both keys.",
-              "key": "a",
-              "dir": "exercises/modulation-relative/modulation-relative-a-s1-n2",
-              "slots": 12
-            },
-            {
-              "id": "modulation-relative-c-s1-n2",
-              "type": "modulation-relative",
-              "title": "Modulation from C major to A minor",
-              "instructions": "Realize each modulation in three phases: neutral chords that belong to both keys; the modulatory means — the first chord foreign to the old key; then a full cadence in the new key. The pivot chord is named in both keys.",
-              "key": "C",
-              "dir": "exercises/modulation-relative/modulation-relative-c-s1-n2",
-              "slots": 12
-            },
-            {
-              "id": "modulation-relative-c-s2-n2",
-              "type": "modulation-relative",
-              "title": "Modulation from C major to A minor",
-              "instructions": "Realize each modulation in three phases: neutral chords that belong to both keys; the modulatory means — the first chord foreign to the old key; then a full cadence in the new key. The pivot chord is named in both keys.",
-              "key": "C",
-              "dir": "exercises/modulation-relative/modulation-relative-c-s2-n2",
-              "slots": 12
-            },
-            {
-              "id": "modulation-up-a-s1-n2",
-              "type": "modulation-up",
-              "title": "Modulation from A minor to E minor",
-              "instructions": "Realize each modulation in three phases: neutral chords that belong to both keys; the modulatory means — the first chord foreign to the old key; then a full cadence in the new key. The pivot chord is named in both keys.",
-              "key": "a",
-              "dir": "exercises/modulation-up/modulation-up-a-s1-n2",
-              "slots": 14
-            },
-            {
-              "id": "modulation-up-c-s1-n2",
-              "type": "modulation-up",
-              "title": "Modulation from C major to G major",
-              "instructions": "Realize each modulation in three phases: neutral chords that belong to both keys; the modulatory means — the first chord foreign to the old key; then a full cadence in the new key. The pivot chord is named in both keys.",
-              "key": "C",
-              "dir": "exercises/modulation-up/modulation-up-c-s1-n2",
-              "slots": 15
-            },
-            {
-              "id": "modulation-up-c-s2-n2",
-              "type": "modulation-up",
-              "title": "Modulation from C major to G major",
-              "instructions": "Realize each modulation in three phases: neutral chords that belong to both keys; the modulatory means — the first chord foreign to the old key; then a full cadence in the new key. The pivot chord is named in both keys.",
-              "key": "C",
-              "dir": "exercises/modulation-up/modulation-up-c-s2-n2",
-              "slots": 14
-            }
-          ]
-        },
-        {
-          "id": "11-secondary-dominants",
-          "number": 11,
-          "title": "Secondary Dominants",
-          "videos": [
-            {
-              "file": "videos/DiminishedSeventh.mp4",
-              "title": "Diminished Seventh"
-            },
-            {
-              "file": "videos/MeterAndHarmony.mp4",
-              "title": "Meter and Harmony"
-            },
-            {
-              "file": "videos/SecondaryDominants.mp4",
-              "title": "Secondary Dominants"
-            }
-          ],
-          "exercises": [
-            {
-              "id": "diminished-seventh-a-s1-n2",
-              "type": "diminished-seventh",
-              "title": "The diminished seventh in A minor",
-              "instructions": "Realize each phrase. The diminished seventh chord needs no preparation — it is at home nowhere and welcome everywhere — but its duties on leaving remain: the seventh falls by step, the leading tone rises, and no tone is doubled.",
-              "key": "a",
-              "dir": "exercises/diminished-seventh/diminished-seventh-a-s1-n2",
-              "slots": 11
-            },
-            {
-              "id": "diminished-seventh-c-s1-n2",
-              "type": "diminished-seventh",
-              "title": "The diminished seventh in C major",
-              "instructions": "Realize each phrase. The diminished seventh chord needs no preparation — it is at home nowhere and welcome everywhere — but its duties on leaving remain: the seventh falls by step, the leading tone rises, and no tone is doubled.",
-              "key": "C",
-              "dir": "exercises/diminished-seventh/diminished-seventh-c-s1-n2",
-              "slots": 11
-            },
-            {
-              "id": "diminished-seventh-c-s2-n2",
-              "type": "diminished-seventh",
-              "title": "The diminished seventh in C major",
-              "instructions": "Realize each phrase. The diminished seventh chord needs no preparation — it is at home nowhere and welcome everywhere — but its duties on leaving remain: the seventh falls by step, the leading tone rises, and no tone is doubled.",
-              "key": "C",
-              "dir": "exercises/diminished-seventh/diminished-seventh-c-s2-n2",
-              "slots": 12
-            },
-            {
-              "id": "secondary-dominants-a-s1-n2",
-              "type": "secondary-dominants",
-              "title": "Secondary dominants in A minor",
-              "instructions": "Realize each phrase. A secondary dominant stands wherever its target degree could stand, and resolves to it: the chromatic tone is an artificial leading tone and rises by semitone; a seventh falls as always. Use them sparingly — three or four in a phrase of ten to fifteen chords.",
-              "key": "a",
-              "dir": "exercises/secondary-dominants/secondary-dominants-a-s1-n2",
-              "slots": 7
-            },
-            {
-              "id": "secondary-dominants-a-s2-n2",
-              "type": "secondary-dominants",
-              "title": "Secondary dominants in A minor",
-              "instructions": "Realize each phrase. A secondary dominant stands wherever its target degree could stand, and resolves to it: the chromatic tone is an artificial leading tone and rises by semitone; a seventh falls as always. Use them sparingly — three or four in a phrase of ten to fifteen chords.",
-              "key": "a",
-              "dir": "exercises/secondary-dominants/secondary-dominants-a-s2-n2",
+              "dir": "exercises/passing-inner-voices/passing-inner-voices-a-s1-n4",
               "slots": 8
             },
             {
-              "id": "secondary-dominants-c-s1-n2",
-              "type": "secondary-dominants",
-              "title": "Secondary dominants in C major",
-              "instructions": "Realize each phrase. A secondary dominant stands wherever its target degree could stand, and resolves to it: the chromatic tone is an artificial leading tone and rises by semitone; a seventh falls as always. Use them sparingly — three or four in a phrase of ten to fifteen chords.",
-              "key": "C",
-              "dir": "exercises/secondary-dominants/secondary-dominants-c-s1-n2",
-              "slots": 8
-            },
-            {
-              "id": "secondary-dominants-c-s2-n2",
-              "type": "secondary-dominants",
-              "title": "Secondary dominants in C major",
-              "instructions": "Realize each phrase. A secondary dominant stands wherever its target degree could stand, and resolves to it: the chromatic tone is an artificial leading tone and rises by semitone; a seventh falls as always. Use them sparingly — three or four in a phrase of ten to fifteen chords.",
-              "key": "C",
-              "dir": "exercises/secondary-dominants/secondary-dominants-c-s2-n2",
-              "slots": 6
-            },
-            {
-              "id": "secondary-dominants-c-s3-n2",
-              "type": "secondary-dominants",
-              "title": "Secondary dominants in C major",
-              "instructions": "Realize each phrase. A secondary dominant stands wherever its target degree could stand, and resolves to it: the chromatic tone is an artificial leading tone and rises by semitone; a seventh falls as always. Use them sparingly — three or four in a phrase of ten to fifteen chords.",
-              "key": "C",
-              "dir": "exercises/secondary-dominants/secondary-dominants-c-s3-n2",
-              "slots": 8
-            }
-          ]
-        },
-        {
-          "id": "12-modulation-2",
-          "number": 12,
-          "title": "Modulation 2",
-          "videos": [
-            {
-              "file": "videos/DownwardFar.mp4",
-              "title": "Downward Far"
-            },
-            {
-              "file": "videos/FartherJourneys.mp4",
-              "title": "Farther Journeys"
-            },
-            {
-              "file": "videos/TheVehicle.mp4",
-              "title": "The Vehicle"
-            },
-            {
-              "file": "videos/ThirdCircleUp.mp4",
-              "title": "Third Circle Up"
-            }
-          ],
-          "exercises": [
-            {
-              "id": "modulation-far-c-s1-n2",
-              "type": "modulation-far",
-              "title": "Far modulations from C major",
-              "instructions": "Realize each modulation. For the third and fourth circles the means is a single strong foreign chord — the dominant seventh (or diminished seventh) of the goal key — followed by a full cadence there. The new accidentals arrive in the means and are confirmed by the cadence.",
-              "key": "C",
-              "dir": "exercises/modulation-far/modulation-far-c-s1-n2",
-              "slots": 12
-            },
-            {
-              "id": "modulation-far-c-s2-n2",
-              "type": "modulation-far",
-              "title": "Far modulations from C major",
-              "instructions": "Realize each modulation. For the third and fourth circles the means is a single strong foreign chord — the dominant seventh (or diminished seventh) of the goal key — followed by a full cadence there. The new accidentals arrive in the means and are confirmed by the cadence.",
-              "key": "C",
-              "dir": "exercises/modulation-far/modulation-far-c-s2-n2",
-              "slots": 12
-            },
-            {
-              "id": "modulation-far-c-s3-n2",
-              "type": "modulation-far",
-              "title": "Far modulations from C major",
-              "instructions": "Realize each modulation. For the third and fourth circles the means is a single strong foreign chord — the dominant seventh (or diminished seventh) of the goal key — followed by a full cadence there. The new accidentals arrive in the means and are confirmed by the cadence.",
-              "key": "C",
-              "dir": "exercises/modulation-far/modulation-far-c-s3-n2",
-              "slots": 12
-            },
-            {
-              "id": "modulation-far-g-s1-n2",
-              "type": "modulation-far",
-              "title": "Far modulations from G major",
-              "instructions": "Realize each modulation. For the third and fourth circles the means is a single strong foreign chord — the dominant seventh (or diminished seventh) of the goal key — followed by a full cadence there. The new accidentals arrive in the means and are confirmed by the cadence.",
-              "key": "G",
-              "dir": "exercises/modulation-far/modulation-far-g-s1-n2",
-              "slots": 12
-            },
-            {
-              "id": "modulation-far-g-s2-n2",
-              "type": "modulation-far",
-              "title": "Far modulations from G major",
-              "instructions": "Realize each modulation. For the third and fourth circles the means is a single strong foreign chord — the dominant seventh (or diminished seventh) of the goal key — followed by a full cadence there. The new accidentals arrive in the means and are confirmed by the cadence.",
-              "key": "G",
-              "dir": "exercises/modulation-far/modulation-far-g-s2-n2",
-              "slots": 12
-            }
-          ]
-        },
-        {
-          "id": "13-minor-subdominant",
-          "number": 13,
-          "title": "Minor Subdominant",
-          "videos": [
-            {
-              "file": "videos/TheFlatSix.mp4",
-              "title": "The Flat Six"
-            },
-            {
-              "file": "videos/TheMinorSubdominant.mp4",
-              "title": "The Minor Subdominant"
-            },
-            {
-              "file": "videos/TheNeapolitan.mp4",
-              "title": "The Neapolitan"
-            }
-          ],
-          "exercises": [
-            {
-              "id": "minor-subdominant-c-s1-n2",
-              "type": "minor-subdominant",
-              "title": "The minor subdominant in C major",
-              "instructions": "Realize each phrase. The chords marked with lowered tones are borrowed from the parallel minor: the lowered sixth degree keeps its minor tendency and falls. IV followed by iv darkens the same function chromatically.",
-              "key": "C",
-              "dir": "exercises/minor-subdominant/minor-subdominant-c-s1-n2",
-              "slots": 8
-            },
-            {
-              "id": "minor-subdominant-c-s2-n2",
-              "type": "minor-subdominant",
-              "title": "The minor subdominant in C major",
-              "instructions": "Realize each phrase. The chords marked with lowered tones are borrowed from the parallel minor: the lowered sixth degree keeps its minor tendency and falls. IV followed by iv darkens the same function chromatically.",
-              "key": "C",
-              "dir": "exercises/minor-subdominant/minor-subdominant-c-s2-n2",
-              "slots": 8
-            },
-            {
-              "id": "minor-subdominant-c-s3-n2",
-              "type": "minor-subdominant",
-              "title": "The minor subdominant in C major",
-              "instructions": "Realize each phrase. The chords marked with lowered tones are borrowed from the parallel minor: the lowered sixth degree keeps its minor tendency and falls. IV followed by iv darkens the same function chromatically.",
-              "key": "C",
-              "dir": "exercises/minor-subdominant/minor-subdominant-c-s3-n2",
-              "slots": 8
-            },
-            {
-              "id": "minor-subdominant-g-s1-n2",
-              "type": "minor-subdominant",
-              "title": "The minor subdominant in G major",
-              "instructions": "Realize each phrase. The chords marked with lowered tones are borrowed from the parallel minor: the lowered sixth degree keeps its minor tendency and falls. IV followed by iv darkens the same function chromatically.",
-              "key": "G",
-              "dir": "exercises/minor-subdominant/minor-subdominant-g-s1-n2",
-              "slots": 8
-            },
-            {
-              "id": "neapolitan-a-s1-n2",
-              "type": "neapolitan",
-              "title": "The Neapolitan sixth in A minor",
-              "instructions": "Realize each phrase. The Neapolitan sixth stands for II in the cadence: its bass tone is doubled, it leans on I6/4 or V, and the lowered second falls — to the tonic, or through the diminished third to the leading tone.",
+              "id": "passing-inner-voices-a-s2-n4",
+              "type": "passing-inner-voices",
+              "title": "Add the inner parts under a moving soprano in A minor",
+              "instructions": "Soprano and bass are given; the unaccented soprano note approached and quitted by step is a passing note — no chord of its own. Add alto and tenor as whole notes beneath the moving line, all the usual rules holding.",
               "key": "a",
-              "dir": "exercises/neapolitan/neapolitan-a-s1-n2",
+              "dir": "exercises/passing-inner-voices/passing-inner-voices-a-s2-n4",
               "slots": 8
             },
             {
-              "id": "neapolitan-c-s1-n2",
-              "type": "neapolitan",
-              "title": "The Neapolitan sixth in C major",
-              "instructions": "Realize each phrase. The Neapolitan sixth stands for II in the cadence: its bass tone is doubled, it leans on I6/4 or V, and the lowered second falls — to the tonic, or through the diminished third to the leading tone.",
-              "key": "C",
-              "dir": "exercises/neapolitan/neapolitan-c-s1-n2",
-              "slots": 9
-            },
-            {
-              "id": "neapolitan-c-s2-n2",
-              "type": "neapolitan",
-              "title": "The Neapolitan sixth in C major",
-              "instructions": "Realize each phrase. The Neapolitan sixth stands for II in the cadence: its bass tone is doubled, it leans on I6/4 or V, and the lowered second falls — to the tonic, or through the diminished third to the leading tone.",
-              "key": "C",
-              "dir": "exercises/neapolitan/neapolitan-c-s2-n2",
-              "slots": 8
-            }
-          ]
-        },
-        {
-          "id": "14-frontiers",
-          "number": 14,
-          "title": "Frontiers",
-          "videos": [
-            {
-              "file": "videos/TheAugmentedSixth.mp4",
-              "title": "The Augmented Sixth"
-            },
-            {
-              "file": "videos/TheAugmentedTriad.mp4",
-              "title": "The Augmented Triad"
-            },
-            {
-              "file": "videos/VagrantConnections.mp4",
-              "title": "Vagrant Connections"
-            }
-          ],
-          "exercises": [
-            {
-              "id": "augmented-sixth-a-s1-n2",
-              "type": "augmented-sixth",
-              "title": "Augmented sixth chords in A minor",
-              "instructions": "Realize each phrase. In every augmented sixth chord the bass (the lowered sixth degree) falls by semitone and the raised fourth rises by semitone — the interval stretches outward into the octave on the dominant. The 6/5 form passes through the six-four to avoid open fifths; the others may go straight to V.",
+              "id": "passing-rewrite-a-s1-n4",
+              "type": "passing-rewrite",
+              "title": "Add the passing notes in A minor",
+              "instructions": "Each pair of chords is given complete; the soprano moves by a third. Re-write the passage, filling the third with an unaccented diatonic passing note on the weak half of the measure. A passing note is approached and quitted by step in one direction, never makes an augmented second, and must not produce consecutive fifths.",
               "key": "a",
-              "dir": "exercises/augmented-sixth/augmented-sixth-a-s1-n2",
-              "slots": 7
+              "dir": "exercises/passing-rewrite/passing-rewrite-a-s1-n4",
+              "slots": 4
             },
             {
-              "id": "augmented-sixth-c-s1-n2",
-              "type": "augmented-sixth",
-              "title": "Augmented sixth chords in C major",
-              "instructions": "Realize each phrase. In every augmented sixth chord the bass (the lowered sixth degree) falls by semitone and the raised fourth rises by semitone — the interval stretches outward into the octave on the dominant. The 6/5 form passes through the six-four to avoid open fifths; the others may go straight to V.",
-              "key": "C",
-              "dir": "exercises/augmented-sixth/augmented-sixth-c-s1-n2",
-              "slots": 7
-            },
-            {
-              "id": "augmented-sixth-c-s2-n2",
-              "type": "augmented-sixth",
-              "title": "Augmented sixth chords in C major",
-              "instructions": "Realize each phrase. In every augmented sixth chord the bass (the lowered sixth degree) falls by semitone and the raised fourth rises by semitone — the interval stretches outward into the octave on the dominant. The 6/5 form passes through the six-four to avoid open fifths; the others may go straight to V.",
-              "key": "C",
-              "dir": "exercises/augmented-sixth/augmented-sixth-c-s2-n2",
-              "slots": 6
-            },
-            {
-              "id": "augmented-sixth-c-s3-n2",
-              "type": "augmented-sixth",
-              "title": "Augmented sixth chords in C major",
-              "instructions": "Realize each phrase. In every augmented sixth chord the bass (the lowered sixth degree) falls by semitone and the raised fourth rises by semitone — the interval stretches outward into the octave on the dominant. The 6/5 form passes through the six-four to avoid open fifths; the others may go straight to V.",
-              "key": "C",
-              "dir": "exercises/augmented-sixth/augmented-sixth-c-s3-n2",
-              "slots": 8
-            },
-            {
-              "id": "augmented-triad-a-s1-n2",
-              "type": "augmented-triad",
-              "title": "The augmented triad in A minor",
-              "instructions": "Realize each phrase. The augmented triad on III carries the raised seventh degree as its fifth: that tone is a turning point and rises. Do not double it.",
+              "id": "passing-rewrite-a-s2-n4",
+              "type": "passing-rewrite",
+              "title": "Add the passing notes in A minor",
+              "instructions": "Each pair of chords is given complete; the soprano moves by a third. Re-write the passage, filling the third with an unaccented diatonic passing note on the weak half of the measure. A passing note is approached and quitted by step in one direction, never makes an augmented second, and must not produce consecutive fifths.",
               "key": "a",
-              "dir": "exercises/augmented-triad/augmented-triad-a-s1-n2",
-              "slots": 10
+              "dir": "exercises/passing-rewrite/passing-rewrite-a-s2-n4",
+              "slots": 4
             },
             {
-              "id": "augmented-triad-a-s2-n2",
-              "type": "augmented-triad",
-              "title": "The augmented triad in A minor",
-              "instructions": "Realize each phrase. The augmented triad on III carries the raised seventh degree as its fifth: that tone is a turning point and rises. Do not double it.",
-              "key": "a",
-              "dir": "exercises/augmented-triad/augmented-triad-a-s2-n2",
-              "slots": 10
-            },
-            {
-              "id": "augmented-triad-e-s1-n2",
-              "type": "augmented-triad",
-              "title": "The augmented triad in E minor",
-              "instructions": "Realize each phrase. The augmented triad on III carries the raised seventh degree as its fifth: that tone is a turning point and rises. Do not double it.",
+              "id": "passing-rewrite-e-s1-n4",
+              "type": "passing-rewrite",
+              "title": "Add the passing notes in E minor",
+              "instructions": "Each pair of chords is given complete; the soprano moves by a third. Re-write the passage, filling the third with an unaccented diatonic passing note on the weak half of the measure. A passing note is approached and quitted by step in one direction, never makes an augmented second, and must not produce consecutive fifths.",
               "key": "e",
-              "dir": "exercises/augmented-triad/augmented-triad-e-s1-n2",
-              "slots": 10
+              "dir": "exercises/passing-rewrite/passing-rewrite-e-s1-n4",
+              "slots": 4
             }
           ]
         },
         {
-          "id": "15-modulation-3",
-          "number": 15,
-          "title": "Modulation 3",
+          "id": "10-six-four",
+          "number": 10,
+          "title": "Six Four",
           "videos": [
             {
-              "file": "videos/ByWayOfStations.mp4",
-              "title": "By Way of Stations"
+              "file": "videos/TheCadentialSixFour.mp4",
+              "title": "The cadential six-four",
+              "youtubeId": "My_tj7Sjsa4"
             },
             {
-              "file": "videos/TheLongJourneys.mp4",
-              "title": "The Long Journeys"
-            },
-            {
-              "file": "videos/TheMeetingPoint.mp4",
-              "title": "The Meeting Point"
-            },
-            {
-              "file": "videos/TheSecondCircle.mp4",
-              "title": "The Second Circle"
+              "file": "videos/TheOtherSixFours.mp4",
+              "title": "Passing, auxiliary, arpeggio: the other six-fours",
+              "youtubeId": "pT5nRDEEs84"
             }
           ],
           "exercises": [
             {
-              "id": "modulation-stations-c-s1-n2",
-              "type": "modulation-stations",
-              "title": "Long journeys from C major, by way of stations",
-              "instructions": "Realize each journey. Divide the road: reach an intermediate key with its dominant seventh and touch its tonic — a station, not a home — then take the second leg the same way and settle the goal key with a full cadence. Beyond the sixth circle count the other way around: seven sharps is five flats.",
-              "key": "C",
-              "dir": "exercises/modulation-stations/modulation-stations-c-s1-n2",
-              "slots": 15
-            },
-            {
-              "id": "modulation-stations-c-s2-n2",
-              "type": "modulation-stations",
-              "title": "Long journeys from C major, by way of stations",
-              "instructions": "Realize each journey. Divide the road: reach an intermediate key with its dominant seventh and touch its tonic — a station, not a home — then take the second leg the same way and settle the goal key with a full cadence. Beyond the sixth circle count the other way around: seven sharps is five flats.",
-              "key": "C",
-              "dir": "exercises/modulation-stations/modulation-stations-c-s2-n2",
-              "slots": 16
-            },
-            {
-              "id": "modulation-stations-c-s3-n2",
-              "type": "modulation-stations",
-              "title": "Long journeys from C major, by way of stations",
-              "instructions": "Realize each journey. Divide the road: reach an intermediate key with its dominant seventh and touch its tonic — a station, not a home — then take the second leg the same way and settle the goal key with a full cadence. Beyond the sixth circle count the other way around: seven sharps is five flats.",
-              "key": "C",
-              "dir": "exercises/modulation-stations/modulation-stations-c-s3-n2",
-              "slots": 15
-            },
-            {
-              "id": "modulation-stations-g-s1-n2",
-              "type": "modulation-stations",
-              "title": "Long journeys from G major, by way of stations",
-              "instructions": "Realize each journey. Divide the road: reach an intermediate key with its dominant seventh and touch its tonic — a station, not a home — then take the second leg the same way and settle the goal key with a full cadence. Beyond the sixth circle count the other way around: seven sharps is five flats.",
-              "key": "G",
-              "dir": "exercises/modulation-stations/modulation-stations-g-s1-n2",
-              "slots": 15
-            },
-            {
-              "id": "modulation-stations-g-s2-n2",
-              "type": "modulation-stations",
-              "title": "Long journeys from G major, by way of stations",
-              "instructions": "Realize each journey. Divide the road: reach an intermediate key with its dominant seventh and touch its tonic — a station, not a home — then take the second leg the same way and settle the goal key with a full cadence. Beyond the sixth circle count the other way around: seven sharps is five flats.",
-              "key": "G",
-              "dir": "exercises/modulation-stations/modulation-stations-g-s2-n2",
-              "slots": 16
-            }
-          ]
-        },
-        {
-          "id": "16-chorale",
-          "number": 16,
-          "title": "Chorale",
-          "videos": [
-            {
-              "file": "videos/TheChorale.mp4",
-              "title": "The Chorale"
-            },
-            {
-              "file": "videos/TheCloses.mp4",
-              "title": "The Closes"
-            }
-          ],
-          "exercises": [
-            {
-              "id": "chorale-a-s1-n8",
-              "type": "chorale",
-              "title": "Harmonize a chorale melody in A minor",
-              "instructions": "The melody is given; write the three lower voices, one harmony per half note. Work out the close first, then from back to front. Guidelines: close on I; a melody tone is more often root or fifth than third; let no degree repeat itself needlessly; the answer is one model solution — yours may differ.",
+              "id": "decorated-close-a-s1-n4",
+              "type": "decorated-close",
+              "title": "Closes decorated by the six-four in A minor",
+              "instructions": "Write each close with its cadential six-four. The six-four stands on the tonic or dominant bass only, more strongly accented than the chord that resolves it: the sixth falls to the fifth, the fourth to the third, and the bass note is doubled in both chords.",
               "key": "a",
-              "dir": "exercises/chorale/chorale-a-s1-n8",
-              "slots": 8
+              "dir": "exercises/decorated-close/decorated-close-a-s1-n4",
+              "slots": 28
             },
             {
-              "id": "chorale-c-s1-n8",
-              "type": "chorale",
-              "title": "Harmonize a chorale melody in C major",
-              "instructions": "The melody is given; write the three lower voices, one harmony per half note. Work out the close first, then from back to front. Guidelines: close on I; a melody tone is more often root or fifth than third; let no degree repeat itself needlessly; the answer is one model solution — yours may differ.",
+              "id": "decorated-close-c-s1-n4",
+              "type": "decorated-close",
+              "title": "Closes decorated by the six-four in C major",
+              "instructions": "Write each close with its cadential six-four. The six-four stands on the tonic or dominant bass only, more strongly accented than the chord that resolves it: the sixth falls to the fifth, the fourth to the third, and the bass note is doubled in both chords.",
               "key": "C",
-              "dir": "exercises/chorale/chorale-c-s1-n8",
-              "slots": 8
+              "dir": "exercises/decorated-close/decorated-close-c-s1-n4",
+              "slots": 28
             },
             {
-              "id": "chorale-c-s2-n8",
-              "type": "chorale",
-              "title": "Harmonize a chorale melody in C major",
-              "instructions": "The melody is given; write the three lower voices, one harmony per half note. Work out the close first, then from back to front. Guidelines: close on I; a melody tone is more often root or fifth than third; let no degree repeat itself needlessly; the answer is one model solution — yours may differ.",
+              "id": "decorated-close-c-s2-n4",
+              "type": "decorated-close",
+              "title": "Closes decorated by the six-four in C major",
+              "instructions": "Write each close with its cadential six-four. The six-four stands on the tonic or dominant bass only, more strongly accented than the chord that resolves it: the sixth falls to the fifth, the fourth to the third, and the bass note is doubled in both chords.",
               "key": "C",
-              "dir": "exercises/chorale/chorale-c-s2-n8",
-              "slots": 8
+              "dir": "exercises/decorated-close/decorated-close-c-s2-n4",
+              "slots": 28
             },
             {
-              "id": "chorale-c-s3-n8",
-              "type": "chorale",
-              "title": "Harmonize a chorale melody in C major",
-              "instructions": "The melody is given; write the three lower voices, one harmony per half note. Work out the close first, then from back to front. Guidelines: close on I; a melody tone is more often root or fifth than third; let no degree repeat itself needlessly; the answer is one model solution — yours may differ.",
+              "id": "six-four-ways-a-s1-n3",
+              "type": "six-four-ways",
+              "title": "The six-four's other uses in A minor",
+              "instructions": "Realize each cell. Passing: the six-four stands between two positions of one chord, the soprano taking the bass's notes in reverse order. Auxiliary: the bass holds while the sixth and fourth wave above it. Arpeggio: the bass walks its own chord. Use the six-four sparingly — it must always account for itself.",
+              "key": "a",
+              "dir": "exercises/six-four-ways/six-four-ways-a-s1-n3",
+              "slots": 18
+            },
+            {
+              "id": "six-four-ways-c-s1-n3",
+              "type": "six-four-ways",
+              "title": "The six-four's other uses in C major",
+              "instructions": "Realize each cell. Passing: the six-four stands between two positions of one chord, the soprano taking the bass's notes in reverse order. Auxiliary: the bass holds while the sixth and fourth wave above it. Arpeggio: the bass walks its own chord. Use the six-four sparingly — it must always account for itself.",
               "key": "C",
-              "dir": "exercises/chorale/chorale-c-s3-n8",
-              "slots": 8
+              "dir": "exercises/six-four-ways/six-four-ways-c-s1-n3",
+              "slots": 18
             },
             {
-              "id": "chorale-g-s1-n8",
-              "type": "chorale",
-              "title": "Harmonize a chorale melody in G major",
-              "instructions": "The melody is given; write the three lower voices, one harmony per half note. Work out the close first, then from back to front. Guidelines: close on I; a melody tone is more often root or fifth than third; let no degree repeat itself needlessly; the answer is one model solution — yours may differ.",
-              "key": "G",
-              "dir": "exercises/chorale/chorale-g-s1-n8",
-              "slots": 8
-            },
-            {
-              "id": "chorale-g-s2-n8",
-              "type": "chorale",
-              "title": "Harmonize a chorale melody in G major",
-              "instructions": "The melody is given; write the three lower voices, one harmony per half note. Work out the close first, then from back to front. Guidelines: close on I; a melody tone is more often root or fifth than third; let no degree repeat itself needlessly; the answer is one model solution — yours may differ.",
-              "key": "G",
-              "dir": "exercises/chorale/chorale-g-s2-n8",
-              "slots": 8
+              "id": "six-four-ways-c-s2-n3",
+              "type": "six-four-ways",
+              "title": "The six-four's other uses in C major",
+              "instructions": "Realize each cell. Passing: the six-four stands between two positions of one chord, the soprano taking the bass's notes in reverse order. Auxiliary: the bass holds while the sixth and fourth wave above it. Arpeggio: the bass walks its own chord. Use the six-four sparingly — it must always account for itself.",
+              "key": "C",
+              "dir": "exercises/six-four-ways/six-four-ways-c-s2-n3",
+              "slots": 18
             }
           ]
         },
         {
-          "id": "17-nonharmonic-tones",
-          "number": 17,
-          "title": "Nonharmonic Tones",
+          "id": "11-accented-passing-notes",
+          "number": 11,
+          "title": "Accented Passing Notes",
           "videos": [
             {
-              "file": "videos/NeighborTones.mp4",
-              "title": "Neighbor Tones"
+              "file": "videos/TheAccentedPassing.mp4",
+              "title": "The passing note moves onto the beat",
+              "youtubeId": "HHREKyQvBt4"
             },
             {
-              "file": "videos/NinthChords.mp4",
-              "title": "Ninth Chords"
+              "file": "videos/TheAppendixCase.mp4",
+              "title": "The appendix case: G sharp without modulation",
+              "youtubeId": "Fr6uZFUFsKI"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "accented-passing-a-s1-n4",
+              "type": "accented-passing",
+              "title": "Accented passing notes in A minor",
+              "instructions": "The soprano falls a third between the chords. Re-write each pair, striking the intermediate note WITH the second chord — on the strong half — and resolving it down by step. Never strike the discord against its own resolution note unless that note lies in the bass.",
+              "key": "a",
+              "dir": "exercises/accented-passing/accented-passing-a-s1-n4",
+              "slots": 4
             },
             {
-              "file": "videos/PassingTones.mp4",
-              "title": "Passing Tones"
+              "id": "accented-passing-c-s1-n4",
+              "type": "accented-passing",
+              "title": "Accented passing notes in C major",
+              "instructions": "The soprano falls a third between the chords. Re-write each pair, striking the intermediate note WITH the second chord — on the strong half — and resolving it down by step. Never strike the discord against its own resolution note unless that note lies in the bass.",
+              "key": "C",
+              "dir": "exercises/accented-passing/accented-passing-c-s1-n4",
+              "slots": 4
+            },
+            {
+              "id": "accented-passing-c-s2-n4",
+              "type": "accented-passing",
+              "title": "Accented passing notes in C major",
+              "instructions": "The soprano falls a third between the chords. Re-write each pair, striking the intermediate note WITH the second chord — on the strong half — and resolving it down by step. Never strike the discord against its own resolution note unless that note lies in the bass.",
+              "key": "C",
+              "dir": "exercises/accented-passing/accented-passing-c-s2-n4",
+              "slots": 4
+            },
+            {
+              "id": "accented-passing-g-s1-n4",
+              "type": "accented-passing",
+              "title": "Accented passing notes in G major",
+              "instructions": "The soprano falls a third between the chords. Re-write each pair, striking the intermediate note WITH the second chord — on the strong half — and resolving it down by step. Never strike the discord against its own resolution note unless that note lies in the bass.",
+              "key": "G",
+              "dir": "exercises/accented-passing/accented-passing-g-s1-n4",
+              "slots": 4
+            }
+          ]
+        },
+        {
+          "id": "12-dominant-seventh",
+          "number": 12,
+          "title": "Dominant Seventh",
+          "videos": [
+            {
+              "file": "videos/TheDominantSeventh.mp4",
+              "title": "The dominant seventh",
+              "youtubeId": "v4LXDU-swDg"
+            },
+            {
+              "file": "videos/TheThreeInversions.mp4",
+              "title": "Three inversions, three figures",
+              "youtubeId": "m7a__6xVI8A"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "dominant-seventh-kitson-a-s1-n5",
+              "type": "dominant-seventh-kitson",
+              "title": "The dominant seventh in A minor",
+              "instructions": "Write each cell: the dominant seventh in the position named, properly quitted. The seventh falls one step (from the 4/3 it may rise in parallels with the bass); the leading note rises; the 2 sends its bass down to a chord of the sixth. In root position the fifth may be omitted and the root doubled.",
+              "key": "a",
+              "dir": "exercises/dominant-seventh-kitson/dominant-seventh-kitson-a-s1-n5",
+              "slots": 30
+            },
+            {
+              "id": "dominant-seventh-kitson-c-s1-n5",
+              "type": "dominant-seventh-kitson",
+              "title": "The dominant seventh in C major",
+              "instructions": "Write each cell: the dominant seventh in the position named, properly quitted. The seventh falls one step (from the 4/3 it may rise in parallels with the bass); the leading note rises; the 2 sends its bass down to a chord of the sixth. In root position the fifth may be omitted and the root doubled.",
+              "key": "C",
+              "dir": "exercises/dominant-seventh-kitson/dominant-seventh-kitson-c-s1-n5",
+              "slots": 30
+            },
+            {
+              "id": "dominant-seventh-kitson-c-s2-n5",
+              "type": "dominant-seventh-kitson",
+              "title": "The dominant seventh in C major",
+              "instructions": "Write each cell: the dominant seventh in the position named, properly quitted. The seventh falls one step (from the 4/3 it may rise in parallels with the bass); the leading note rises; the 2 sends its bass down to a chord of the sixth. In root position the fifth may be omitted and the root doubled.",
+              "key": "C",
+              "dir": "exercises/dominant-seventh-kitson/dominant-seventh-kitson-c-s2-n5",
+              "slots": 30
+            },
+            {
+              "id": "dominant-seventh-kitson-g-s1-n5",
+              "type": "dominant-seventh-kitson",
+              "title": "The dominant seventh in G major",
+              "instructions": "Write each cell: the dominant seventh in the position named, properly quitted. The seventh falls one step (from the 4/3 it may rise in parallels with the bass); the leading note rises; the 2 sends its bass down to a chord of the sixth. In root position the fifth may be omitted and the root doubled.",
+              "key": "G",
+              "dir": "exercises/dominant-seventh-kitson/dominant-seventh-kitson-g-s1-n5",
+              "slots": 30
+            }
+          ]
+        },
+        {
+          "id": "13-diminished-augmented",
+          "number": 13,
+          "title": "Diminished Augmented",
+          "videos": [
+            {
+              "file": "videos/ThePreparedDiscord.mp4",
+              "title": "The diminished triad in root position",
+              "youtubeId": "O_doj0F6p7M"
+            },
+            {
+              "file": "videos/TheAugmentedMediant.mp4",
+              "title": "The augmented triad",
+              "youtubeId": "x_1AOXM9iDA"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "discord-triads-a-s1-n5",
+              "type": "discord-triads",
+              "title": "The discord triads in A minor",
+              "instructions": "Write each cell. The diminished fifth over the bass must already stand in the same part in the chord before (preparation), must fall one step into the chord after (resolution), and is never doubled. The augmented fifth — the leading note itself — is prepared the same way and rises.",
+              "key": "a",
+              "dir": "exercises/discord-triads/discord-triads-a-s1-n5",
+              "slots": 30
+            },
+            {
+              "id": "discord-triads-a-s2-n5",
+              "type": "discord-triads",
+              "title": "The discord triads in A minor",
+              "instructions": "Write each cell. The diminished fifth over the bass must already stand in the same part in the chord before (preparation), must fall one step into the chord after (resolution), and is never doubled. The augmented fifth — the leading note itself — is prepared the same way and rises.",
+              "key": "a",
+              "dir": "exercises/discord-triads/discord-triads-a-s2-n5",
+              "slots": 30
+            },
+            {
+              "id": "discord-triads-c-s1-n3",
+              "type": "discord-triads",
+              "title": "The discord triads in C major",
+              "instructions": "Write each cell. The diminished fifth over the bass must already stand in the same part in the chord before (preparation), must fall one step into the chord after (resolution), and is never doubled. The augmented fifth — the leading note itself — is prepared the same way and rises.",
+              "key": "C",
+              "dir": "exercises/discord-triads/discord-triads-c-s1-n3",
+              "slots": 18
+            },
+            {
+              "id": "discord-triads-c-s2-n3",
+              "type": "discord-triads",
+              "title": "The discord triads in C major",
+              "instructions": "Write each cell. The diminished fifth over the bass must already stand in the same part in the chord before (preparation), must fall one step into the chord after (resolution), and is never doubled. The augmented fifth — the leading note itself — is prepared the same way and rises.",
+              "key": "C",
+              "dir": "exercises/discord-triads/discord-triads-c-s2-n3",
+              "slots": 18
+            },
+            {
+              "id": "discord-triads-e-s1-n5",
+              "type": "discord-triads",
+              "title": "The discord triads in E minor",
+              "instructions": "Write each cell. The diminished fifth over the bass must already stand in the same part in the chord before (preparation), must fall one step into the chord after (resolution), and is never doubled. The augmented fifth — the leading note itself — is prepared the same way and rises.",
+              "key": "e",
+              "dir": "exercises/discord-triads/discord-triads-e-s1-n5",
+              "slots": 30
+            }
+          ]
+        },
+        {
+          "id": "14-mediant-triad",
+          "number": 14,
+          "title": "Mediant Triad",
+          "videos": [
+            {
+              "file": "videos/TheMediant.mp4",
+              "title": "The mediant: iii at last",
+              "youtubeId": "AtCk91P8-EY"
+            },
+            {
+              "file": "videos/TheVeiledDominant.mp4",
+              "title": "iii6, the veiled dominant",
+              "youtubeId": "TdXd6vhhX4I"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "mediant-uses-c-s1-n4",
+              "type": "mediant-uses",
+              "title": "The mediant triad in C major",
+              "instructions": "Write each cell. In root position the mediant keeps a common tone with both neighbours — except falling to IV under the descending scale. As iii6 it may stand wherever the dominant could, provided the sixth above the bass falls a step or a third.",
+              "key": "C",
+              "dir": "exercises/mediant-uses/mediant-uses-c-s1-n4",
+              "slots": 24
+            },
+            {
+              "id": "mediant-uses-c-s2-n4",
+              "type": "mediant-uses",
+              "title": "The mediant triad in C major",
+              "instructions": "Write each cell. In root position the mediant keeps a common tone with both neighbours — except falling to IV under the descending scale. As iii6 it may stand wherever the dominant could, provided the sixth above the bass falls a step or a third.",
+              "key": "C",
+              "dir": "exercises/mediant-uses/mediant-uses-c-s2-n4",
+              "slots": 24
+            },
+            {
+              "id": "mediant-uses-f-s1-n4",
+              "type": "mediant-uses",
+              "title": "The mediant triad in F major",
+              "instructions": "Write each cell. In root position the mediant keeps a common tone with both neighbours — except falling to IV under the descending scale. As iii6 it may stand wherever the dominant could, provided the sixth above the bass falls a step or a third.",
+              "key": "F",
+              "dir": "exercises/mediant-uses/mediant-uses-f-s1-n4",
+              "slots": 24
+            },
+            {
+              "id": "mediant-uses-g-s1-n4",
+              "type": "mediant-uses",
+              "title": "The mediant triad in G major",
+              "instructions": "Write each cell. In root position the mediant keeps a common tone with both neighbours — except falling to IV under the descending scale. As iii6 it may stand wherever the dominant could, provided the sixth above the bass falls a step or a third.",
+              "key": "G",
+              "dir": "exercises/mediant-uses/mediant-uses-g-s1-n4",
+              "slots": 24
+            }
+          ]
+        },
+        {
+          "id": "15-auxiliary-notes",
+          "number": 15,
+          "title": "Auxiliary Notes",
+          "videos": [
+            {
+              "file": "videos/TheAuxiliaryNote.mp4",
+              "title": "The auxiliary note",
+              "youtubeId": "uWti9c2QVmk"
+            },
+            {
+              "file": "videos/TheLowerNeighbour.mp4",
+              "title": "The lower neighbour and its distances",
+              "youtubeId": "KWYr0ophYxo"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "auxiliary-decoration-a-s1-n4",
+              "type": "auxiliary-decoration",
+              "title": "Auxiliary notes in A minor",
+              "instructions": "Re-write each chord, letting the soprano leave its tone by step and return to it. Upper auxiliaries are diatonic; lower ones lie a semitone below a root or fifth, a tone or semitone below a third. The harmony holds beneath the ornament.",
+              "key": "a",
+              "dir": "exercises/auxiliary-decoration/auxiliary-decoration-a-s1-n4",
+              "slots": 4
+            },
+            {
+              "id": "auxiliary-decoration-a-s2-n4",
+              "type": "auxiliary-decoration",
+              "title": "Auxiliary notes in A minor",
+              "instructions": "Re-write each chord, letting the soprano leave its tone by step and return to it. Upper auxiliaries are diatonic; lower ones lie a semitone below a root or fifth, a tone or semitone below a third. The harmony holds beneath the ornament.",
+              "key": "a",
+              "dir": "exercises/auxiliary-decoration/auxiliary-decoration-a-s2-n4",
+              "slots": 4
+            },
+            {
+              "id": "auxiliary-decoration-c-s1-n4",
+              "type": "auxiliary-decoration",
+              "title": "Auxiliary notes in C major",
+              "instructions": "Re-write each chord, letting the soprano leave its tone by step and return to it. Upper auxiliaries are diatonic; lower ones lie a semitone below a root or fifth, a tone or semitone below a third. The harmony holds beneath the ornament.",
+              "key": "C",
+              "dir": "exercises/auxiliary-decoration/auxiliary-decoration-c-s1-n4",
+              "slots": 4
+            },
+            {
+              "id": "auxiliary-decoration-c-s2-n4",
+              "type": "auxiliary-decoration",
+              "title": "Auxiliary notes in C major",
+              "instructions": "Re-write each chord, letting the soprano leave its tone by step and return to it. Upper auxiliaries are diatonic; lower ones lie a semitone below a root or fifth, a tone or semitone below a third. The harmony holds beneath the ornament.",
+              "key": "C",
+              "dir": "exercises/auxiliary-decoration/auxiliary-decoration-c-s2-n4",
+              "slots": 4
+            },
+            {
+              "id": "auxiliary-decoration-g-s1-n4",
+              "type": "auxiliary-decoration",
+              "title": "Auxiliary notes in G major",
+              "instructions": "Re-write each chord, letting the soprano leave its tone by step and return to it. Upper auxiliaries are diatonic; lower ones lie a semitone below a root or fifth, a tone or semitone below a third. The harmony holds beneath the ornament.",
+              "key": "G",
+              "dir": "exercises/auxiliary-decoration/auxiliary-decoration-g-s1-n4",
+              "slots": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "elementary-2",
+      "title": "Elementary 2",
+      "path": "courses/elementary-2",
+      "modules": [
+        {
+          "id": "01-diatonic-sevenths",
+          "number": 1,
+          "title": "Diatonic Sevenths",
+          "videos": [
+            {
+              "file": "videos/TheDiatonicSevenths.mp4",
+              "title": "Diatonic chords of the seventh",
+              "youtubeId": "CVhuACCXgZM"
+            },
+            {
+              "file": "videos/TheChainOfSevenths.mp4",
+              "title": "The chain of sevenths",
+              "youtubeId": "uo_g7tBHRm0"
+            },
+            {
+              "file": "videos/SeventhAtTheCadences.mp4",
+              "title": "II7 at the cadences",
+              "youtubeId": "QewybD6dqcY"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "cadence-approach-ii7-bb-s1-n4",
+              "type": "cadence-approach-ii7",
+              "title": "Cadences approached through II7 in Bb major",
+              "instructions": "Write each formula for four voices. The supertonic seventh is prepared by the chord before it; its seventh falls to the leading note at the dominant chord — or holds through the cadential six-four as the fourth from the bass, falling after. All the Part I cadence habits stand.",
+              "key": "B-",
+              "dir": "exercises/cadence-approach-ii7/cadence-approach-ii7-bb-s1-n4",
+              "slots": 32
+            },
+            {
+              "id": "cadence-approach-ii7-e-s1-n4",
+              "type": "cadence-approach-ii7",
+              "title": "Cadences approached through II7 in E minor",
+              "instructions": "Write each formula for four voices. The supertonic seventh is prepared by the chord before it; its seventh falls to the leading note at the dominant chord — or holds through the cadential six-four as the fourth from the bass, falling after. All the Part I cadence habits stand.",
+              "key": "e",
+              "dir": "exercises/cadence-approach-ii7/cadence-approach-ii7-e-s1-n4",
+              "slots": 32
+            },
+            {
+              "id": "seventh-chain-f-s1-n6",
+              "type": "seventh-chain",
+              "title": "Continue the chain of sevenths in F major",
+              "instructions": "The first two chords give the pattern; continue the sequence to the end. The roots fall in fifths, the third of each chord remains in its part to become the seventh of the next, and every seventh falls one step onto the third of the chord after. Complete and incomplete chords alternate; a leading note doubled by the repetition of the pattern is allowable.",
+              "key": "F",
+              "dir": "exercises/seventh-chain/seventh-chain-f-s1-n6",
+              "slots": 12
+            },
+            {
+              "id": "seventh-chain-g-s1-n4",
+              "type": "seventh-chain",
+              "title": "Continue the chain of sevenths in G major",
+              "instructions": "The first two chords give the pattern; continue the sequence to the end. The roots fall in fifths, the third of each chord remains in its part to become the seventh of the next, and every seventh falls one step onto the third of the chord after. Complete and incomplete chords alternate; a leading note doubled by the repetition of the pattern is allowable.",
+              "key": "G",
+              "dir": "exercises/seventh-chain/seventh-chain-g-s1-n4",
+              "slots": 8
+            },
+            {
+              "id": "seventh-inner-voices-d-s1-n2",
+              "type": "seventh-inner-voices",
+              "title": "Add the inner parts (with diatonic sevenths) in D minor",
+              "instructions": "Soprano and bass are given; add alto and tenor. Every chord marked with a 7 is a diatonic seventh: prepare the seventh in the same part, and let it fall one step onto the third of the next chord (or hold it through the cadential six-four). The Part I connection rules all hold.",
+              "key": "d",
+              "dir": "exercises/seventh-inner-voices/seventh-inner-voices-d-s1-n2",
+              "slots": 10
+            },
+            {
+              "id": "seventh-inner-voices-g-s1-n2",
+              "type": "seventh-inner-voices",
+              "title": "Add the inner parts (with diatonic sevenths) in G major",
+              "instructions": "Soprano and bass are given; add alto and tenor. Every chord marked with a 7 is a diatonic seventh: prepare the seventh in the same part, and let it fall one step onto the third of the next chord (or hold it through the cadential six-four). The Part I connection rules all hold.",
+              "key": "G",
+              "dir": "exercises/seventh-inner-voices/seventh-inner-voices-g-s1-n2",
+              "slots": 10
+            },
+            {
+              "id": "seventh-inner-voices-g-s2-n2",
+              "type": "seventh-inner-voices",
+              "title": "Add the inner parts (with diatonic sevenths) in G major",
+              "instructions": "Soprano and bass are given; add alto and tenor. Every chord marked with a 7 is a diatonic seventh: prepare the seventh in the same part, and let it fall one step onto the third of the next chord (or hold it through the cadential six-four). The Part I connection rules all hold.",
+              "key": "G",
+              "dir": "exercises/seventh-inner-voices/seventh-inner-voices-g-s2-n2",
+              "slots": 10
+            },
+            {
+              "id": "seventh-preparation-a-s1-n5",
+              "type": "seventh-preparation",
+              "title": "Prepare and resolve the diatonic sevenths in A minor",
+              "instructions": "Write each cell for four voices. The seventh must already stand in the same part in the chord before (preparation) and must fall one step into a chord of which that note is the third — the roots fall a fifth. Before a cadential six-four the seventh may hold over as the fourth from the bass and fall afterwards.",
+              "key": "a",
+              "dir": "exercises/seventh-preparation/seventh-preparation-a-s1-n5",
+              "slots": 32
+            },
+            {
+              "id": "seventh-preparation-c-s1-n6",
+              "type": "seventh-preparation",
+              "title": "Prepare and resolve the diatonic sevenths in C major",
+              "instructions": "Write each cell for four voices. The seventh must already stand in the same part in the chord before (preparation) and must fall one step into a chord of which that note is the third — the roots fall a fifth. Before a cadential six-four the seventh may hold over as the fourth from the bass and fall afterwards.",
+              "key": "C",
+              "dir": "exercises/seventh-preparation/seventh-preparation-c-s1-n6",
+              "slots": 36
+            },
+            {
+              "id": "seventh-preparation-c-s2-n6",
+              "type": "seventh-preparation",
+              "title": "Prepare and resolve the diatonic sevenths in C major",
+              "instructions": "Write each cell for four voices. The seventh must already stand in the same part in the chord before (preparation) and must fall one step into a chord of which that note is the third — the roots fall a fifth. Before a cadential six-four the seventh may hold over as the fourth from the bass and fall afterwards.",
+              "key": "C",
+              "dir": "exercises/seventh-preparation/seventh-preparation-c-s2-n6",
+              "slots": 36
+            }
+          ]
+        },
+        {
+          "id": "02-sevenths-particular-uses",
+          "number": 2,
+          "title": "Sevenths Particular Uses",
+          "videos": [
+            {
+              "file": "videos/TheAddedSixth.mp4",
+              "title": "The chord of the added sixth",
+              "youtubeId": "V-GXCoH5tJI"
+            },
+            {
+              "file": "videos/FreedResolutions.mp4",
+              "title": "Freed resolutions",
+              "youtubeId": "YaUL5xOEFrU"
+            },
+            {
+              "file": "videos/TheDiminishedSeventh.mp4",
+              "title": "The diminished seventh, borrowed",
+              "youtubeId": "qqyo7KGJlnU"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "added-sixth-close-c-s1-n4",
+              "type": "added-sixth-close",
+              "title": "The chord of the added sixth in C major",
+              "instructions": "Write each close for four voices. The supertonic seventh in first inversion is heard as the subdominant chord with a sixth added above the bass; it resolves directly to the tonic, and the seventh — for once — does not fall. It may enter unprepared.",
+              "key": "C",
+              "dir": "exercises/added-sixth-close/added-sixth-close-c-s1-n4",
+              "slots": 26
+            },
+            {
+              "id": "added-sixth-close-g-s1-n4",
+              "type": "added-sixth-close",
+              "title": "The chord of the added sixth in G minor",
+              "instructions": "Write each close for four voices. The supertonic seventh in first inversion is heard as the subdominant chord with a sixth added above the bass; it resolves directly to the tonic, and the seventh — for once — does not fall. It may enter unprepared.",
+              "key": "g",
+              "dir": "exercises/added-sixth-close/added-sixth-close-g-s1-n4",
+              "slots": 32
+            },
+            {
+              "id": "borrowed-supertonic-a-s1-n3",
+              "type": "borrowed-supertonic",
+              "title": "The borrowed supertonic seventh in A major",
+              "instructions": "Write each cadence using II7 of the minor key inside the major: the supertonic seventh with the flattened sixth degree (a chromatic tone on loan). Prepare its seventh as usual and let it fall to the leading note — or hold it through the cadential six-four. Keep the borrowed tone out of the neighbouring chords.",
+              "key": "A",
+              "dir": "exercises/borrowed-supertonic/borrowed-supertonic-a-s1-n3",
+              "slots": 26
+            },
+            {
+              "id": "freed-resolution-c-s1-n6",
+              "type": "freed-resolution",
+              "title": "Freed resolutions of the sevenths in C major",
+              "instructions": "Write each cell. The seventh still falls one step, but the receiving chord is free: IV7 goes to V (or holds through the six-four), VI7 to the dominant seventh, VII7 to V7 or straight to I. These sevenths may enter unprepared; the bass quits each by step or stays where it is. Never two parts from 7 to 8.",
+              "key": "C",
+              "dir": "exercises/freed-resolution/freed-resolution-c-s1-n6",
+              "slots": 46
+            },
+            {
+              "id": "freed-resolution-c-s2-n6",
+              "type": "freed-resolution",
+              "title": "Freed resolutions of the sevenths in C major",
+              "instructions": "Write each cell. The seventh still falls one step, but the receiving chord is free: IV7 goes to V (or holds through the six-four), VI7 to the dominant seventh, VII7 to V7 or straight to I. These sevenths may enter unprepared; the bass quits each by step or stays where it is. Never two parts from 7 to 8.",
+              "key": "C",
+              "dir": "exercises/freed-resolution/freed-resolution-c-s2-n6",
+              "slots": 46
+            },
+            {
+              "id": "freed-resolution-d-s1-n4",
+              "type": "freed-resolution",
+              "title": "Freed resolutions of the sevenths in D minor",
+              "instructions": "Write each cell. The seventh still falls one step, but the receiving chord is free: IV7 goes to V (or holds through the six-four), VI7 to the dominant seventh, VII7 to V7 or straight to I. These sevenths may enter unprepared; the bass quits each by step or stays where it is. Never two parts from 7 to 8.",
+              "key": "d",
+              "dir": "exercises/freed-resolution/freed-resolution-d-s1-n4",
+              "slots": 30
+            },
+            {
+              "id": "particular-inner-voices-d-s1-n2",
+              "type": "particular-inner-voices",
+              "title": "Add the inner parts (particular uses) in D major",
+              "instructions": "Soprano and bass are given; add alto and tenor. The phrases lean on the particular uses: the added sixth, IV7 into V, VI7 into the dominant seventh, the leading and diminished sevenths. These sevenths may enter unprepared — but each still falls (the added sixth alone stands still), and the bass quits each by step.",
+              "key": "D",
+              "dir": "exercises/particular-inner-voices/particular-inner-voices-d-s1-n2",
+              "slots": 10
+            },
+            {
+              "id": "particular-inner-voices-d-s2-n2",
+              "type": "particular-inner-voices",
+              "title": "Add the inner parts (particular uses) in D major",
+              "instructions": "Soprano and bass are given; add alto and tenor. The phrases lean on the particular uses: the added sixth, IV7 into V, VI7 into the dominant seventh, the leading and diminished sevenths. These sevenths may enter unprepared — but each still falls (the added sixth alone stands still), and the bass quits each by step.",
+              "key": "D",
+              "dir": "exercises/particular-inner-voices/particular-inner-voices-d-s2-n2",
+              "slots": 11
+            },
+            {
+              "id": "particular-inner-voices-e-s1-n2",
+              "type": "particular-inner-voices",
+              "title": "Add the inner parts (particular uses) in E minor",
+              "instructions": "Soprano and bass are given; add alto and tenor. The phrases lean on the particular uses: the added sixth, IV7 into V, VI7 into the dominant seventh, the leading and diminished sevenths. These sevenths may enter unprepared — but each still falls (the added sixth alone stands still), and the bass quits each by step.",
+              "key": "e",
+              "dir": "exercises/particular-inner-voices/particular-inner-voices-e-s1-n2",
+              "slots": 8
+            },
+            {
+              "id": "seventh-context-a-s1-n3",
+              "type": "seventh-context",
+              "title": "Precede and follow the sevenths in A minor",
+              "instructions": "Each middle chord is given complete. Write a chord before it and a chord after it in the same key: the approach prepares the seventh (or lawfully takes it free, for the particular uses of ch. II), and the resolution receives the falling discord. The answer shows one good way; others exist.",
+              "key": "a",
+              "dir": "exercises/seventh-context/seventh-context-a-s1-n3",
+              "slots": 12
+            },
+            {
+              "id": "seventh-context-f-s1-n5",
+              "type": "seventh-context",
+              "title": "Precede and follow the sevenths in F major",
+              "instructions": "Each middle chord is given complete. Write a chord before it and a chord after it in the same key: the approach prepares the seventh (or lawfully takes it free, for the particular uses of ch. II), and the resolution receives the falling discord. The answer shows one good way; others exist.",
+              "key": "F",
+              "dir": "exercises/seventh-context/seventh-context-f-s1-n5",
+              "slots": 20
+            }
+          ]
+        },
+        {
+          "id": "03-changing-notes",
+          "number": 3,
+          "title": "Changing Notes",
+          "videos": [
+            {
+              "file": "videos/TheChangingNotes.mp4",
+              "title": "Changing notes",
+              "youtubeId": "rOtP19NnGjI"
             },
             {
               "file": "videos/TheAnticipation.mp4",
-              "title": "The Anticipation"
+              "title": "Anticipations",
+              "youtubeId": "Sgwzi5q6-Us"
             },
             {
-              "file": "videos/TheDoubleSuspension.mp4",
-              "title": "The Double Suspension"
+              "file": "videos/ChromaticColour.mp4",
+              "title": "Chromatic passing notes",
+              "youtubeId": "8Se40FnoRzY"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "anticipation-rewrite-a-s1-n4",
+              "type": "anticipation-rewrite",
+              "title": "Anticipations in A major",
+              "instructions": "The soprano moves by step between the chords. Re-write each pair, sounding the coming tone early on the last quarter of the first measure — the anticipation. It belongs in the top part, and no other harmony note is struck with it.",
+              "key": "A",
+              "dir": "exercises/anticipation-rewrite/anticipation-rewrite-a-s1-n4",
+              "slots": 4
             },
+            {
+              "id": "anticipation-rewrite-d-s1-n4",
+              "type": "anticipation-rewrite",
+              "title": "Anticipations in D minor",
+              "instructions": "The soprano moves by step between the chords. Re-write each pair, sounding the coming tone early on the last quarter of the first measure — the anticipation. It belongs in the top part, and no other harmony note is struck with it.",
+              "key": "d",
+              "dir": "exercises/anticipation-rewrite/anticipation-rewrite-d-s1-n4",
+              "slots": 4
+            },
+            {
+              "id": "changing-notes-a-s1-n5",
+              "type": "changing-notes",
+              "title": "Changing notes in A minor",
+              "instructions": "Re-write each chord, decorating the soprano as named. The neighbour group takes the steps above and below the harmony note in either order (or curtailed, without the initial note); the third-figures bridge two chord tones with the step below (or above) each. Below a root or fifth the lower neighbour lies a semitone; the harmony holds beneath.",
+              "key": "a",
+              "dir": "exercises/changing-notes/changing-notes-a-s1-n5",
+              "slots": 11
+            },
+            {
+              "id": "changing-notes-c-s1-n5",
+              "type": "changing-notes",
+              "title": "Changing notes in C major",
+              "instructions": "Re-write each chord, decorating the soprano as named. The neighbour group takes the steps above and below the harmony note in either order (or curtailed, without the initial note); the third-figures bridge two chord tones with the step below (or above) each. Below a root or fifth the lower neighbour lies a semitone; the harmony holds beneath.",
+              "key": "C",
+              "dir": "exercises/changing-notes/changing-notes-c-s1-n5",
+              "slots": 11
+            },
+            {
+              "id": "changing-notes-c-s2-n5",
+              "type": "changing-notes",
+              "title": "Changing notes in C major",
+              "instructions": "Re-write each chord, decorating the soprano as named. The neighbour group takes the steps above and below the harmony note in either order (or curtailed, without the initial note); the third-figures bridge two chord tones with the step below (or above) each. Below a root or fifth the lower neighbour lies a semitone; the harmony holds beneath.",
+              "key": "C",
+              "dir": "exercises/changing-notes/changing-notes-c-s2-n5",
+              "slots": 11
+            },
+            {
+              "id": "chromatic-passing-bb-s1-n3",
+              "type": "chromatic-passing",
+              "title": "Chromatic passing notes in Bb major",
+              "instructions": "The soprano rises a whole tone between the chords. Re-write each pair, filling the step with a chromatic passing note on the weak half: once introduced, the part proceeds in semitones until it reaches a harmony note. Keep clear of the semitone below a chord's major third — it shadows the minor third.",
+              "key": "B-",
+              "dir": "exercises/chromatic-passing/chromatic-passing-bb-s1-n3",
+              "slots": 3
+            },
+            {
+              "id": "chromatic-passing-g-s1-n3",
+              "type": "chromatic-passing",
+              "title": "Chromatic passing notes in G major",
+              "instructions": "The soprano rises a whole tone between the chords. Re-write each pair, filling the step with a chromatic passing note on the weak half: once introduced, the part proceeds in semitones until it reaches a harmony note. Keep clear of the semitone below a chord's major third — it shadows the minor third.",
+              "key": "G",
+              "dir": "exercises/chromatic-passing/chromatic-passing-g-s1-n3",
+              "slots": 3
+            }
+          ]
+        },
+        {
+          "id": "04-modulation-a",
+          "number": 4,
+          "title": "Modulation a",
+          "videos": [
+            {
+              "file": "videos/ThePivotChord.mp4",
+              "title": "The pivot chord",
+              "youtubeId": "xM-Q9NB8TOg"
+            },
+            {
+              "file": "videos/TheTransition.mp4",
+              "title": "Transition and false relation",
+              "youtubeId": "f3bhubuvJts"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "pivot-modulation-b-s1-n5",
+              "type": "pivot-modulation",
+              "title": "Modulate from B minor to its related keys",
+              "instructions": "Write each modulation in four chords: the home tonic; a pivot chord approached in the old key and quitted in the new (its double name is given); then the new key's dominant and tonic. The confirmation must carry a note foreign to the key quitted — where the plain dominant has none, its minor seventh is added. Chromatic alterations stay in one part (no false relation).",
+              "key": "b",
+              "dir": "exercises/pivot-modulation/pivot-modulation-b-s1-n5",
+              "slots": 40
+            },
+            {
+              "id": "pivot-modulation-c-s1-n5",
+              "type": "pivot-modulation",
+              "title": "Modulate from C major to its related keys",
+              "instructions": "Write each modulation in four chords: the home tonic; a pivot chord approached in the old key and quitted in the new (its double name is given); then the new key's dominant and tonic. The confirmation must carry a note foreign to the key quitted — where the plain dominant has none, its minor seventh is added. Chromatic alterations stay in one part (no false relation).",
+              "key": "C",
+              "dir": "exercises/pivot-modulation/pivot-modulation-c-s1-n5",
+              "slots": 40
+            },
+            {
+              "id": "pivot-modulation-c-s2-n5",
+              "type": "pivot-modulation",
+              "title": "Modulate from C major to its related keys",
+              "instructions": "Write each modulation in four chords: the home tonic; a pivot chord approached in the old key and quitted in the new (its double name is given); then the new key's dominant and tonic. The confirmation must carry a note foreign to the key quitted — where the plain dominant has none, its minor seventh is added. Chromatic alterations stay in one part (no false relation).",
+              "key": "C",
+              "dir": "exercises/pivot-modulation/pivot-modulation-c-s2-n5",
+              "slots": 40
+            },
+            {
+              "id": "pivot-modulation-g-s1-n5",
+              "type": "pivot-modulation",
+              "title": "Modulate from G major to its related keys",
+              "instructions": "Write each modulation in four chords: the home tonic; a pivot chord approached in the old key and quitted in the new (its double name is given); then the new key's dominant and tonic. The confirmation must carry a note foreign to the key quitted — where the plain dominant has none, its minor seventh is added. Chromatic alterations stay in one part (no false relation).",
+              "key": "G",
+              "dir": "exercises/pivot-modulation/pivot-modulation-g-s1-n5",
+              "slots": 40
+            },
+            {
+              "id": "transition-d-s1-n4",
+              "type": "transition",
+              "title": "Transitions from D major",
+              "instructions": "Write each transition in three chords: the old tonic set directly against the new key's dominant seventh — no common chord between them, only a common note kept in its part — then the new tonic. Chromatic alterations stay in one voice. Transitions serve mid-phrase; never at the end of a normal phrase.",
+              "key": "D",
+              "dir": "exercises/transition/transition-d-s1-n4",
+              "slots": 24
+            },
+            {
+              "id": "transition-f-s1-n4",
+              "type": "transition",
+              "title": "Transitions from F major",
+              "instructions": "Write each transition in three chords: the old tonic set directly against the new key's dominant seventh — no common chord between them, only a common note kept in its part — then the new tonic. Chromatic alterations stay in one voice. Transitions serve mid-phrase; never at the end of a normal phrase.",
+              "key": "F",
+              "dir": "exercises/transition/transition-f-s1-n4",
+              "slots": 24
+            }
+          ]
+        },
+        {
+          "id": "05-modulation-b",
+          "number": 5,
+          "title": "Modulation B",
+          "videos": [
+            {
+              "file": "videos/ThePeriodPlan.mp4",
+              "title": "The sixteen-bar period",
+              "youtubeId": "bfLvhpQtXzk"
+            },
+            {
+              "file": "videos/MakingItSatisfactory.mp4",
+              "title": "Making the modulation satisfactory",
+              "youtubeId": "AS1K4ThWgfA"
+            },
+            {
+              "file": "videos/BinaryFormCautions.mp4",
+              "title": "Binary form: the points to watch",
+              "youtubeId": "GhQ0dlqCAfE"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "period-plan-c-s1-n2",
+              "type": "period-plan",
+              "title": "Plan a sixteen-bar period in C major",
+              "instructions": "Compose a 16-bar period (two 8-bar sentences) to the scheme given: establish the tonic through the first phrase; end the second with a full close in the key named (never the flat side); let the third phrase visit the flat-side keys, ideally as two sequential sub-sections; and bring the fourth phrase home gradually. The answer shows each phrase's closing cadence as a signpost — the bars between are yours.",
+              "key": "C",
+              "dir": "exercises/period-plan/period-plan-c-s1-n2",
+              "slots": 32
+            },
+            {
+              "id": "period-plan-c-s2-n2",
+              "type": "period-plan",
+              "title": "Plan a sixteen-bar period in C major",
+              "instructions": "Compose a 16-bar period (two 8-bar sentences) to the scheme given: establish the tonic through the first phrase; end the second with a full close in the key named (never the flat side); let the third phrase visit the flat-side keys, ideally as two sequential sub-sections; and bring the fourth phrase home gradually. The answer shows each phrase's closing cadence as a signpost — the bars between are yours.",
+              "key": "C",
+              "dir": "exercises/period-plan/period-plan-c-s2-n2",
+              "slots": 32
+            },
+            {
+              "id": "period-plan-d-s1-n2",
+              "type": "period-plan",
+              "title": "Plan a sixteen-bar period in D major",
+              "instructions": "Compose a 16-bar period (two 8-bar sentences) to the scheme given: establish the tonic through the first phrase; end the second with a full close in the key named (never the flat side); let the third phrase visit the flat-side keys, ideally as two sequential sub-sections; and bring the fourth phrase home gradually. The answer shows each phrase's closing cadence as a signpost — the bars between are yours.",
+              "key": "D",
+              "dir": "exercises/period-plan/period-plan-d-s1-n2",
+              "slots": 32
+            },
+            {
+              "id": "period-plan-g-s1-n2",
+              "type": "period-plan",
+              "title": "Plan a sixteen-bar period in G minor",
+              "instructions": "Compose a 16-bar period (two 8-bar sentences) to the scheme given: establish the tonic through the first phrase; end the second with a full close in the key named (never the flat side); let the third phrase visit the flat-side keys, ideally as two sequential sub-sections; and bring the fourth phrase home gradually. The answer shows each phrase's closing cadence as a signpost — the bars between are yours.",
+              "key": "g",
+              "dir": "exercises/period-plan/period-plan-g-s1-n2",
+              "slots": 32
+            }
+          ]
+        },
+        {
+          "id": "06-suspensions",
+          "number": 6,
+          "title": "Suspensions",
+          "videos": [
             {
               "file": "videos/TheSuspension.mp4",
-              "title": "The Suspension"
+              "title": "The suspension",
+              "youtubeId": "1xIH5eJBWEc"
+            },
+            {
+              "file": "videos/TheBassSuspension.mp4",
+              "title": "Bass suspensions",
+              "youtubeId": "OQDIFCVa3_c"
+            },
+            {
+              "file": "videos/OrnamentalResolutions.mp4",
+              "title": "Ornamental resolutions",
+              "youtubeId": "b5G36XVueLY"
             }
           ],
           "exercises": [
             {
-              "id": "dominant-ninth-a-s1-n2",
-              "type": "dominant-ninth",
-              "title": "The dominant ninth in A minor",
-              "instructions": "Spell the dominant ninth (fifth omitted in four voices) and resolve it like a seventh chord: the ninth and seventh fall by step, the third rises, the root leaps a fourth up. With the fifth kept, fifth and ninth would fall in parallel fifths — watch the fifths.",
-              "key": "a",
-              "dir": "exercises/dominant-ninth/dominant-ninth-a-s1-n2",
-              "slots": 4
-            },
-            {
-              "id": "dominant-ninth-c-s1-n2",
-              "type": "dominant-ninth",
-              "title": "The dominant ninth in C major",
-              "instructions": "Spell the dominant ninth (fifth omitted in four voices) and resolve it like a seventh chord: the ninth and seventh fall by step, the third rises, the root leaps a fourth up. With the fifth kept, fifth and ninth would fall in parallel fifths — watch the fifths.",
-              "key": "C",
-              "dir": "exercises/dominant-ninth/dominant-ninth-c-s1-n2",
-              "slots": 4
-            },
-            {
-              "id": "dominant-ninth-e--s1-n2",
-              "type": "dominant-ninth",
-              "title": "The dominant ninth in Eb major",
-              "instructions": "Spell the dominant ninth (fifth omitted in four voices) and resolve it like a seventh chord: the ninth and seventh fall by step, the third rises, the root leaps a fourth up. With the fifth kept, fifth and ninth would fall in parallel fifths — watch the fifths.",
-              "key": "E-",
-              "dir": "exercises/dominant-ninth/dominant-ninth-e--s1-n2",
-              "slots": 4
-            },
-            {
-              "id": "suspension-a-s1-n2",
-              "type": "suspension",
-              "title": "A suspension at the close in A minor",
-              "instructions": "Realize each phrase; at the close, hold the V7's seventh over the tonic for half the measure, then resolve it down by step (4—3). The suspension is prepared (same voice in V7), and the resolution tone must not sound in another voice against it. The aim is to invent the delay with the harmony, not to decorate a finished phrase.",
-              "key": "a",
-              "dir": "exercises/suspension/suspension-a-s1-n2",
-              "slots": 9
-            },
-            {
-              "id": "suspension-c-s1-n2",
-              "type": "suspension",
-              "title": "A suspension at the close in C major",
-              "instructions": "Realize each phrase; at the close, hold the V7's seventh over the tonic for half the measure, then resolve it down by step (4—3). The suspension is prepared (same voice in V7), and the resolution tone must not sound in another voice against it. The aim is to invent the delay with the harmony, not to decorate a finished phrase.",
-              "key": "C",
-              "dir": "exercises/suspension/suspension-c-s1-n2",
-              "slots": 8
-            },
-            {
-              "id": "suspension-c-s2-n2",
-              "type": "suspension",
-              "title": "A suspension at the close in C major",
-              "instructions": "Realize each phrase; at the close, hold the V7's seventh over the tonic for half the measure, then resolve it down by step (4—3). The suspension is prepared (same voice in V7), and the resolution tone must not sound in another voice against it. The aim is to invent the delay with the harmony, not to decorate a finished phrase.",
-              "key": "C",
-              "dir": "exercises/suspension/suspension-c-s2-n2",
-              "slots": 8
-            },
-            {
-              "id": "suspension-g-s1-n2",
-              "type": "suspension",
-              "title": "A suspension at the close in G major",
-              "instructions": "Realize each phrase; at the close, hold the V7's seventh over the tonic for half the measure, then resolve it down by step (4—3). The suspension is prepared (same voice in V7), and the resolution tone must not sound in another voice against it. The aim is to invent the delay with the harmony, not to decorate a finished phrase.",
-              "key": "G",
-              "dir": "exercises/suspension/suspension-g-s1-n2",
-              "slots": 9
-            }
-          ]
-        },
-        {
-          "id": "18-schematics",
-          "number": 18,
-          "title": "Schematics",
-          "videos": [
-            {
-              "file": "videos/AllConnections.mp4",
-              "title": "All Connections"
-            },
-            {
-              "file": "videos/FluctuatingTonality.mp4",
-              "title": "Fluctuating Tonality"
-            },
-            {
-              "file": "videos/ModulationSchemata.mp4",
-              "title": "Modulation Schemata"
-            },
-            {
-              "file": "videos/TheAlterations.mp4",
-              "title": "The Alterations"
-            },
-            {
-              "file": "videos/TheChromaticBasis.mp4",
-              "title": "The Chromatic Basis"
-            },
-            {
-              "file": "videos/TheCuriosities.mp4",
-              "title": "The Curiosities"
-            },
-            {
-              "file": "videos/TheShortcut.mp4",
-              "title": "The Shortcut"
-            },
-            {
-              "file": "videos/TheTrifles.mp4",
-              "title": "The Trifles"
-            }
-          ],
-          "exercises": [
-            {
-              "id": "altered-dominant-a-s1-n2",
-              "type": "altered-dominant",
-              "title": "Altered dominants in A minor",
-              "instructions": "Spell the altered dominant seventh and resolve it: the raised fifth rises by semitone (into a doubled third), the lowered fifth falls by semitone; the seventh falls, the third rises, the root leaps a fourth up. An altered tone is an artificial leading tone — it continues in the direction of its alteration.",
-              "key": "a",
-              "dir": "exercises/altered-dominant/altered-dominant-a-s1-n2",
-              "slots": 4
-            },
-            {
-              "id": "altered-dominant-c-s1-n2",
-              "type": "altered-dominant",
-              "title": "Altered dominants in C major",
-              "instructions": "Spell the altered dominant seventh and resolve it: the raised fifth rises by semitone (into a doubled third), the lowered fifth falls by semitone; the seventh falls, the third rises, the root leaps a fourth up. An altered tone is an artificial leading tone — it continues in the direction of its alteration.",
-              "key": "C",
-              "dir": "exercises/altered-dominant/altered-dominant-c-s1-n2",
-              "slots": 4
-            },
-            {
-              "id": "altered-dominant-c-s2-n2",
-              "type": "altered-dominant",
-              "title": "Altered dominants in C major",
-              "instructions": "Spell the altered dominant seventh and resolve it: the raised fifth rises by semitone (into a doubled third), the lowered fifth falls by semitone; the seventh falls, the third rises, the root leaps a fourth up. An altered tone is an artificial leading tone — it continues in the direction of its alteration.",
-              "key": "C",
-              "dir": "exercises/altered-dominant/altered-dominant-c-s2-n2",
-              "slots": 4
-            },
-            {
-              "id": "altered-dominant-e--s1-n2",
-              "type": "altered-dominant",
-              "title": "Altered dominants in Eb major",
-              "instructions": "Spell the altered dominant seventh and resolve it: the raised fifth rises by semitone (into a doubled third), the lowered fifth falls by semitone; the seventh falls, the third rises, the root leaps a fourth up. An altered tone is an artificial leading tone — it continues in the direction of its alteration.",
-              "key": "E-",
-              "dir": "exercises/altered-dominant/altered-dominant-e--s1-n2",
-              "slots": 4
-            },
-            {
-              "id": "turning-chord-c-s1-n1",
-              "type": "turning-chord",
-              "title": "The turning chord: one start, two roads (from C major)",
-              "instructions": "Both phrases begin identically: I and its dominant seventh. Continue the first at home. In the second, the same sound is caught as the German sixth of the key a semitone below — the bass falls by semitone through the six-four onto the new dominant. Try the turning power of the chord, as the book asks.",
-              "key": "C",
-              "dir": "exercises/turning-chord/turning-chord-c-s1-n1",
-              "slots": 7
-            },
-            {
-              "id": "turning-chord-c-s2-n1",
-              "type": "turning-chord",
-              "title": "The turning chord: one start, two roads (from C major)",
-              "instructions": "Both phrases begin identically: I and its dominant seventh. Continue the first at home. In the second, the same sound is caught as the German sixth of the key a semitone below — the bass falls by semitone through the six-four onto the new dominant. Try the turning power of the chord, as the book asks.",
-              "key": "C",
-              "dir": "exercises/turning-chord/turning-chord-c-s2-n1",
-              "slots": 7
-            },
-            {
-              "id": "turning-chord-f-s1-n1",
-              "type": "turning-chord",
-              "title": "The turning chord: one start, two roads (from F major)",
-              "instructions": "Both phrases begin identically: I and its dominant seventh. Continue the first at home. In the second, the same sound is caught as the German sixth of the key a semitone below — the bass falls by semitone through the six-four onto the new dominant. Try the turning power of the chord, as the book asks.",
-              "key": "F",
-              "dir": "exercises/turning-chord/turning-chord-f-s1-n1",
-              "slots": 7
-            },
-            {
-              "id": "turning-chord-g-s1-n1",
-              "type": "turning-chord",
-              "title": "The turning chord: one start, two roads (from G major)",
-              "instructions": "Both phrases begin identically: I and its dominant seventh. Continue the first at home. In the second, the same sound is caught as the German sixth of the key a semitone below — the bass falls by semitone through the six-four onto the new dominant. Try the turning power of the chord, as the book asks.",
-              "key": "G",
-              "dir": "exercises/turning-chord/turning-chord-g-s1-n1",
-              "slots": 7
-            }
-          ]
-        },
-        {
-          "id": "19-whole-tone",
-          "number": 19,
-          "title": "Whole Tone",
-          "videos": [
-            {
-              "file": "videos/FivePartChords.mp4",
-              "title": "Five Part Chords"
-            },
-            {
-              "file": "videos/QuartalChords.mp4",
-              "title": "Quartal Chords"
-            },
-            {
-              "file": "videos/SixPartChords.mp4",
-              "title": "Six Part Chords"
-            },
-            {
-              "file": "videos/TheWholeToneScale.mp4",
-              "title": "The Whole Tone Scale"
-            }
-          ],
-          "exercises": [
-            {
-              "id": "quartal-spelling-c-s1-n6",
-              "type": "quartal-spelling",
-              "title": "Quartal chords from C major",
-              "instructions": "Stack perfect fourths on the given tone — three to six of them, spelled exactly, fourth over fourth. Stack eleven and all twelve tones would sound.",
-              "key": "C",
-              "dir": "exercises/quartal-spelling/quartal-spelling-c-s1-n6",
-              "slots": 6
-            },
-            {
-              "id": "quartal-spelling-c-s2-n6",
-              "type": "quartal-spelling",
-              "title": "Quartal chords from C major",
-              "instructions": "Stack perfect fourths on the given tone — three to six of them, spelled exactly, fourth over fourth. Stack eleven and all twelve tones would sound.",
-              "key": "C",
-              "dir": "exercises/quartal-spelling/quartal-spelling-c-s2-n6",
-              "slots": 6
-            },
-            {
-              "id": "quartal-spelling-g-s1-n6",
-              "type": "quartal-spelling",
-              "title": "Quartal chords from G major",
-              "instructions": "Stack perfect fourths on the given tone — three to six of them, spelled exactly, fourth over fourth. Stack eleven and all twelve tones would sound.",
-              "key": "G",
-              "dir": "exercises/quartal-spelling/quartal-spelling-g-s1-n6",
-              "slots": 6
-            },
-            {
-              "id": "whole-tone-dominant-a-s1-n1",
-              "type": "whole-tone-dominant",
-              "title": "The whole-tone dominant in A minor",
-              "instructions": "Spell the whole-tone chord over the dominant root — all six tones of the scale — and resolve it strictly: the bass falls a fifth, lowered tones fall by semitone, raised tones rise, the ninth steps down; toward the minor tonic the raised fifth simply holds as the minor third.",
-              "key": "a",
-              "dir": "exercises/whole-tone-dominant/whole-tone-dominant-a-s1-n1",
+              "id": "bass-suspension-d-s1-n2",
+              "type": "bass-suspension",
+              "title": "Bass suspensions in D minor",
+              "instructions": "The bass falls one step between the chords. Re-write the second measure, holding the old bass under the new upper parts — they must figure 5/2 (or 4/2) above it, and none of them may sound the bass's note of resolution — then let the bass make its step.",
+              "key": "d",
+              "dir": "exercises/bass-suspension/bass-suspension-d-s1-n2",
               "slots": 2
             },
             {
-              "id": "whole-tone-dominant-c-s1-n2",
-              "type": "whole-tone-dominant",
-              "title": "The whole-tone dominant in C major",
-              "instructions": "Spell the whole-tone chord over the dominant root — all six tones of the scale — and resolve it strictly: the bass falls a fifth, lowered tones fall by semitone, raised tones rise, the ninth steps down; toward the minor tonic the raised fifth simply holds as the minor third.",
-              "key": "C",
-              "dir": "exercises/whole-tone-dominant/whole-tone-dominant-c-s1-n2",
-              "slots": 4
+              "id": "bass-suspension-g-s1-n2",
+              "type": "bass-suspension",
+              "title": "Bass suspensions in G major",
+              "instructions": "The bass falls one step between the chords. Re-write the second measure, holding the old bass under the new upper parts — they must figure 5/2 (or 4/2) above it, and none of them may sound the bass's note of resolution — then let the bass make its step.",
+              "key": "G",
+              "dir": "exercises/bass-suspension/bass-suspension-g-s1-n2",
+              "slots": 2
             },
             {
-              "id": "whole-tone-dominant-c-s2-n2",
-              "type": "whole-tone-dominant",
-              "title": "The whole-tone dominant in C major",
-              "instructions": "Spell the whole-tone chord over the dominant root — all six tones of the scale — and resolve it strictly: the bass falls a fifth, lowered tones fall by semitone, raised tones rise, the ninth steps down; toward the minor tonic the raised fifth simply holds as the minor third.",
-              "key": "C",
-              "dir": "exercises/whole-tone-dominant/whole-tone-dominant-c-s2-n2",
-              "slots": 4
+              "id": "ornamental-resolution-e-s1-n3",
+              "type": "ornamental-resolution",
+              "title": "Ornamental resolutions in E minor",
+              "instructions": "Each second measure carries a 9-8 suspension. Resolve it ornamentally as named: leap or step to another factor of the chord before falling; touch the lower auxiliary first; or sound the resolution, dip below it, and settle. The harmony holds throughout the ornament.",
+              "key": "e",
+              "dir": "exercises/ornamental-resolution/ornamental-resolution-e-s1-n3",
+              "slots": 6
             },
             {
-              "id": "whole-tone-dominant-e--s1-n2",
-              "type": "whole-tone-dominant",
-              "title": "The whole-tone dominant in Eb major",
-              "instructions": "Spell the whole-tone chord over the dominant root — all six tones of the scale — and resolve it strictly: the bass falls a fifth, lowered tones fall by semitone, raised tones rise, the ninth steps down; toward the minor tonic the raised fifth simply holds as the minor third.",
+              "id": "ornamental-resolution-f-s1-n3",
+              "type": "ornamental-resolution",
+              "title": "Ornamental resolutions in F major",
+              "instructions": "Each second measure carries a 9-8 suspension. Resolve it ornamentally as named: leap or step to another factor of the chord before falling; touch the lower auxiliary first; or sound the resolution, dip below it, and settle. The harmony holds throughout the ornament.",
+              "key": "F",
+              "dir": "exercises/ornamental-resolution/ornamental-resolution-f-s1-n3",
+              "slots": 6
+            },
+            {
+              "id": "suspension-cells-a-s1-n5",
+              "type": "suspension-cells",
+              "title": "Prepare and resolve the suspensions in A minor",
+              "instructions": "Each pair of chords is given plain; the marked voice falls (or, in the 7-8, rises a semitone) between them. Re-write the second measure, retarding that voice: the old tone strikes WITH the new chord on the strong half and resolves on the weak. The discord must be prepared, must be more strongly accented than its resolution, and must not sound against the resolution note unless that note is in the bass.",
+              "key": "a",
+              "dir": "exercises/suspension-cells/suspension-cells-a-s1-n5",
+              "slots": 5
+            },
+            {
+              "id": "suspension-cells-c-s1-n5",
+              "type": "suspension-cells",
+              "title": "Prepare and resolve the suspensions in C major",
+              "instructions": "Each pair of chords is given plain; the marked voice falls (or, in the 7-8, rises a semitone) between them. Re-write the second measure, retarding that voice: the old tone strikes WITH the new chord on the strong half and resolves on the weak. The discord must be prepared, must be more strongly accented than its resolution, and must not sound against the resolution note unless that note is in the bass.",
+              "key": "C",
+              "dir": "exercises/suspension-cells/suspension-cells-c-s1-n5",
+              "slots": 5
+            },
+            {
+              "id": "suspension-cells-c-s2-n5",
+              "type": "suspension-cells",
+              "title": "Prepare and resolve the suspensions in C major",
+              "instructions": "Each pair of chords is given plain; the marked voice falls (or, in the 7-8, rises a semitone) between them. Re-write the second measure, retarding that voice: the old tone strikes WITH the new chord on the strong half and resolves on the weak. The discord must be prepared, must be more strongly accented than its resolution, and must not sound against the resolution note unless that note is in the bass.",
+              "key": "C",
+              "dir": "exercises/suspension-cells/suspension-cells-c-s2-n5",
+              "slots": 5
+            },
+            {
+              "id": "suspension-cells-eb-s1-n5",
+              "type": "suspension-cells",
+              "title": "Prepare and resolve the suspensions in Eb major",
+              "instructions": "Each pair of chords is given plain; the marked voice falls (or, in the 7-8, rises a semitone) between them. Re-write the second measure, retarding that voice: the old tone strikes WITH the new chord on the strong half and resolves on the weak. The discord must be prepared, must be more strongly accented than its resolution, and must not sound against the resolution note unless that note is in the bass.",
               "key": "E-",
-              "dir": "exercises/whole-tone-dominant/whole-tone-dominant-e--s1-n2",
-              "slots": 4
+              "dir": "exercises/suspension-cells/suspension-cells-eb-s1-n5",
+              "slots": 5
+            }
+          ]
+        },
+        {
+          "id": "07-dominant-ninth",
+          "number": 7,
+          "title": "Dominant Ninth",
+          "videos": [
+            {
+              "file": "videos/TheDominantNinth.mp4",
+              "title": "The dominant ninth",
+              "youtubeId": "mDBAl8hbyyw"
+            },
+            {
+              "file": "videos/TheEnharmonicDoor.mp4",
+              "title": "The enharmonic door",
+              "youtubeId": "ifv9HR9nWrM"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "enharmonic-diminished-f-s1-n3",
+              "type": "enharmonic-diminished",
+              "title": "The enharmonic diminished seventh from F major",
+              "instructions": "The same diminished-seventh SOUND serves several keys: it is the dominant minor ninth with its root omitted, and any of its four tones can be re-read as the third, fifth, seventh, or ninth of a new dominant. Resolve the given chord in each key named, writing it in the notation of the key approached.",
+              "key": "F",
+              "dir": "exercises/enharmonic-diminished/enharmonic-diminished-f-s1-n3",
+              "slots": 6
+            },
+            {
+              "id": "enharmonic-diminished-g-s1-n3",
+              "type": "enharmonic-diminished",
+              "title": "The enharmonic diminished seventh from G major",
+              "instructions": "The same diminished-seventh SOUND serves several keys: it is the dominant minor ninth with its root omitted, and any of its four tones can be re-read as the third, fifth, seventh, or ninth of a new dominant. Resolve the given chord in each key named, writing it in the notation of the key approached.",
+              "key": "G",
+              "dir": "exercises/enharmonic-diminished/enharmonic-diminished-g-s1-n3",
+              "slots": 6
+            },
+            {
+              "id": "ninth-cells-a-s1-n3",
+              "type": "ninth-cells",
+              "title": "The dominant ninth in A minor",
+              "instructions": "Treat the ninth three ways. Prepared and resolving over the sustained dominant, it is a suspension; unprepared, an appoggiatura — in both, the root may sound against it only in the bass. As the TRUE chord of the ninth it resolves one step down onto new harmony: the fifth stays out in four parts, the major ninth sounds above the third, and no two parts run from a ninth to an octave.",
+              "key": "a",
+              "dir": "exercises/ninth-cells/ninth-cells-a-s1-n3",
+              "slots": 8
+            },
+            {
+              "id": "ninth-cells-c-s1-n3",
+              "type": "ninth-cells",
+              "title": "The dominant ninth in C major",
+              "instructions": "Treat the ninth three ways. Prepared and resolving over the sustained dominant, it is a suspension; unprepared, an appoggiatura — in both, the root may sound against it only in the bass. As the TRUE chord of the ninth it resolves one step down onto new harmony: the fifth stays out in four parts, the major ninth sounds above the third, and no two parts run from a ninth to an octave.",
+              "key": "C",
+              "dir": "exercises/ninth-cells/ninth-cells-c-s1-n3",
+              "slots": 8
+            },
+            {
+              "id": "ninth-cells-c-s2-n3",
+              "type": "ninth-cells",
+              "title": "The dominant ninth in C major",
+              "instructions": "Treat the ninth three ways. Prepared and resolving over the sustained dominant, it is a suspension; unprepared, an appoggiatura — in both, the root may sound against it only in the bass. As the TRUE chord of the ninth it resolves one step down onto new harmony: the fifth stays out in four parts, the major ninth sounds above the third, and no two parts run from a ninth to an octave.",
+              "key": "C",
+              "dir": "exercises/ninth-cells/ninth-cells-c-s2-n3",
+              "slots": 8
+            },
+            {
+              "id": "ninth-cells-eb-s1-n3",
+              "type": "ninth-cells",
+              "title": "The dominant ninth in Eb major",
+              "instructions": "Treat the ninth three ways. Prepared and resolving over the sustained dominant, it is a suspension; unprepared, an appoggiatura — in both, the root may sound against it only in the bass. As the TRUE chord of the ninth it resolves one step down onto new harmony: the fifth stays out in four parts, the major ninth sounds above the third, and no two parts run from a ninth to an octave.",
+              "key": "E-",
+              "dir": "exercises/ninth-cells/ninth-cells-eb-s1-n3",
+              "slots": 8
+            }
+          ]
+        },
+        {
+          "id": "08-dominant-thirteenth",
+          "number": 8,
+          "title": "Dominant Thirteenth",
+          "videos": [
+            {
+              "file": "videos/TheDominantThirteenth.mp4",
+              "title": "The dominant thirteenth",
+              "youtubeId": "48wP1WWl-lI"
+            },
+            {
+              "file": "videos/TheTrueThirteenth.mp4",
+              "title": "The true thirteenth",
+              "youtubeId": "RT4FF3X0HHw"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "thirteenth-cells-a-s1-n3",
+              "type": "thirteenth-cells",
+              "title": "The dominant thirteenth in A minor",
+              "instructions": "The outer chords are given; write the dominant thirteenth between them. Four parts: root, third, seventh, thirteenth — the thirteenth stands in for the fifth and must sound above the seventh. Its exits: fall one step to the fifth while the dominant stands; leap down direct to the tonic root (the true chord); or hold as a common tone of the chord that follows. A true dominant discord always carries its seventh.",
+              "key": "a",
+              "dir": "exercises/thirteenth-cells/thirteenth-cells-a-s1-n3",
+              "slots": 6
+            },
+            {
+              "id": "thirteenth-cells-ab-s1-n3",
+              "type": "thirteenth-cells",
+              "title": "The dominant thirteenth in Ab major",
+              "instructions": "The outer chords are given; write the dominant thirteenth between them. Four parts: root, third, seventh, thirteenth — the thirteenth stands in for the fifth and must sound above the seventh. Its exits: fall one step to the fifth while the dominant stands; leap down direct to the tonic root (the true chord); or hold as a common tone of the chord that follows. A true dominant discord always carries its seventh.",
+              "key": "A-",
+              "dir": "exercises/thirteenth-cells/thirteenth-cells-ab-s1-n3",
+              "slots": 6
+            },
+            {
+              "id": "thirteenth-cells-c-s1-n3",
+              "type": "thirteenth-cells",
+              "title": "The dominant thirteenth in C major",
+              "instructions": "The outer chords are given; write the dominant thirteenth between them. Four parts: root, third, seventh, thirteenth — the thirteenth stands in for the fifth and must sound above the seventh. Its exits: fall one step to the fifth while the dominant stands; leap down direct to the tonic root (the true chord); or hold as a common tone of the chord that follows. A true dominant discord always carries its seventh.",
+              "key": "C",
+              "dir": "exercises/thirteenth-cells/thirteenth-cells-c-s1-n3",
+              "slots": 6
+            },
+            {
+              "id": "thirteenth-cells-c-s2-n3",
+              "type": "thirteenth-cells",
+              "title": "The dominant thirteenth in C major",
+              "instructions": "The outer chords are given; write the dominant thirteenth between them. Four parts: root, third, seventh, thirteenth — the thirteenth stands in for the fifth and must sound above the seventh. Its exits: fall one step to the fifth while the dominant stands; leap down direct to the tonic root (the true chord); or hold as a common tone of the chord that follows. A true dominant discord always carries its seventh.",
+              "key": "C",
+              "dir": "exercises/thirteenth-cells/thirteenth-cells-c-s2-n3",
+              "slots": 6
+            },
+            {
+              "id": "thirteenth-cells-e-s1-n3",
+              "type": "thirteenth-cells",
+              "title": "The dominant thirteenth in E minor",
+              "instructions": "The outer chords are given; write the dominant thirteenth between them. Four parts: root, third, seventh, thirteenth — the thirteenth stands in for the fifth and must sound above the seventh. Its exits: fall one step to the fifth while the dominant stands; leap down direct to the tonic root (the true chord); or hold as a common tone of the chord that follows. A true dominant discord always carries its seventh.",
+              "key": "e",
+              "dir": "exercises/thirteenth-cells/thirteenth-cells-e-s1-n3",
+              "slots": 6
+            }
+          ]
+        },
+        {
+          "id": "09-exam-problems",
+          "number": 9,
+          "title": "Exam Problems",
+          "videos": [
+            {
+              "file": "videos/TheGroundBass.mp4",
+              "title": "The seven problem types",
+              "youtubeId": "QcR9mv44UhE"
+            }
+          ],
+          "exercises": [
+            {
+              "id": "given-inner-voice-c-s1-n2",
+              "type": "given-inner-voice",
+              "title": "A given alto in C major",
+              "instructions": "Only the alto is given. Add soprano, tenor, and bass: settle the cadences first, then design the bass, then fill the remaining voice. The dull given part is no excuse for dull harmony. The answer shows one good setting; others exist.",
+              "key": "C",
+              "dir": "exercises/given-inner-voice/given-inner-voice-c-s1-n2",
+              "slots": 20
+            },
+            {
+              "id": "given-inner-voice-c-s2-n2",
+              "type": "given-inner-voice",
+              "title": "A given alto in C major",
+              "instructions": "Only the alto is given. Add soprano, tenor, and bass: settle the cadences first, then design the bass, then fill the remaining voice. The dull given part is no excuse for dull harmony. The answer shows one good setting; others exist.",
+              "key": "C",
+              "dir": "exercises/given-inner-voice/given-inner-voice-c-s2-n2",
+              "slots": 20
+            },
+            {
+              "id": "given-inner-voice-e-s1-n2",
+              "type": "given-inner-voice",
+              "title": "A given alto in E minor",
+              "instructions": "Only the alto is given. Add soprano, tenor, and bass: settle the cadences first, then design the bass, then fill the remaining voice. The dull given part is no excuse for dull harmony. The answer shows one good setting; others exist.",
+              "key": "e",
+              "dir": "exercises/given-inner-voice/given-inner-voice-e-s1-n2",
+              "slots": 20
+            },
+            {
+              "id": "ground-bass-d-s1-n2",
+              "type": "ground-bass",
+              "title": "A ground bass in D minor",
+              "instructions": "The ground is stated alone, then repeats unchanged beneath each variation. Harmonize the second statement in plain chords; in the third, feature a suspension at the cadence. Kitson's fuller plan adds a final statement of passing and auxiliary notes — the bass never changes.",
+              "key": "d",
+              "dir": "exercises/ground-bass/ground-bass-d-s1-n2",
+              "slots": 14
+            },
+            {
+              "id": "ground-bass-g-s1-n2",
+              "type": "ground-bass",
+              "title": "A ground bass in G major",
+              "instructions": "The ground is stated alone, then repeats unchanged beneath each variation. Harmonize the second statement in plain chords; in the third, feature a suspension at the cadence. Kitson's fuller plan adds a final statement of passing and auxiliary notes — the bass never changes.",
+              "key": "G",
+              "dir": "exercises/ground-bass/ground-bass-g-s1-n2",
+              "slots": 12
+            },
+            {
+              "id": "there-and-back-b-s1-n2",
+              "type": "there-and-back",
+              "title": "Out and home again from B minor",
+              "instructions": "Write each sentence in seven chords: out to the named key through a pivot, confirm it — then back through a second pivot to a full close at home. Both pivots wear their double names; every seam keeps its chromatic alterations in one voice.",
+              "key": "b",
+              "dir": "exercises/there-and-back/there-and-back-b-s1-n2",
+              "slots": 28
+            },
+            {
+              "id": "there-and-back-f-s1-n2",
+              "type": "there-and-back",
+              "title": "Out and home again from F major",
+              "instructions": "Write each sentence in seven chords: out to the named key through a pivot, confirm it — then back through a second pivot to a full close at home. Both pivots wear their double names; every seam keeps its chromatic alterations in one voice.",
+              "key": "F",
+              "dir": "exercises/there-and-back/there-and-back-f-s1-n2",
+              "slots": 28
             }
           ]
         }

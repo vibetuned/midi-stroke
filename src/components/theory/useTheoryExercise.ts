@@ -131,11 +131,33 @@ export function useTheoryExercise(
         return null;
     }, []);
 
-    /** Toggle a pitch in the selected slot; auto-advance when the chord is full. */
+    /**
+     * Toggle a pitch, routing it to the right slot within the selected
+     * measure — on a grand staff each beat has a treble and a bass slot.
+     * Priority: the slot already holding the pitch (toggle off), then the
+     * slot whose missing answer pitches contain it, then the slot on the
+     * register-matching staff (below middle C → bass), then the selection.
+     * Auto-advances when the routed slot's chord is full.
+     */
     const noteInput = useCallback((midi: number) => {
         if (!parsed || revealed || selectedSlot === null) return;
-        const slot = parsed.slots[selectedSlot];
-        const current = entries.get(selectedSlot) ?? [];
+        const selected = parsed.slots[selectedSlot];
+        const measureSlots = parsed.slots.filter(s => s.measureIndex === selected.measureIndex);
+        const playedIn = (s: typeof selected) =>
+            new Set([...s.given.map(g => g.midi), ...(entries.get(s.index) ?? [])]);
+
+        let slot = measureSlots.find(s => (entries.get(s.index) ?? []).includes(midi))
+            ?? measureSlots.find(s => s.answer.some(a => a.midi === midi) && !playedIn(s).has(midi));
+        if (!slot && selected.staff) {
+            const wantStaff = midi < 60 ? '2' : '1';
+            if (selected.staff !== wantStaff) {
+                slot = measureSlots.find(s => s.staff === wantStaff && slotRemaining(s, entries) > 0)
+                    ?? measureSlots.find(s => s.staff === wantStaff);
+            }
+        }
+        if (!slot) slot = selected;
+
+        const current = entries.get(slot.index) ?? [];
         const capacity = slot.answer.length - slot.given.length;
 
         let next: number[];
@@ -150,17 +172,26 @@ export function useTheoryExercise(
         }
 
         const nextEntries = new Map(entries);
-        nextEntries.set(selectedSlot, next);
+        nextEntries.set(slot.index, next);
         setEntries(nextEntries);
         setCompleted(false);
-        if (statuses?.has(selectedSlot)) {
+        if (statuses?.has(slot.index)) {
             const cleaned = new Map(statuses);
-            cleaned.delete(selectedSlot);
+            cleaned.delete(slot.index);
             setStatuses(cleaned.size > 0 ? cleaned : null);
         }
         if (next.length === capacity) {
-            const nextIdx = findNextUnfilled(parsed, nextEntries, selectedSlot);
-            if (nextIdx !== null) setSelectedSlot(nextIdx);
+            // Finish the measure's other slots (the sibling staff) first;
+            // only a fully completed measure advances the selection.
+            const siblingUnfilled = measureSlots.find(s => slotRemaining(s, nextEntries) > 0);
+            if (siblingUnfilled) {
+                setSelectedSlot(siblingUnfilled.index);
+            } else {
+                const nextIdx = findNextUnfilled(parsed, nextEntries, slot.index);
+                setSelectedSlot(nextIdx !== null ? nextIdx : slot.index);
+            }
+        } else {
+            setSelectedSlot(slot.index);
         }
     }, [parsed, revealed, selectedSlot, entries, statuses, findNextUnfilled]);
 
@@ -238,9 +269,9 @@ export function useTheoryExercise(
         return parsed.slots.filter(s => slotRemaining(s, entries) === 0).length;
     }, [parsed, entries]);
 
-    const getPlaybackEvents = useCallback(() => {
+    const getPlaybackEvents = useCallback((source: 'current' | 'answer' = 'current') => {
         if (!parsed) return [];
-        return playbackEvents(parsed, entries);
+        return playbackEvents(parsed, entries, source);
     }, [parsed, entries]);
 
     return {

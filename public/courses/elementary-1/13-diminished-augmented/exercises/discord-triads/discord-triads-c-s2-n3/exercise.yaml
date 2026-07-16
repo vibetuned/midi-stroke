@@ -1,0 +1,33 @@
+id: discord-triads-c-s2-n3
+type: discord-triads
+title: The discord triads in C major
+instructions: Write each cell. The diminished fifth over the bass must already stand
+  in the same part in the chord before (preparation), must fall one step into the
+  chord after (resolution), and is never doubled. The augmented fifth — the leading
+  note itself — is prepared the same way and rises.
+key: C
+seed: 2
+params:
+  items: 3
+  picks:
+  - - vii° prepared
+    - - 4
+      - - 7
+        - ''
+      - 1
+  - - vii° prepared
+    - - - 2
+        - '6'
+      - - 7
+        - ''
+      - 1
+  - - vii° prepared
+    - - 2
+      - - 7
+        - ''
+      - 1
+sources:
+- work: Kitson, Elementary Harmony, Part I (Oxford University Press, 1920)
+  pages: 94-97
+  url: https://archive.org/details/elementaryharmon01kits
+  note: Diminished and augmented triads, ch. XIII

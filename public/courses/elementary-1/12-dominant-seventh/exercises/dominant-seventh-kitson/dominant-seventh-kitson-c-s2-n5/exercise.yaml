@@ -1,0 +1,44 @@
+id: dominant-seventh-kitson-c-s2-n5
+type: dominant-seventh-kitson
+title: The dominant seventh in C major
+instructions: 'Write each cell: the dominant seventh in the position named, properly
+  quitted. The seventh falls one step (from the 4/3 it may rise in parallels with
+  the bass); the leading note rises; the 2 sends its bass down to a chord of the sixth.
+  In root position the fifth may be omitted and the root doubled.'
+key: C
+seed: 2
+params:
+  items: 5
+  picks:
+  - - first inversion
+    - - 1
+      - - 5
+        - 6/5
+      - 1
+  - - root to vi
+    - - 1
+      - - 5
+        - '7'
+      - 6
+  - - second inversion
+    - - 1
+      - - 5
+        - 4/3
+      - - 1
+        - '6'
+  - - third inversion
+    - - 1
+      - - 5
+        - '2'
+      - - 1
+        - '6'
+  - - root to I
+    - - 1
+      - - 5
+        - '7'
+      - 1
+sources:
+- work: Kitson, Elementary Harmony, Part I (Oxford University Press, 1920)
+  pages: 86-93
+  url: https://archive.org/details/elementaryharmon01kits
+  note: The chord of the dominant seventh, ch. XII

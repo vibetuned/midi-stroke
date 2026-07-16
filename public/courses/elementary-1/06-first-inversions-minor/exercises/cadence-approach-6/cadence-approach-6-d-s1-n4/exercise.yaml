@@ -1,0 +1,36 @@
+id: cadence-approach-6-d-s1-n4
+type: cadence-approach-6
+title: Cadences through first inversions in D minor
+instructions: Write each formula for four voices; the chord marked 6 stands in first
+  inversion, its bass carrying the third. The stepwise bass into the cadence is the
+  point — smoother than root positions alone.
+key: d
+seed: 1
+params:
+  items: 4
+  picks:
+  - - false close
+    - - - 2
+        - '6'
+      - 5
+      - 6
+  - - half close
+    - - 1
+      - - 4
+        - '6'
+      - 5
+  - - full close
+    - - - 2
+        - '6'
+      - 5
+      - 1
+  - - plagal close
+    - - - 1
+        - '6'
+      - 4
+      - 1
+sources:
+- work: Kitson, Elementary Harmony, Part I (Oxford University Press, 1920)
+  pages: 47-48
+  url: https://archive.org/details/elementaryharmon01kits
+  note: New approaches to the cadences, ch. V §§18-21

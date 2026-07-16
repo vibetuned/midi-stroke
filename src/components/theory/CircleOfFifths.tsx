@@ -212,14 +212,16 @@ export const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({ highlightKey, on
                 {Array.from({ length: 12 }, (_, i) => sector(i, 'minor'))}
                 {Array.from({ length: 12 }, (_, i) => sector(i, 'dim'))}
 
-                {/* Hub: engraved key signature + scale notes on "paper" */}
-                <circle r={R_HUB - 2} fill="#fbfaf6" stroke="#111" />
-                <text x={0} y={-27} textAnchor="middle" fill="#1a1a1a" fontSize={8.5} fontWeight={700}
+                {/* Hub: engraved key signature + scale notes on a dark disc
+                    that continues the rings' inward-darkening pattern. The
+                    engraving is monochrome black, so we invert it to white. */}
+                <circle r={R_HUB - 2} fill="#17171e" stroke="#111" />
+                <text x={0} y={-27} textAnchor="middle" fill="#e8e8e8" fontSize={8.5} fontWeight={700}
                     fontFamily="system-ui, sans-serif" style={{ pointerEvents: 'none', userSelect: 'none' }}>
                     {activeName}
                 </text>
-                {keySigSvg && <g dangerouslySetInnerHTML={{ __html: keySigSvg }} />}
-                <text x={0} y={26} textAnchor="middle" fill="#1f7a52" fontSize={6.5} fontWeight={600}
+                {keySigSvg && <g style={{ filter: 'invert(1)' }} dangerouslySetInnerHTML={{ __html: keySigSvg }} />}
+                <text x={0} y={26} textAnchor="middle" fill="#5cc99a" fontSize={6.5} fontWeight={600}
                     fontFamily="system-ui, sans-serif" style={{ pointerEvents: 'none', userSelect: 'none' }}>
                     {activeScale.join(' ')}
                 </text>

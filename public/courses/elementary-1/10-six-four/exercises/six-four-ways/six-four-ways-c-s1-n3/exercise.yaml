@@ -1,0 +1,38 @@
+id: six-four-ways-c-s1-n3
+type: six-four-ways
+title: The six-four's other uses in C major
+instructions: 'Realize each cell. Passing: the six-four stands between two positions
+  of one chord, the soprano taking the bass''s notes in reverse order. Auxiliary:
+  the bass holds while the sixth and fourth wave above it. Arpeggio: the bass walks
+  its own chord. Use the six-four sparingly — it must always account for itself.'
+key: C
+seed: 1
+params:
+  items: 3
+  ways:
+  - - auxiliary
+    - - - 5
+        - ''
+      - - 1
+        - 6/4
+      - - 5
+        - ''
+  - - arpeggio
+    - - - 4
+        - ''
+      - - 4
+        - '6'
+      - - 4
+        - 6/4
+  - - passing
+    - - - 1
+        - '6'
+      - - 5
+        - 6/4
+      - - 1
+        - ''
+sources:
+- work: Kitson, Elementary Harmony, Part I (Oxford University Press, 1920)
+  pages: 74-76
+  url: https://archive.org/details/elementaryharmon01kits
+  note: Passing, auxiliary, and arpeggio six-fours, ch. X §§4-6

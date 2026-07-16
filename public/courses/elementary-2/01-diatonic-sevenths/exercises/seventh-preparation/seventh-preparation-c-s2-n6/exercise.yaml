@@ -1,0 +1,47 @@
+id: seventh-preparation-c-s2-n6
+type: seventh-preparation
+title: Prepare and resolve the diatonic sevenths in C major
+instructions: Write each cell for four voices. The seventh must already stand in the
+  same part in the chord before (preparation) and must fall one step into a chord
+  of which that note is the third — the roots fall a fifth. Before a cadential six-four
+  the seventh may hold over as the fourth from the bass and fall afterwards.
+key: C
+seed: 2
+params:
+  items: 6
+  picks:
+  - - I7 to IV
+    - - 5
+      - - 1
+        - '7'
+      - 4
+  - - iii7 to vi
+    - - 5
+      - - 3
+        - '7'
+      - 6
+  - - ii7 to V
+    - - 4
+      - - 2
+        - '7'
+      - 5
+  - - vi7 to ii
+    - - 1
+      - - 6
+        - '7'
+      - 2
+  - - first inversion
+    - - 1
+      - - 2
+        - 6/5
+      - 5
+  - - ii7 to V
+    - - 1
+      - - 2
+        - '7'
+      - 5
+sources:
+- work: Kitson, Elementary Harmony, Part II (Oxford University Press, 1920)
+  pages: 7-10
+  url: https://archive.org/details/elementaryharmon02kits
+  note: Diatonic chords of the seventh, ch. I §§1-2, 4-6, 9-10

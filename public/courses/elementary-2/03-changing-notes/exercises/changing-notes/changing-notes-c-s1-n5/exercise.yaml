@@ -1,0 +1,47 @@
+id: changing-notes-c-s1-n5
+type: changing-notes
+title: Changing notes in C major
+instructions: Re-write each chord, decorating the soprano as named. The neighbour
+  group takes the steps above and below the harmony note in either order (or curtailed,
+  without the initial note); the third-figures bridge two chord tones with the step
+  below (or above) each. Below a root or fifth the lower neighbour lies a semitone;
+  the harmony holds beneath.
+key: C
+seed: 1
+params:
+  items: 5
+  plans:
+  - - curtailed group
+    - vi
+    - - D5
+      - B4
+      - C5
+  - - descending thirds
+    - IV
+    - - A4
+      - G4
+      - E4
+      - F4
+  - - ascending thirds
+    - vi
+    - - C5
+      - D5
+      - F5
+      - E5
+  - - group above-below
+    - vi
+    - - C5
+      - D5
+      - B4
+      - C5
+  - - group below-above
+    - V
+    - - B4
+      - A4
+      - C5
+      - B4
+sources:
+- work: Kitson, Elementary Harmony, Part II (Oxford University Press, 1920)
+  pages: 24-27
+  url: https://archive.org/details/elementaryharmon02kits
+  note: Changing notes, ch. III §§1-8

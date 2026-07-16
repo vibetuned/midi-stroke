@@ -1,0 +1,47 @@
+id: changing-notes-a-s1-n5
+type: changing-notes
+title: Changing notes in A minor
+instructions: Re-write each chord, decorating the soprano as named. The neighbour
+  group takes the steps above and below the harmony note in either order (or curtailed,
+  without the initial note); the third-figures bridge two chord tones with the step
+  below (or above) each. Below a root or fifth the lower neighbour lies a semitone;
+  the harmony holds beneath.
+key: a
+seed: 1
+params:
+  items: 5
+  plans:
+  - - curtailed group
+    - VI
+    - - G5
+      - E5
+      - F5
+  - - descending thirds
+    - VI
+    - - C5
+      - B4
+      - G4
+      - A4
+  - - ascending thirds
+    - iv
+    - - D5
+      - E5
+      - G5
+      - F5
+  - - group above-below
+    - VI
+    - - C5
+      - D5
+      - B4
+      - C5
+  - - group below-above
+    - VI
+    - - F5
+      - E5
+      - G5
+      - F5
+sources:
+- work: Kitson, Elementary Harmony, Part II (Oxford University Press, 1920)
+  pages: 24-27
+  url: https://archive.org/details/elementaryharmon02kits
+  note: Changing notes, ch. III §§1-8

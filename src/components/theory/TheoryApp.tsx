@@ -22,6 +22,7 @@ interface TheoryAppProps {
 }
 
 interface Selection {
+    course: Course;
     module: CourseModule;
     exercise: CourseExercise;
 }
@@ -40,7 +41,7 @@ export const TheoryApp: React.FC<TheoryAppProps> = ({ onBack }) => {
     const [progress, setProgress] = useState<TheoryProgress>(() => loadProgress());
     const [selection, setSelection] = useState<Selection | null>(null);
     const [navigatorOpen, setNavigatorOpen] = useState(true);
-    const [video, setVideo] = useState<{ module: CourseModule; index: number } | null>(null);
+    const [video, setVideo] = useState<{ course: Course; module: CourseModule; index: number } | null>(null);
 
     useEffect(() => {
         fetchCoursesManifest()
@@ -48,12 +49,13 @@ export const TheoryApp: React.FC<TheoryAppProps> = ({ onBack }) => {
             .catch(err => setManifestError(String(err?.message ?? err)));
     }, []);
 
-    const course: Course | null = manifest?.courses[0] ?? null;
-
-    // Flattened course order for prev/next navigation across modules
+    // Flattened order of the selected exercise's course, for prev/next navigation
+    const selectedCourse = selection?.course ?? null;
     const flatExercises = useMemo(
-        () => course ? course.modules.flatMap(m => m.exercises.map(e => ({ module: m, exercise: e }))) : [],
-        [course],
+        () => selectedCourse
+            ? selectedCourse.modules.flatMap(m => m.exercises.map(e => ({ course: selectedCourse, module: m, exercise: e })))
+            : [],
+        [selectedCourse],
     );
     const currentIndex = selection
         ? flatExercises.findIndex(p => p.exercise.id === selection.exercise.id)
@@ -72,8 +74,7 @@ export const TheoryApp: React.FC<TheoryAppProps> = ({ onBack }) => {
         });
     }, []);
 
-    const handleWatched = useCallback((module: CourseModule, videoItem: { file: string; title: string }) => {
-        if (!course) return;
+    const handleWatched = useCallback((course: Course, module: CourseModule, videoItem: { file: string; title: string }) => {
         const key = videoProgressKey(course, module, videoItem);
         setProgress(prev => {
             if (prev.videos[key]) return prev;
@@ -81,7 +82,7 @@ export const TheoryApp: React.FC<TheoryAppProps> = ({ onBack }) => {
             saveProgress(next);
             return next;
         });
-    }, [course]);
+    }, []);
 
     const watchedKeys = useMemo(() => new Set(Object.keys(progress.videos)), [progress.videos]);
     const overlaysOpen = navigatorOpen || video !== null || !selection;
@@ -92,28 +93,29 @@ export const TheoryApp: React.FC<TheoryAppProps> = ({ onBack }) => {
         <div className="app-container theme-theory" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <StartOverlay />
 
-            {course && (navigatorOpen || !selection) && (
+            {manifest && manifest.courses.length > 0 && (navigatorOpen || !selection) && (
                 <CourseNavigator
-                    course={course}
+                    courses={manifest.courses}
+                    initialCourseId={selection?.course.id}
                     progress={progress}
                     currentExerciseId={selection?.exercise.id ?? null}
                     dismissible={!!selection}
                     onClose={() => setNavigatorOpen(false)}
-                    onSelectExercise={(module, exercise) => {
-                        setSelection({ module, exercise });
+                    onSelectExercise={(course, module, exercise) => {
+                        setSelection({ course, module, exercise });
                         setNavigatorOpen(false);
                     }}
-                    onPlayVideo={(module, index) => setVideo({ module, index })}
+                    onPlayVideo={(course, module, index) => setVideo({ course, module, index })}
                 />
             )}
 
-            {course && video && (
+            {video && (
                 <VideoSplash
-                    course={course}
+                    course={video.course}
                     module={video.module}
                     initialIndex={video.index}
                     watchedKeys={watchedKeys}
-                    onWatched={v => handleWatched(video.module, v)}
+                    onWatched={v => handleWatched(video.course, video.module, v)}
                     onClose={() => setVideo(null)}
                 />
             )}
@@ -142,7 +144,7 @@ export const TheoryApp: React.FC<TheoryAppProps> = ({ onBack }) => {
                             color: 'var(--color-text-secondary, #9a9aa8)', fontSize: '0.85rem',
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
-                            {selection.module.number}. {selection.module.title}
+                            {selection.course.title} · {selection.module.number}. {selection.module.title}
                         </span>
                     )}
                 </div>
@@ -172,15 +174,15 @@ export const TheoryApp: React.FC<TheoryAppProps> = ({ onBack }) => {
                         Could not load the course catalog: {manifestError}
                     </div>
                 )}
-                {!manifestError && !course && (
+                {!manifestError && !manifest && (
                     <div style={{ margin: 'auto', color: 'var(--color-text-secondary, #9a9aa8)' }}>
-                        Loading course…
+                        Loading courses…
                     </div>
                 )}
-                {course && selection && (
+                {selection && (
                     <ExercisePanel
-                        key={selection.exercise.id}
-                        course={course}
+                        key={`${selection.course.id}:${selection.exercise.id}`}
+                        course={selection.course}
                         module={selection.module}
                         exercise={selection.exercise}
                         toolkit={toolkit}
@@ -235,14 +237,20 @@ const ExercisePanel: React.FC<ExercisePanelProps> = ({
         noteInput(midi);
     }, [playNote, noteInput]);
 
-    const handleListen = useCallback(() => {
+    // Plays either the student's current state or the model answer (the
+    // ear-training clue). Chords are scheduled at their real onsets so both
+    // staves sound together.
+    const handleListen = useCallback((source: 'current' | 'answer') => {
         if (!sampler) return;
-        const events = getPlaybackEvents();
+        const SECONDS_PER_QUARTER = 0.55;
         const start = Tone.now() + 0.05;
-        events.forEach((chord, i) => {
-            chord.forEach(midi => {
+        getPlaybackEvents(source).forEach(chord => {
+            const duration = Math.max(0.3, chord.duration * SECONDS_PER_QUARTER * 0.95);
+            chord.midis.forEach(midi => {
                 try {
-                    sampler.triggerAttackRelease(Tone.Frequency(midi, 'midi').toFrequency(), 0.65, start + i * 0.7, 0.8);
+                    sampler.triggerAttackRelease(
+                        Tone.Frequency(midi, 'midi').toFrequency(), duration,
+                        start + chord.time * SECONDS_PER_QUARTER, 0.8);
                 } catch { /* ignore scheduling errors */ }
             });
         });
@@ -288,8 +296,13 @@ const ExercisePanel: React.FC<ExercisePanelProps> = ({
                 <button onClick={ex.clearAll} disabled={ex.revealed} style={{ ...controlButtonStyle, opacity: ex.revealed ? 0.4 : 1 }}>
                     ↺ Reset
                 </button>
-                <button onClick={handleListen} style={controlButtonStyle}>
+                <button onClick={() => handleListen('current')} style={controlButtonStyle}
+                    title="Play what you have written so far">
                     ▶ Listen
+                </button>
+                <button onClick={() => handleListen('answer')} style={controlButtonStyle}
+                    title="Play the model answer — the ear-training clue">
+                    👂 Hear answer
                 </button>
 
                 <span style={{ marginLeft: 'auto', fontSize: '0.85rem' }}>

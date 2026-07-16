@@ -46,13 +46,54 @@ function videoTitle(fileName) {
     .join(' ');
 }
 
+/**
+ * Read <course>/youtube_uploads.json (if present) into moduleId -> video
+ * list, preserving the file's order. Keys look like
+ * "elementary-1/01-ear-training-intervals/TheScaleDegrees".
+ */
+function loadYoutubeVideos(coursePath) {
+  const file = join(coursePath, 'youtube_uploads.json');
+  if (!existsSync(file)) return new Map();
+  const byModule = new Map();
+  try {
+    const data = JSON.parse(readFileSync(file, 'utf8'));
+    for (const [key, video] of Object.entries(data.videos ?? {})) {
+      const [, moduleId, scene] = key.split('/');
+      if (!moduleId || !scene || !video.youtube_id) continue;
+      if (!byModule.has(moduleId)) byModule.set(moduleId, []);
+      byModule.get(moduleId).push({
+        scene,
+        youtubeId: video.youtube_id,
+        // "M01 — The major scale: ..." -> "The major scale: ..."
+        title: (video.title ?? scene).replace(/^M\d+\s*—\s*/, ''),
+      });
+    }
+  } catch (err) {
+    console.warn(`Could not parse ${file}: ${err.message}`);
+  }
+  return byModule;
+}
+
 function dirs(path) {
   if (!existsSync(path)) return [];
   return readdirSync(path).filter(e => statSync(join(path, e)).isDirectory()).sort();
 }
 
-/** Count fillable slots: answer chord-events not fully given by the worksheet. */
+/**
+ * Count fillable slots: answer chord-events not fully given by the worksheet.
+ * Mirrors the slot model in src/utils/musicxml.ts (parseExercise) — keep the
+ * two in sync.
+ */
 function countSlots(worksheetXml, answerXml) {
+  const STEP_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  const midiOf = n => {
+    const p = n.getElementsByTagName('pitch')[0];
+    if (!p) return null;
+    const step = p.getElementsByTagName('step')[0]?.textContent ?? 'C';
+    const alter = parseInt(p.getElementsByTagName('alter')[0]?.textContent ?? '0', 10) || 0;
+    const octave = parseInt(p.getElementsByTagName('octave')[0]?.textContent ?? '4', 10);
+    return (octave + 1) * 12 + STEP_PC[step] + alter;
+  };
   const events = measure => {
     const evs = [];
     for (const n of Array.from(measure.getElementsByTagName('note'))) {
@@ -62,18 +103,27 @@ function countSlots(worksheetXml, answerXml) {
     return evs;
   };
   const measures = doc => Array.from(doc.getElementsByTagName('part')[0].getElementsByTagName('measure'));
+  const pitchSet = ev => new Set(ev.map(midiOf).filter(m => m !== null));
   const w = new DOMParser().parseFromString(worksheetXml, 'text/xml');
   const a = new DOMParser().parseFromString(answerXml, 'text/xml');
   const wms = measures(w), ams = measures(a);
   if (wms.length !== ams.length) throw new Error(`measure count ${wms.length} != ${ams.length}`);
   let slots = 0;
   for (let i = 0; i < wms.length; i++) {
-    const wev = events(wms[i]), aev = events(ams[i]);
-    const isRest = wev.some(ev => ev.some(n => n.getElementsByTagName('rest').length > 0));
-    if (isRest) slots += aev.length;
-    else if (wev.length === aev.length) {
-      for (let j = 0; j < wev.length; j++) if (wev[j].length < aev[j].length) slots++;
-    } else throw new Error(`measure ${i + 1}: ${wev.length} events vs ${aev.length}`);
+    const wev = events(wms[i]).map(pitchSet), aev = events(ams[i]).map(pitchSet);
+    // Pairwise when shapes match and each worksheet event (rest = empty set)
+    // is a subset of its answer counterpart; otherwise the union rule:
+    // fillable pitches are those absent from the whole worksheet measure.
+    const pairwiseOk = wev.length === aev.length &&
+      wev.every((ws, j) => [...ws].every(m => aev[j].has(m)));
+    if (pairwiseOk) {
+      for (let j = 0; j < wev.length; j++) if (wev[j].size < aev[j].size) slots++;
+    } else {
+      const union = new Set(wev.flatMap(s => [...s]));
+      for (const als of aev) {
+        if (als.size > 0 && [...als].some(m => !union.has(m))) slots++;
+      }
+    }
   }
   return slots;
 }
@@ -84,6 +134,7 @@ const report = [];
 for (const courseId of dirs(COURSES)) {
   const coursePath = join(COURSES, courseId);
   const course = { id: courseId, title: courseTitle(courseId), path: `courses/${courseId}`, modules: [] };
+  const youtubeByModule = loadYoutubeVideos(coursePath);
 
   for (const moduleId of dirs(coursePath)) {
     const modulePath = join(coursePath, moduleId);
@@ -95,10 +146,18 @@ for (const courseId of dirs(COURSES)) {
       exercises: [],
     };
 
+    // YouTube entries first (in upload order) so local mp4s can be deleted;
+    // any local video without a YouTube id is kept as a fallback.
+    const seenFiles = new Set();
+    for (const yt of youtubeByModule.get(moduleId) ?? []) {
+      const file = `videos/${yt.scene}.mp4`;
+      seenFiles.add(file);
+      mod.videos.push({ file, title: yt.title, youtubeId: yt.youtubeId });
+    }
     const videosPath = join(modulePath, 'videos');
     if (existsSync(videosPath)) {
       for (const f of readdirSync(videosPath).filter(f => f.toLowerCase().endsWith('.mp4')).sort()) {
-        mod.videos.push({ file: `videos/${f}`, title: videoTitle(f) });
+        if (!seenFiles.has(`videos/${f}`)) mod.videos.push({ file: `videos/${f}`, title: videoTitle(f) });
       }
     }
 
@@ -141,7 +200,8 @@ writeFileSync(join(PUBLIC, 'courses_files.json'), JSON.stringify(manifest, null,
 for (const course of manifest.courses) {
   const nEx = course.modules.reduce((s, m) => s + m.exercises.length, 0);
   const nVid = course.modules.reduce((s, m) => s + m.videos.length, 0);
-  console.log(`\n${course.title} — ${course.modules.length} modules, ${nVid} videos, ${nEx} exercises`);
+  const nYt = course.modules.reduce((s, m) => s + m.videos.filter(v => v.youtubeId).length, 0);
+  console.log(`\n${course.title} — ${course.modules.length} modules, ${nVid} videos (${nYt} on YouTube), ${nEx} exercises`);
   for (const m of course.modules) {
     console.log(`  ${m.id}: ${m.videos.length} videos, ${m.exercises.length} exercises` +
       (m.exercises.length ? ` (${m.exercises.reduce((s, e) => s + e.slots, 0)} slots)` : ''));

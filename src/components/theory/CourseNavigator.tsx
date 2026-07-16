@@ -4,14 +4,16 @@ import {
 } from '../../utils/course';
 
 interface CourseNavigatorProps {
-    course: Course;
+    courses: Course[];
+    /** Course to open on; defaults to the first one. */
+    initialCourseId?: string;
     progress: TheoryProgress;
     currentExerciseId: string | null;
     /** When false (nothing selected yet) the overlay can't be dismissed. */
     dismissible: boolean;
     onClose: () => void;
-    onSelectExercise: (module: CourseModule, exercise: CourseExercise) => void;
-    onPlayVideo: (module: CourseModule, index: number) => void;
+    onSelectExercise: (course: Course, module: CourseModule, exercise: CourseExercise) => void;
+    onPlayVideo: (course: Course, module: CourseModule, index: number) => void;
 }
 
 /** "triad-spelling-c-s2-n8" -> "set 2" — distinguishes same-titled variants. */
@@ -26,11 +28,19 @@ function variantLabel(id: string): string | null {
  * entry until something is picked, then reopens from the header.
  */
 export const CourseNavigator: React.FC<CourseNavigatorProps> = ({
-    course, progress, currentExerciseId, dismissible, onClose, onSelectExercise, onPlayVideo,
+    courses, initialCourseId, progress, currentExerciseId, dismissible, onClose, onSelectExercise, onPlayVideo,
 }) => {
-    const currentModule = course.modules.find(m => m.exercises.some(e => e.id === currentExerciseId));
-    const [moduleId, setModuleId] = useState<string>(currentModule?.id ?? course.modules[0]?.id ?? '');
-    const module = course.modules.find(m => m.id === moduleId) ?? course.modules[0];
+    const [courseId, setCourseId] = useState<string>(initialCourseId ?? courses[0]?.id ?? '');
+    const course = courses.find(c => c.id === courseId) ?? courses[0];
+    const currentModule = course?.modules.find(m => m.exercises.some(e => e.id === currentExerciseId));
+    const [moduleId, setModuleId] = useState<string>(currentModule?.id ?? course?.modules[0]?.id ?? '');
+    const module = course?.modules.find(m => m.id === moduleId) ?? course?.modules[0];
+
+    const switchCourse = (c: Course) => {
+        setCourseId(c.id);
+        const current = c.modules.find(m => m.exercises.some(e => e.id === currentExerciseId));
+        setModuleId(current?.id ?? c.modules[0]?.id ?? '');
+    };
 
     useEffect(() => {
         if (!dismissible) return;
@@ -40,8 +50,10 @@ export const CourseNavigator: React.FC<CourseNavigatorProps> = ({
     }, [dismissible, onClose]);
 
     const doneCount = (m: CourseModule) => m.exercises.filter(e => progress.exercises[e.id]).length;
-    const totalDone = course.modules.reduce((s, m) => s + doneCount(m), 0);
-    const totalEx = course.modules.reduce((s, m) => s + m.exercises.length, 0);
+    const totalDone = course?.modules.reduce((s, m) => s + doneCount(m), 0) ?? 0;
+    const totalEx = course?.modules.reduce((s, m) => s + m.exercises.length, 0) ?? 0;
+
+    if (!course) return null;
 
     return (
         <div style={{
@@ -56,12 +68,35 @@ export const CourseNavigator: React.FC<CourseNavigatorProps> = ({
                 borderRadius: '14px', display: 'flex', flexDirection: 'column', overflow: 'hidden',
                 boxShadow: '0 12px 60px rgba(0,0,0,0.6)',
             }}>
-                {/* Panel header */}
+                {/* Panel header: course picker + progress */}
                 <div style={{
                     padding: '0.9rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.1)',
-                    display: 'flex', alignItems: 'center', gap: '1rem',
+                    display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap',
                 }}>
-                    <h2 style={{ margin: 0, fontSize: '1.15rem' }}>🎼 {course.title}</h2>
+                    <span style={{ fontSize: '1.15rem' }}>🎼</span>
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        {courses.map(c => {
+                            const isActive = c.id === course.id;
+                            return (
+                                <button
+                                    key={c.id}
+                                    onClick={() => switchCourse(c)}
+                                    style={{
+                                        padding: '0.35rem 0.9rem',
+                                        borderRadius: '18px',
+                                        border: `1px solid ${isActive ? 'var(--color-accent)' : 'rgba(255,255,255,0.25)'}`,
+                                        background: isActive ? 'var(--color-accent)' : 'transparent',
+                                        color: isActive ? '#fff' : '#ccc',
+                                        cursor: 'pointer',
+                                        fontSize: '0.95rem',
+                                        fontWeight: isActive ? 700 : 400,
+                                    }}
+                                >
+                                    {c.title}
+                                </button>
+                            );
+                        })}
+                    </div>
                     <span style={{ color: 'var(--color-text-secondary, #9a9aa8)', fontSize: '0.85rem' }}>
                         {totalDone}/{totalEx} exercises completed
                     </span>
@@ -115,7 +150,7 @@ export const CourseNavigator: React.FC<CourseNavigatorProps> = ({
                                         return (
                                             <button
                                                 key={v.file}
-                                                onClick={() => onPlayVideo(module, i)}
+                                                onClick={() => onPlayVideo(course, module, i)}
                                                 style={{
                                                     padding: '0.45rem 0.85rem', borderRadius: '18px',
                                                     border: `1px solid ${watched ? 'var(--color-accent)' : 'rgba(255,255,255,0.25)'}`,
@@ -139,7 +174,7 @@ export const CourseNavigator: React.FC<CourseNavigatorProps> = ({
                                         return (
                                             <button
                                                 key={e.id}
-                                                onClick={() => onSelectExercise(module, e)}
+                                                onClick={() => onSelectExercise(course, module, e)}
                                                 style={{
                                                     display: 'flex', alignItems: 'center', gap: '0.6rem',
                                                     padding: '0.5rem 0.75rem', textAlign: 'left',

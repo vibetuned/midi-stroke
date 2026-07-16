@@ -12,8 +12,9 @@ interface VideoSplashProps {
 
 /**
  * Splash-style fullscreen player for a module's lesson videos, with a
- * playlist so the whole module can be watched in sequence. Videos auto-mark
- * as watched when they end and auto-advance to the next one.
+ * playlist so the whole module can be watched in sequence. YouTube-backed
+ * videos play in an embed (marked watched on open — a bare iframe has no
+ * 'ended' event); local files auto-mark on end and advance to the next one.
  */
 export const VideoSplash: React.FC<VideoSplashProps> = ({
     course, module, initialIndex, watchedKeys, onWatched, onClose,
@@ -30,6 +31,10 @@ export const VideoSplash: React.FC<VideoSplashProps> = ({
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [onClose, index, module.videos.length]);
+
+    useEffect(() => {
+        if (video?.youtubeId) onWatched(video);
+    }, [video, onWatched]);
 
     if (!video) return null;
 
@@ -61,17 +66,31 @@ export const VideoSplash: React.FC<VideoSplashProps> = ({
                     style={{ ...navButtonStyle, opacity: index === 0 ? 0.3 : 1 }}
                     title="Previous video"
                 >◀</button>
-                <video
-                    key={video.file}
-                    src={moduleFileUrl(course, module, video.file)}
-                    controls
-                    autoPlay
-                    onEnded={handleEnded}
-                    style={{
-                        flex: 1, minWidth: 0, maxHeight: '100%', borderRadius: '10px',
-                        background: '#000', boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
-                    }}
-                />
+                {video.youtubeId ? (
+                    <iframe
+                        key={video.youtubeId}
+                        src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?autoplay=1&rel=0`}
+                        title={video.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        style={{
+                            flex: 1, minWidth: 0, height: '100%', border: 'none', borderRadius: '10px',
+                            background: '#000', boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
+                        }}
+                    />
+                ) : (
+                    <video
+                        key={video.file}
+                        src={moduleFileUrl(course, module, video.file)}
+                        controls
+                        autoPlay
+                        onEnded={handleEnded}
+                        style={{
+                            flex: 1, minWidth: 0, maxHeight: '100%', borderRadius: '10px',
+                            background: '#000', boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
+                        }}
+                    />
+                )}
                 <button
                     onClick={() => setIndex(i => Math.min(module.videos.length - 1, i + 1))}
                     disabled={index === module.videos.length - 1}

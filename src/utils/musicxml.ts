@@ -23,6 +23,7 @@ export interface ExerciseSlot {
     index: number;        // position in ParsedExercise.slots
     measureIndex: number; // 0-based measure position in the part
     eventIndex: number;   // 0-based chord-event position within the measure
+    staff: string | null; // grand-staff number of the answer event ('1' treble, '2' bass)
     given: NoteSpec[];    // pitches the worksheet already provides
     answer: NoteSpec[];   // the full solution chord (given ⊆ answer)
 }
@@ -95,10 +96,6 @@ function noteSpec(noteEl: Element): NoteSpec | null {
     return { step, alter, octave, midi: midiFromParts(step, alter, octave) };
 }
 
-function isRestNote(noteEl: Element): boolean {
-    return noteEl.getElementsByTagName('rest').length > 0;
-}
-
 /** Group a measure's direct-child <note> elements into chord events. */
 function measureEvents(measure: Element): Element[][] {
     const events: Element[][] = [];
@@ -134,21 +131,36 @@ export function parseExercise(worksheetXml: string, answerXml: string): ParsedEx
     const slots: ExerciseSlot[] = [];
     let minMidi = 127, maxMidi = 0;
 
+    const dedupeByMidi = (specs: NoteSpec[]) => {
+        const seen = new Set<number>();
+        return specs.filter(s => !seen.has(s.midi) && !!seen.add(s.midi));
+    };
+
     aMeasures.forEach((aMeasure, measureIndex) => {
-        const aEvents = measureEvents(aMeasure);
-        const wEvents = measureEvents(wMeasures[measureIndex]);
-        const worksheetIsRest = wEvents.some(ev => ev.some(isRestNote));
+        const aEventEls = measureEvents(aMeasure);
+        const aSpecs = aEventEls.map(ev =>
+            dedupeByMidi(ev.map(noteSpec).filter((s): s is NoteSpec => s !== null)));
+        const wSpecs = measureEvents(wMeasures[measureIndex]).map(ev =>
+            dedupeByMidi(ev.map(noteSpec).filter((s): s is NoteSpec => s !== null)));
 
-        aEvents.forEach((aEvent, eventIndex) => {
-            const answer = aEvent.map(noteSpec).filter((s): s is NoteSpec => s !== null);
+        // Preferred alignment: same event count and every worksheet event a
+        // pitch-subset of its answer counterpart (a rest is the empty set).
+        // Otherwise — inserted passing/auxiliary tones or pitches
+        // redistributed across staves — fall back to the union rule: the
+        // fillable pitches are those absent from the whole worksheet
+        // measure, and events made only of worksheet pitches are given.
+        const pairwiseOk = wSpecs.length === aSpecs.length &&
+            wSpecs.every((ws, j) => ws.every(s => aSpecs[j].some(a => a.midi === s.midi)));
+        const unionMidis = new Set(wSpecs.flat().map(s => s.midi));
+
+        aSpecs.forEach((answer, eventIndex) => {
             answer.forEach(s => { minMidi = Math.min(minMidi, s.midi); maxMidi = Math.max(maxMidi, s.midi); });
-
-            const given = worksheetIsRest || wEvents.length !== aEvents.length
-                ? []
-                : wEvents[eventIndex].map(noteSpec).filter((s): s is NoteSpec => s !== null);
-
-            if (given.length < answer.length) {
-                slots.push({ index: slots.length, measureIndex, eventIndex, given, answer });
+            const given = pairwiseOk
+                ? wSpecs[eventIndex]
+                : answer.filter(s => unionMidis.has(s.midi));
+            if (answer.length > 0 && given.length < answer.length) {
+                const staff = aEventEls[eventIndex][0].getElementsByTagName('staff')[0]?.textContent ?? null;
+                slots.push({ index: slots.length, measureIndex, eventIndex, staff, given, answer });
             }
         });
     });
@@ -163,10 +175,18 @@ function spellEntered(midi: number, slot: ExerciseSlot, fifths: number): NoteSpe
     return match ?? spellMidi(midi, fifths);
 }
 
+interface EventProto {
+    duration: string;
+    type: string | null;
+    voice: string | null;
+    staff: string | null;
+    wholeMeasure: boolean;
+}
+
 function makeNoteEl(
     doc: Document,
     spec: NoteSpec | null,
-    proto: { duration: string; type: string | null; wholeMeasure: boolean },
+    proto: EventProto,
     opts: { chord?: boolean; color?: string; fifths: number },
 ): Element {
     const note = doc.createElement('note');
@@ -194,6 +214,13 @@ function makeNoteEl(
     const duration = doc.createElement('duration');
     duration.textContent = proto.duration;
     note.appendChild(duration);
+    // <voice>/<staff> keep the note in its grand-staff voice — without them
+    // the answer's <backup> arithmetic breaks and notes jump staves.
+    if (proto.voice) {
+        const voice = doc.createElement('voice');
+        voice.textContent = proto.voice;
+        note.appendChild(voice);
+    }
     if (spec && proto.type) {
         const type = doc.createElement('type');
         type.textContent = proto.type;
@@ -203,6 +230,11 @@ function makeNoteEl(
         const accidental = doc.createElement('accidental');
         accidental.textContent = ACCIDENTAL_NAMES[spec.alter] ?? 'natural';
         note.appendChild(accidental);
+    }
+    if (proto.staff) {
+        const staff = doc.createElement('staff');
+        staff.textContent = proto.staff;
+        note.appendChild(staff);
     }
     return note;
 }
@@ -240,14 +272,25 @@ export function buildRenderXml(parsed: ParsedExercise, options: RenderOptions): 
         }
 
         const events = measureEvents(measure);
+        // A placeholder rest may replace a voice's only event — render it as
+        // a whole-measure rest then (voices share the measure on a grand staff).
+        const voiceOf = (event: Element[]) => event[0].getElementsByTagName('voice')[0]?.textContent ?? '';
+        const eventsInVoice = new Map<string, number>();
+        events.forEach(ev => {
+            const v = voiceOf(ev);
+            eventsInVoice.set(v, (eventsInVoice.get(v) ?? 0) + 1);
+        });
+
         events.forEach((event, eventIndex) => {
             const slot = slotAt.get(`${measureIndex}:${eventIndex}`);
             if (!slot) return;
 
-            const proto = {
+            const proto: EventProto = {
                 duration: event[0].getElementsByTagName('duration')[0]?.textContent ?? '1',
                 type: event[0].getElementsByTagName('type')[0]?.textContent ?? null,
-                wholeMeasure: events.length === 1,
+                voice: event[0].getElementsByTagName('voice')[0]?.textContent ?? null,
+                staff: event[0].getElementsByTagName('staff')[0]?.textContent ?? null,
+                wholeMeasure: (eventsInVoice.get(voiceOf(event)) ?? 1) === 1,
             };
 
             const status = statuses?.get(slot.index);
@@ -309,20 +352,65 @@ export function slotRemaining(slot: ExerciseSlot, entries: Map<number, number[]>
     return slot.answer.length - slot.given.length - (entries.get(slot.index)?.length ?? 0);
 }
 
-/** All chord events in score order (given + entered pitches) — for playback. */
-export function playbackEvents(parsed: ParsedExercise, entries: Map<number, number[]>): number[][] {
+export interface PlaybackChord {
+    time: number;     // onset in quarter notes from the start
+    duration: number; // in quarter notes
+    midis: number[];
+}
+
+/**
+ * The exercise as timed chords for playback. Onsets are computed per voice
+ * (grand-staff voices run in parallel), and events that share an onset are
+ * merged so both staves sound together. `source` picks what fills the slots:
+ * the student's entries or the model answer (the ear-training clue).
+ */
+export function playbackEvents(
+    parsed: ParsedExercise,
+    entries: Map<number, number[]>,
+    source: 'current' | 'answer' = 'current',
+): PlaybackChord[] {
     const slotAt = new Map<string, ExerciseSlot>();
     parsed.slots.forEach(s => slotAt.set(`${s.measureIndex}:${s.eventIndex}`, s));
-    const out: number[][] = [];
+    const divisions = parseInt(
+        parsed.answerDoc.getElementsByTagName('divisions')[0]?.textContent ?? '1', 10) || 1;
+
+    const chords: PlaybackChord[] = [];
+    let measureBase = 0; // running onset of the current measure, in division units
     partMeasures(parsed.answerDoc).forEach((measure, measureIndex) => {
+        const voiceCursor = new Map<string, number>();
+        let measureLength = 0;
         measureEvents(measure).forEach((event, eventIndex) => {
+            const first = event[0];
+            const voice = first.getElementsByTagName('voice')[0]?.textContent ?? '';
+            const duration = parseInt(first.getElementsByTagName('duration')[0]?.textContent ?? '0', 10) || 0;
+            const onset = voiceCursor.get(voice) ?? 0;
+            voiceCursor.set(voice, onset + duration);
+            measureLength = Math.max(measureLength, onset + duration);
+
             const slot = slotAt.get(`${measureIndex}:${eventIndex}`);
-            if (slot) {
-                out.push([...slot.given.map(g => g.midi), ...(entries.get(slot.index) ?? [])]);
-            } else {
-                out.push(event.map(noteSpec).filter((s): s is NoteSpec => s !== null).map(s => s.midi));
+            const midis = slot
+                ? source === 'answer'
+                    ? slot.answer.map(a => a.midi)
+                    : [...slot.given.map(g => g.midi), ...(entries.get(slot.index) ?? [])]
+                : event.map(noteSpec).filter((s): s is NoteSpec => s !== null).map(s => s.midi);
+            if (midis.length > 0) {
+                chords.push({ time: (measureBase + onset) / divisions, duration: duration / divisions, midis });
             }
         });
+        measureBase += measureLength;
     });
-    return out;
+
+    // Merge same-onset chords (treble + bass events of the same beat)
+    const merged = new Map<number, PlaybackChord>();
+    for (const c of chords) {
+        const key = Math.round(c.time * 1000);
+        const existing = merged.get(key);
+        if (existing) {
+            existing.midis.push(...c.midis);
+            existing.duration = Math.max(existing.duration, c.duration);
+        } else {
+            merged.set(key, { ...c, midis: [...c.midis] });
+        }
+    }
+    return [...merged.values()].sort((a, b) => a.time - b.time);
 }

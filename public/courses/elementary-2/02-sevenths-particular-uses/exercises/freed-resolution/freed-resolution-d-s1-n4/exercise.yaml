@@ -1,0 +1,40 @@
+id: freed-resolution-d-s1-n4
+type: freed-resolution
+title: Freed resolutions of the sevenths in D minor
+instructions: 'Write each cell. The seventh still falls one step, but the receiving
+  chord is free: IV7 goes to V (or holds through the six-four), VI7 to the dominant
+  seventh, VII7 to V7 or straight to I. These sevenths may enter unprepared; the bass
+  quits each by step or stays where it is. Never two parts from 7 to 8.'
+key: d
+seed: 1
+params:
+  items: 4
+  picks:
+  - - the diminished seventh
+    - - 1
+      - dim7
+      - 1
+  - - IV7 to V
+    - - 1
+      - - 4
+        - '7'
+      - 5
+      - 1
+  - - raised VI7 to V7
+    - - 1
+      - vi7m
+      - - 5
+        - 6/5
+      - 1
+  - - VI7 to V7
+    - - 1
+      - - 6
+        - '7'
+      - - 5
+        - '7'
+      - 1
+sources:
+- work: Kitson, Elementary Harmony, Part II (Oxford University Press, 1920)
+  pages: 17-21
+  url: https://archive.org/details/elementaryharmon02kits
+  note: Particular uses of some diatonic sevenths, ch. II §§2-4

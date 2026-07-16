@@ -1,0 +1,33 @@
+id: pivot-modulation-c-s2-n5
+type: pivot-modulation
+title: Modulate from C major to its related keys
+instructions: 'Write each modulation in four chords: the home tonic; a pivot chord
+  approached in the old key and quitted in the new (its double name is given); then
+  the new key''s dominant and tonic. The confirmation must carry a note foreign to
+  the key quitted — where the plain dominant has none, its minor seventh is added.
+  Chromatic alterations stay in one part (no false relation).'
+key: C
+seed: 2
+params:
+  items: 5
+  plans:
+  - - G
+    - iii = vi
+    - ideal
+  - - F
+    - ii = vi
+    - ideal
+  - - a
+    - ii = iv
+    - ideal
+  - - e
+    - vi = iv
+    - ideal
+  - - d
+    - ii = i
+    - forced
+sources:
+- work: Kitson, Elementary Harmony, Part II (Oxford University Press, 1920)
+  pages: 34-37
+  url: https://archive.org/details/elementaryharmon02kits
+  note: Elementary modulation, ch. IV §§1-6, and Exercises (1)

@@ -1,0 +1,29 @@
+id: melodic-minor-line-e-s1-n2
+type: melodic-minor-line
+title: Harmonize the melodic minor in E minor
+instructions: The soprano is given; harmonize it in four voices. Going up, the raised
+  sixth avoids the augmented second — harmonize it as II (with its perfect fifth)
+  or IV (with its raised third), and never double it. Coming down, the flattened seventh
+  serves III, v, or VII; the true leading note returns a chord later. The two forms
+  of a degree never meet in consecutive chords.
+key: e
+seed: 1
+params:
+  items: 2
+  plans:
+  - - ascending
+    - - i
+      - ii6
+      - V
+      - i
+  - - descending
+    - - i
+      - v
+      - iv
+      - V
+      - i
+sources:
+- work: Kitson, Elementary Harmony, Part I (Oxford University Press, 1920)
+  pages: 56-59
+  url: https://archive.org/details/elementaryharmon01kits
+  note: The melodic minor scale, ch. VII
