@@ -1,0 +1,27 @@
+id: chord-building-s2-n5
+type: chord-building
+title: Build the chords
+instructions: 'The root is given; build the chord named above it, stacking thirds:
+  major triad (major third, then minor), minor (minor then major), diminished (two
+  minor), augmented (two major); the sevenths add one third more. The answer shows
+  the book''s own plate.'
+key: C
+seed: 2
+params:
+  items: 5
+  picks:
+  - - p_60_augmented_triad
+    - augmented triad
+  - - p_61_supertonic_seventh
+    - supertonic seventh
+  - - p_61_subtonic_seventh
+    - subtonic seventh
+  - - p_60_dominant_seventh
+    - dominant seventh
+  - - p_60_diminished_triad
+    - diminished triad
+sources:
+- work: Gardner, Essentials of Music Theory, Elementary (Carl Fischer, 1912)
+  pages: 50-61
+  url: https://archive.org/details/essentialsofmusi00gard
+  note: Chord building, ch. III — the pp. 60-61 plates
