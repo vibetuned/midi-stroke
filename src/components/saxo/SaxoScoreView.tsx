@@ -66,6 +66,7 @@ export const SaxoScoreView: React.FC = () => {
 
     const appRef = useRef<PIXI.Application | null>(null);
     const scrollContainerRef = useRef<PIXI.Container | null>(null);
+    const stickyContainerRef = useRef<PIXI.Container | null>(null);
     const cursorRef = useRef<PIXI.Graphics | null>(null);
     const isDragging = useRef<boolean>(false);
 
@@ -406,6 +407,14 @@ export const SaxoScoreView: React.FC = () => {
             scrollContainerRef.current.removeChildren().forEach(child => child.destroy({ texture: true }));
         }
 
+        // Dispose the sticky clef strip left over from a previous song load —
+        // it lives on the stage, so clearing the scroll container never touches it.
+        if (stickyContainerRef.current) {
+            appRef.current.stage.removeChild(stickyContainerRef.current);
+            stickyContainerRef.current.destroy({ children: true, texture: true, textureSource: true });
+            stickyContainerRef.current = null;
+        }
+
         const img = new Image();
         const svgBase64 = btoa(unescape(encodeURIComponent(svgString)));
         img.src = `data:image/svg+xml;base64,${svgBase64}`;
@@ -479,6 +488,7 @@ export const SaxoScoreView: React.FC = () => {
         stickyContainer.addChild(stickySprite);
 
         appRef.current.stage.addChild(stickyContainer);
+        stickyContainerRef.current = stickyContainer;
 
         if (cursorRef.current) {
             appRef.current.stage.setChildIndex(cursorRef.current, appRef.current.stage.children.length - 1);

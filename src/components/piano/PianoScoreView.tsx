@@ -57,6 +57,7 @@ export const PianoScoreView: React.FC = () => {
 
     const appRef = useRef<PIXI.Application | null>(null);
     const scrollContainerRef = useRef<PIXI.Container | null>(null);
+    const stickyContainerRef = useRef<PIXI.Container | null>(null);
     const cursorRef = useRef<PIXI.Graphics | null>(null);
     const isDragging = useRef<boolean>(false);
 
@@ -435,7 +436,14 @@ export const PianoScoreView: React.FC = () => {
             }
         }
 
-        // Dispose any overlays left over from a previous song load.
+        // Dispose the sticky clef strip and overlays left over from a previous
+        // song load — they live on the stage, so removeChildren on the scroll
+        // container never touches them.
+        if (stickyContainerRef.current) {
+            appRef.current.stage.removeChild(stickyContainerRef.current);
+            stickyContainerRef.current.destroy({ children: true, texture: true, textureSource: true });
+            stickyContainerRef.current = null;
+        }
         if (handTopOverlayRef.current) {
             handTopOverlayRef.current.destroy();
             handTopOverlayRef.current = null;
@@ -558,6 +566,7 @@ export const PianoScoreView: React.FC = () => {
         stickyContainer.addChild(stickySprite);
 
         appRef.current.stage.addChild(stickyContainer);
+        stickyContainerRef.current = stickyContainer;
 
         // Piano hand-selection overlays — full-width translucent bands over
         // each staff. Mounted on the stage so they cover both the scrolling
