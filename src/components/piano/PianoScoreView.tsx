@@ -460,10 +460,21 @@ export const PianoScoreView: React.FC = () => {
             const bbox = measureBBoxes[index];
             const ticksInMeasure = index === 0 ? 0 : ticksInMeasureVal;
 
+            // Slurs/ties are rendered inside the measure where they start, so a
+            // curve crossing the barline inflates that measure's bbox width past
+            // the next measure's left edge — the tick→x interpolation would then
+            // jump backwards at the boundary. Left edges are unaffected, so use
+            // the gap to the next measure's left edge as the width instead.
+            const x = bbox.left - svgOuterBBox.left;
+            const nextBBox = measureBBoxes[index + 1];
+            const width = nextBBox
+                ? Math.max(1, (nextBBox.left - svgOuterBBox.left) - x)
+                : bbox.width;
+
             mData.push({
                 id: m.id,
-                x: bbox.left - svgOuterBBox.left,
-                width: bbox.width,
+                x,
+                width,
                 startTick: currentTick,
                 endTick: currentTick + ticksInMeasure
             });
