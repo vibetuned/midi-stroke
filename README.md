@@ -1,8 +1,8 @@
 # Midi Stroke
-### Precision-Engineered MIDI Training for Piano, Finger Drums & Saxophone
+### Precision-Engineered MIDI Training for Piano, Finger Drums, Saxophone & Music Theory
 
 **Midi Stroke** is a high-performance, web-based training suite designed to bridge the gap between technical execution and professional music notation.
-By leveraging real-time MIDI data and industry-standard rendering engines, it provides a data-driven environment for mastering melodic keys, rhythmic percussion, and wind-controller saxophone.
+By leveraging real-time MIDI data and industry-standard rendering engines, it provides a data-driven environment for mastering melodic keys, rhythmic percussion, wind-controller saxophone, and written theory.
 
 ![Instrument selection](docs/screenshots/splash.png)
 
@@ -16,6 +16,16 @@ Grand-staff training with hand selection (L / R / L+R), key-range calibration, a
 
 ![Piano app](docs/screenshots/piano.png)
 
+#### Scale generator
+
+The song selector includes a technique-exercise generator: pick any major or minor key on a **circle of fifths** (natural, harmonic or melodic for minors) and it engraves the exercise on the fly — no score files involved. Eleven forms so far: parallel and contrary motion, scales in thirds/sixths/tenths, scale triads (harmonized scale), triad inversions, broken triads, tonic and dominant-seventh arpeggios, and cadences — each in quarters, eighths, sixteenths or triplets, over 1–4 octaves with optional repeats. Standard conservatory **fingering** is engraved on the staff (toggleable), and a live preview shows the exercise before you start.
+
+![Scale generator](docs/screenshots/scale-generator.png)
+
+Generated exercises play like any piece — same modes, tempo control and per-exercise stats (the exercise itself is the stable identity, so your precision history accumulates per key/form). As a practice guide, the virtual keyboard **grays out the keys that don't belong to the exercise's key** — below, E melodic minor leaves only F♮, G♯ and B♭ dimmed in every octave (they stay playable).
+
+![Scale exercise in the score view with foreign keys grayed out](docs/screenshots/scale-game.png)
+
 ### 🥁 Drums — [docs/drums-app.md](docs/drums-app.md)
 
 Finger-drumming training built for the **Yamaha FGDP-50**. Looping rhythm patterns on a percussion staff, with MEI-to-pad MIDI mapping and a step-sequencer grid that tracks the playhead column by column.
@@ -28,6 +38,12 @@ Single-voice melodic training for wind controllers (built for the TravelSax). Th
 
 ![Saxo app](docs/screenshots/saxo.png)
 
+### 🎼 Theory — [docs/theory-app.md](docs/theory-app.md)
+
+A **train & practice course player**: each course module pairs lesson videos with fill-in-the-blank worksheet exercises rendered as real engraved scores. Instead of playing along with a transport, you *write* music — entering notes from the clickable virtual piano, the circle-of-fifths wheel, or a MIDI keyboard — then check your work, reveal the model answer, or listen to either. Courses (Elementary rudiments, Notation, …) live as content under `public/courses/`, with per-exercise progress and watched-video tracking persisted locally. Exercise types cover interval ear-tests, primary triads and inversions, cadence writing, passing/auxiliary notes, dominant sevenths and more.
+
+![Theory app](docs/screenshots/theory.png)
+
 ---
 
 ## Documentation
@@ -38,6 +54,7 @@ Single-voice melodic training for wind controllers (built for the TravelSax). Th
 | [docs/piano-app.md](docs/piano-app.md) | The Piano app (reference implementation). |
 | [docs/drums-app.md](docs/drums-app.md) | The Drums app and how it differs from Piano. |
 | [docs/saxo-app.md](docs/saxo-app.md) | The Saxo app: design, offline score pipeline, transposition, fingering chart, TravelSax input. |
+| [docs/theory-app.md](docs/theory-app.md) | The Theory app: course/module content model, worksheet exercise engine, video player, input instruments. |
 
 ---
 
@@ -61,6 +78,8 @@ The application is built on a web stack trying to be optimized for low-latency a
   - **Saxophone:** monophonic wind-controller input with written-pitch transposition and breath (CC) capture
 * **Dynamic Notation Mapping:** Interactive sheet music that responds to MIDI input, providing instant visual confirmation of accuracy.
 * **Two Game Modes:** *Rhythm* (play along in time, scored with hit/miss windows) and *Practice* (playback waits for the correct note).
+* **Scale Generator (Piano):** technique exercises in all 24 keys engraved on demand — scales, intervals, triads, arpeggios and cadences with conservatory fingering — plus key-aware graying of the virtual keyboard.
+* **Theory Courses:** video lessons paired with fill-in-the-blank score exercises, answered from piano, circle of fifths, or MIDI input.
 * **Precision Tempo Control:** A high-resolution transport system for granular practice, from slow-motion technical drills to full-speed performance.
 * **Session Stats:** Per-song accuracy, combos, and history persisted locally.
 
@@ -82,8 +101,10 @@ The application is built on a web stack trying to be optimized for low-latency a
 Saxophone scores live in `public/saxo/` as single-staff, alto-transposed MEI files:
 
 ```bash
-npm run build:saxo           # derive saxo scores from piano MEI (drop bass, flatten chords, transpose up M6)
-npm run build:saxo-manifest  # regenerate public/saxo_files.json by scanning public/saxo/ (run after adding songs)
+npm run build:saxo               # derive saxo scores from piano MEI (drop bass, flatten chords, transpose up M6)
+npm run build:saxo-manifest      # regenerate public/saxo_files.json by scanning public/saxo/ (run after adding songs)
+npm run build:course-manifest    # regenerate the theory course manifest from public/courses/
+node scripts/build-keysig-assets.mjs  # re-engrave the circle-of-fifths key-signature assets (src/assets/keySignatures.ts)
 ```
 
 ### Local Network Access

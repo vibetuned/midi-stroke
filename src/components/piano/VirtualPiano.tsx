@@ -1,7 +1,8 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useGameLogic } from '../../hooks/useGameLogic';
 import { useMidi } from '../../hooks/useMidi';
+import { scaleUrlPitchClasses } from '../../utils/scaleGen';
 import * as Tone from 'tone';
 
 // Pressed-but-not-expected keys light up in this red ("release me") — same
@@ -15,13 +16,20 @@ interface VirtualPianoProps {
     highlightNotes?: Map<number, string>;
 }
 
-// Fix 5: memo prevents re-renders driven by unrelated GameContext state changes
-// (isPlaying, selectedSong, tempo, etc.) — the component only re-renders when
-// its own hooks (activeNotes, expectedNotes, pianoRange) actually change.
+// Fix 5: memo prevents re-renders driven by parent renders — the component
+// re-renders only when its own hooks (activeNotes, expectedNotes, pianoRange,
+// selectedSong via useGame) actually change.
 export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, highlightNotes }) => {
-    const { pianoRange } = useGame();
+    const { pianoRange, selectedSong } = useGame();
     const { activeNotes } = useMidi();
     const { expectedNotes } = useGameLogic();
+
+    // For generated scale exercises, gray out the keys foreign to the key —
+    // a practice guide, not a lock: they stay playable. Null for normal songs.
+    const scalePcs = useMemo(
+        () => (selectedSong ? scaleUrlPitchClasses(selectedSong) : null),
+        [selectedSong],
+    );
 
     if (!pianoRange) return null;
 
@@ -30,7 +38,7 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
     const hasExpectation = expectedNotes.length > 0;
 
     const { min, max } = pianoRange;
-    const keys: { note: number; isBlack: boolean; isActive: boolean; isExpected: boolean; glowColor: string; noteName: string }[] = [];
+    const keys: { note: number; isBlack: boolean; isActive: boolean; isExpected: boolean; inScale: boolean; glowColor: string; noteName: string }[] = [];
 
     for (let i = min; i <= max; i++) {
         const isBlack = [1, 3, 6, 8, 10].includes(i % 12);
@@ -38,6 +46,7 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
         const expectedData = expectedNotes.find(e => e.note === i);
         const highlight = highlightNotes?.get(i);
         const isExpected = !!expectedData || !!highlight;
+        const inScale = !scalePcs || scalePcs.has(i % 12);
 
         let glowColor = 'none';
         if (expectedData) {
@@ -47,7 +56,7 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
         }
 
         const noteName = Tone.Frequency(i, "midi").toNote();
-        keys.push({ note: i, isBlack, isActive, isExpected, glowColor, noteName });
+        keys.push({ note: i, isBlack, isActive, isExpected, inScale, glowColor, noteName });
     }
 
     return (
@@ -136,13 +145,16 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
 
                         const whiteWrong = key.isActive && hasExpectation && !key.isExpected;
                         const blackWrong = blackActive && hasExpectation && !blackExpected;
+                        const blackInScale = keys.find(k => k.note === nextNote)?.inScale ?? true;
 
                         const whiteKeyStyle: React.CSSProperties = {
                             width: '24px',
                             height: '100%',
                             background: key.isActive
                                 ? (whiteWrong ? WRONG_RED : 'var(--color-accent)')
-                                : 'linear-gradient(to bottom, #e8e8e8 0%, #ffffff 60%, #f5f5f5 100%)',
+                                : key.inScale
+                                    ? 'linear-gradient(to bottom, #e8e8e8 0%, #ffffff 60%, #f5f5f5 100%)'
+                                    : 'linear-gradient(to bottom, #8f8f8f 0%, #a8a8a8 60%, #9d9d9d 100%)',
                             boxSizing: 'border-box',
                             borderRadius: '0 0 4px 4px',
                             boxShadow: key.isActive
@@ -166,7 +178,9 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
                             height: 'calc(60% + 2px)',
                             background: blackActive
                                 ? (blackWrong ? WRONG_RED : 'var(--color-accent)')
-                                : 'linear-gradient(to bottom, #444 0%, #111 40%, #000 100%)',
+                                : blackInScale
+                                    ? 'linear-gradient(to bottom, #444 0%, #111 40%, #000 100%)'
+                                    : 'linear-gradient(to bottom, #5c5c60 0%, #4a4a4e 40%, #414145 100%)',
                             boxSizing: 'border-box',
                             zIndex: 10,
                             borderRadius: '0 0 3px 3px',

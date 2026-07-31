@@ -25,7 +25,7 @@ import { keyAlter } from './musicxml';
 
 export type ScaleForm =
     | 'parallel' | 'contrary' | 'thirds' | 'sixths' | 'tenths'
-    | 'triads' | 'arpeggio' | 'dom7' | 'cadence';
+    | 'scaletriads' | 'inversions' | 'triads' | 'arpeggio' | 'dom7' | 'cadence';
 export type ScaleMode = 'major' | 'natural' | 'harmonic' | 'melodic';
 export type ScaleRhythm = 'quarters' | 'eighths' | '16ths' | 'triplets';
 
@@ -45,6 +45,8 @@ export const SCALE_FORMS: Array<{ value: ScaleForm; label: string }> = [
     { value: 'thirds', label: 'In thirds' },
     { value: 'sixths', label: 'In sixths' },
     { value: 'tenths', label: 'In tenths' },
+    { value: 'scaletriads', label: 'Scale triads' },
+    { value: 'inversions', label: 'Triad inversions' },
     { value: 'triads', label: 'Broken triads' },
     { value: 'arpeggio', label: 'Arpeggio' },
     { value: 'dom7', label: 'Dominant 7th arpeggio' },
@@ -109,6 +111,25 @@ export function describeScaleUrl(url: string): string | null {
     if (spec.form === 'cadence') return `${key} · ${form}${spec.reps > 1 ? ` ×${spec.reps}` : ''}`;
     return `${key} · ${form} · ${spec.octaves} oct · ${spec.rhythm}`
         + (spec.reps > 1 ? ` ×${spec.reps}` : '');
+}
+
+const STEP_PC: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
+/**
+ * Pitch classes the exercise uses (ascending ∪ descending spellings, so
+ * melodic minor contributes both its raised and natural 6/7). Used to gray
+ * out foreign keys on the virtual piano. Null when the URL isn't a scale:.
+ */
+export function scaleUrlPitchClasses(url: string): Set<number> | null {
+    const spec = parseScaleUrl(url);
+    if (!spec) return null;
+    const pcs = new Set<number>();
+    for (const ascending of [true, false]) {
+        for (const deg of degreeTable(spec, ascending)) {
+            pcs.add(((STEP_PC[deg.step] + deg.alter) % 12 + 12) % 12);
+        }
+    }
+    return pcs;
 }
 
 // ------------------------------------------------------------ scale spelling
@@ -354,6 +375,35 @@ function buildMusic(spec: ScaleSpec): { rh: Music; lh: Music } {
         return { rh: hand('rh', rhOct), lh: hand('lh', lhOct) };
     }
 
+    // Block-chord runs: triads on every scale degree, or tonic-triad
+    // inversions climbing chord tones like the broken form — both hands in
+    // parallel, one chord per rhythm unit, same up/down skeleton as a run.
+    if (spec.form === 'scaletriads' || spec.form === 'inversions') {
+        const t = (g: number) => 7 * Math.floor(g / 3) + [0, 2, 4][g % 3];
+        const N = spec.form === 'scaletriads' ? 7 * oct : 3 * oct;
+        const chordIdx = (j: number): number[] =>
+            spec.form === 'scaletriads' ? [j, j + 2, j + 4] : [t(j), t(j + 1), t(j + 2)];
+        const useFing = spec.form === 'inversions'
+            ? tonicParts(spec.tonic).alter === 0
+            : true;
+        const chordFings = (h: 'rh' | 'lh', j: number, first: boolean): Array<number | null> => {
+            if (!useFing) return [null, null, null];
+            if (spec.form === 'scaletriads') {
+                // Uniform 1-3-5 shape; print it once, manual-style.
+                return first ? (h === 'rh' ? [1, 3, 5] : [5, 3, 1]) : [null, null, null];
+            }
+            return (h === 'rh' ? TRIAD_RH : TRIAD_LH)[j % 3];
+        };
+        const hand = (h: 'rh' | 'lh', base: number): Music => ({
+            kind: 'run',
+            events: runSequence(N, spec.reps).map(({ j, asc }, i) => ({
+                pitches: chordIdx(j).map(idx => pitchAt(spec, idx, base, asc)),
+                fings: chordFings(h, j, i === 0),
+            })),
+        });
+        return { rh: hand('rh', rhOct), lh: hand('lh', lhOct) };
+    }
+
     // Run forms share one skeleton: a tone map from step j to diatonic index.
     const arp = spec.form === 'arpeggio';
     const dom7 = spec.form === 'dom7';
@@ -584,7 +634,7 @@ export function generateScaleMei(spec: ScaleSpec): string {
   </meiHead>
   <music><body><mdiv><score>
     <scoreDef>
-      <staffGrp symbol="brace">
+      <staffGrp>
         ${staffDef(1, 'G', 2)}
         ${staffDef(2, 'F', 4)}
       </staffGrp>
