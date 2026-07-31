@@ -2,10 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { useStats } from '../context/StatsContext';
 import { buildSongUrl, catalogUrl, resolveSongUrl } from '../utils/songUrl';
+import { ScaleBuilder } from './ScaleBuilder';
 
 // Must match the server's slug rule for instruments/categories (server/src/app.ts).
 const CATEGORY_RE = /^[a-z0-9][a-z0-9_-]*$/i;
 const NEW_CATEGORY = '__new__';
+// Rail entry for the generated scale exercises (piano only) — not a catalog path.
+const SCALES_PATH = '__scales__';
 
 interface SongFile {
     path: string;
@@ -96,7 +99,7 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
 
     // Pieces of the currently-selected collection.
     const recordsForPath = useMemo(
-        () => selectedPath ? files.filter(f => f.path === selectedPath) : [],
+        () => selectedPath && selectedPath !== SCALES_PATH ? files.filter(f => f.path === selectedPath) : [],
         [selectedPath, files],
     );
 
@@ -281,7 +284,18 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                     <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
                         {/* Collection list */}
                         <div style={railStyle}>
-                            {availablePaths.length === 0 && <Empty>No collections found.</Empty>}
+                            {instrument === 'piano' && (
+                                <button
+                                    onClick={() => setSelectedPath(SCALES_PATH)}
+                                    style={collectionButtonStyle(selectedPath === SCALES_PATH)}
+                                >
+                                    <div style={{ fontSize: '0.9rem', fontWeight: selectedPath === SCALES_PATH ? 600 : 400 }}>
+                                        🎼 Scale generator
+                                    </div>
+                                    <div style={subLabelStyle}>scales · arpeggios · cadences</div>
+                                </button>
+                            )}
+                            {availablePaths.length === 0 && instrument !== 'piano' && <Empty>No collections found.</Empty>}
                             {availablePaths.map(p => {
                                 const isActive = p === selectedPath;
                                 const { total, played } = collectionStats(p);
@@ -298,7 +312,13 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                             })}
                         </div>
 
-                        {/* Piece list */}
+                        {/* Piece list — or the scale builder for the generator entry */}
+                        {selectedPath === SCALES_PATH ? (
+                            <div style={detailStyle}>
+                                <h3 style={sectionTitleStyle}>Scale Generator</h3>
+                                <ScaleBuilder onStart={setSelectedSong} />
+                            </div>
+                        ) : (
                         <div style={detailStyle}>
                             <h3 style={sectionTitleStyle}>
                                 {selectedPath ? `Pieces — ${collectionLabel(selectedPath)}` : 'Pieces'}
@@ -338,6 +358,7 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                                 })}
                             </div>
                         </div>
+                        )}
                     </div>
                 )}
 

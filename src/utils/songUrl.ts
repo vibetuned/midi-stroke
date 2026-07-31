@@ -1,3 +1,5 @@
+import { parseScaleUrl, scaleDataUrl } from './scaleGen';
+
 /**
  * URL of the song catalog: the score server's manifest when connected,
  * otherwise the bundled files.json for the instrument.
@@ -31,9 +33,15 @@ export function buildSongUrl(
 /**
  * Resolve a selectedSong value to a fetchable URL.
  * Absolute URLs (score-server files, blob: object URLs) pass through
- * unchanged; bundled catalog paths get a leading slash.
+ * unchanged; synthetic scale: URLs are generated on the fly into a data:
+ * URL (so the scale: string stays a stable stats/cache key); bundled
+ * catalog paths get a leading slash.
  */
 export function resolveSongUrl(selectedSong: string): string {
+    if (selectedSong.startsWith('scale:')) {
+        const spec = parseScaleUrl(selectedSong);
+        if (spec) return scaleDataUrl(spec);
+    }
     if (
         selectedSong.startsWith('/') ||
         selectedSong.startsWith('blob:') ||

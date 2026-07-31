@@ -327,7 +327,7 @@ const ExercisePanel: React.FC<ExercisePanelProps> = ({
                     width: '25%', minWidth: '240px', display: 'flex',
                     alignItems: 'center', justifyContent: 'center', padding: '10px 6px',
                 }}>
-                    <CircleOfFifths toolkit={toolkit} highlightKey={exercise.key} onNoteInput={handleInstrumentInput} />
+                    <CircleOfFifths highlightKey={exercise.key} onNoteInput={handleInstrumentInput} />
                 </div>
                 <div style={{ width: '75%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <VirtualPiano onNoteClick={handleInstrumentInput} highlightNotes={ex.highlightNotes} />

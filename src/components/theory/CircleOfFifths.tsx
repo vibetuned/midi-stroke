@@ -1,14 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import type { VerovioToolkit } from 'verovio/esm';
 import { keyAlter } from '../../utils/musicxml';
+import { KEY_SIGNATURE_SVGS } from '../../assets/keySignatures';
 
 /**
  * Circle-of-fifths "virtual instrument" for the theory mode: three rings —
  * major keys, their relative minors, and the diminished triad on each key's
  * leading tone. Clicking a sector plays/enters that root (at a chosen
- * octave). The hub engraves the selected key's clef + signature (via
- * Verovio) and lists the scale (or triad) notes. The current exercise key
- * is outlined with the accent color.
+ * octave). The hub shows the selected key's clef + signature (pre-engraved
+ * assets, see scripts/build-keysig-assets.mjs) and lists the scale (or
+ * triad) notes. The current exercise key is outlined with the accent color.
  */
 
 const MAJORS = ['C', 'G', 'D', 'A', 'E', 'B', 'F♯', 'D♭', 'A♭', 'E♭', 'B♭', 'F'];
@@ -18,7 +18,7 @@ const DIMS = ['b', 'f♯', 'c♯', 'g♯', 'd♯', 'a♯', 'f', 'c', 'g', 'd', '
 // Tonic pitch class of the major key at each wheel position (C at 12 o'clock).
 const MAJOR_PC = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5];
 
-type Ring = 'major' | 'minor' | 'dim';
+export type Ring = 'major' | 'minor' | 'dim';
 
 const R_OUT = 104;
 const R_MAJ = 80;
@@ -31,8 +31,10 @@ interface CircleOfFifthsProps {
     highlightKey?: string;
     /** Called with the root MIDI number when a sector is clicked. */
     onNoteInput?: (midi: number) => void;
-    /** Shared Verovio toolkit, used to engrave the hub's key signature. */
-    toolkit?: VerovioToolkit | null;
+    /** Called with the wheel position when a sector is clicked (for pickers). */
+    onKeySelect?: (ring: Ring, index: number) => void;
+    /** Rings that react to clicks; others render dimmed. Default: all. */
+    selectableRings?: Ring[];
 }
 
 function polar(radius: number, angleDeg: number): [number, number] {
@@ -100,21 +102,7 @@ function parseKey(key: string | undefined): { index: number; ring: Ring } | null
     return null;
 }
 
-/** Minimal MusicXML whose render is just a clef + key signature. */
-function keySignatureXml(fifths: number): string {
-    return `<?xml version="1.0" encoding="utf-8"?>
-<score-partwise version="4.0">
-  <part-list><score-part id="P1"><part-name/></score-part></part-list>
-  <part id="P1">
-    <measure number="1">
-      <attributes><divisions>4</divisions><key><fifths>${fifths}</fifths></key><clef><sign>G</sign><line>2</line></clef></attributes>
-      <note print-object="no"><rest measure="yes"/><duration>16</duration></note>
-    </measure>
-  </part>
-</score-partwise>`;
-}
-
-export const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({ highlightKey, onNoteInput, toolkit }) => {
+export const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({ highlightKey, onNoteInput, onKeySelect, selectableRings }) => {
     const highlighted = useMemo(() => parseKey(highlightKey), [highlightKey]);
     const [hovered, setHovered] = useState<string | null>(null);
     // Start on the exercise's key so the hub is meaningful right away
@@ -124,6 +112,7 @@ export const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({ highlightKey, on
 
     const handleClick = (index: number, ring: Ring) => {
         setSelected(`${ring}:${index}`);
+        onKeySelect?.(ring, index);
         const majorPc = MAJOR_PC[index];
         const pc = ring === 'major' ? majorPc : ring === 'minor' ? (majorPc + 9) % 12 : (majorPc + 11) % 12;
         onNoteInput?.((octave + 1) * 12 + pc);
@@ -138,29 +127,15 @@ export const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({ highlightKey, on
         : '';
     const activeScale = active ? scaleNotes(activeRing, activeIndex) : [];
 
-    // Engrave the active key's clef + signature; nested into the hub as an
-    // inner <svg> so it scales with the wheel.
-    const keySigSvg = useMemo(() => {
-        if (!toolkit || !active) return null;
-        const [ring, indexStr] = active.split(':');
-        const fifths = effectiveFifths(ring as Ring, parseInt(indexStr, 10));
-        try {
-            toolkit.setOptions({
-                breaks: 'none', adjustPageWidth: true, adjustPageHeight: true,
-                svgViewBox: true, header: 'none', footer: 'none', scale: 100,
-                measureMinWidth: 1,
-                pageMarginLeft: 0, pageMarginRight: 0, pageMarginTop: 0, pageMarginBottom: 0,
-            });
-            toolkit.loadData(keySignatureXml(fifths));
-            return toolkit.renderToSVG(1, {})
-                .replace('<svg ', '<svg x="-27" y="-19" width="54" height="28" ');
-        } catch {
-            return null;
-        }
-    }, [toolkit, active]);
+    // The active key's clef + signature: a pre-engraved asset nested into
+    // the hub as an inner <svg> so it scales with the wheel.
+    const keySigSvg = active
+        ? KEY_SIGNATURE_SVGS[String(effectiveFifths(activeRing, activeIndex))] ?? null
+        : null;
 
     const sector = (index: number, ring: Ring) => {
         const id = `${ring}:${index}`;
+        const selectable = !selectableRings || selectableRings.includes(ring);
         const isHover = hovered === id;
         const isSelected = selected === id;
         const isKey = highlighted?.ring === ring && highlighted.index === index;
@@ -169,6 +144,21 @@ export const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({ highlightKey, on
         const [lx, ly] = polar(labelR, index * 30);
         const baseFill = ring === 'major' ? '#2b2b34' : ring === 'minor' ? '#23232c' : '#1d1d25';
         const baseText = ring === 'major' ? '#e8e8e8' : ring === 'minor' ? '#a8a8b6' : '#84848f';
+        if (!selectable) {
+            return (
+                <g key={id} style={{ opacity: 0.35 }}>
+                    <path d={sectorPath(index, rOut, rIn)} fill={baseFill} stroke="#111" strokeWidth={1} />
+                    <text
+                        x={lx} y={ly} textAnchor="middle" dominantBaseline="central" fill={baseText}
+                        fontSize={ring === 'major' ? 13 : ring === 'minor' ? 10 : 8}
+                        fontFamily="system-ui, sans-serif" fontWeight={500}
+                        style={{ pointerEvents: 'none', userSelect: 'none' }}
+                    >
+                        {ringName(ring, index)}{ring === 'dim' ? '°' : ''}
+                    </text>
+                </g>
+            );
+        }
         return (
             <g
                 key={id}
@@ -227,8 +217,9 @@ export const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({ highlightKey, on
                 </text>
             </svg>
 
-            {/* Octave picker: which octave a clicked root is entered at */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
+            {/* Octave picker: which octave a clicked root is entered at.
+                Only meaningful when clicks enter notes (theory mode). */}
+            {onNoteInput && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
                 <button
                     onClick={() => setOctave(o => Math.min(6, o + 1))}
                     style={octaveButtonStyle}
@@ -242,7 +233,7 @@ export const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({ highlightKey, on
                     style={octaveButtonStyle}
                     title="Octave down"
                 >▼</button>
-            </div>
+            </div>}
         </div>
     );
 };
