@@ -20,10 +20,25 @@ npm run dev    # start with auto-reload on http://localhost:3001
 
 Environment variables:
 
-| Variable  | Default          | Purpose                    |
-| --------- | ---------------- | -------------------------- |
-| `PORT`    | `3001`           | HTTP port                  |
-| `DB_PATH` | `data/scores.db` | SQLite database file       |
+| Variable   | Default                       | Purpose                          |
+| ---------- | ----------------------------- | -------------------------------- |
+| `PORT`     | `3001`                        | Port                             |
+| `HOST`     | `0.0.0.0`                     | Bind address (all interfaces)    |
+| `DB_PATH`  | `data/scores.db`              | SQLite database file             |
+| `SSL_CERT` | `../certs/localhost+2.pem`    | TLS certificate (HTTPS if found) |
+| `SSL_KEY`  | `../certs/localhost+2-key.pem`| TLS private key                  |
+
+## Access from other devices (tablet, phone)
+
+The server binds to `0.0.0.0` and serves **HTTPS** whenever the repo's mkcert
+certificates exist in `certs/` — the same ones the Vite dev server uses. This
+matters because a page served over HTTPS is not allowed to call a plain-HTTP
+server on another host (mixed content; only `localhost` is exempt). With the
+certs in place, open the app on the device and connect to
+`https://<your-lan-ip>:3001` — the connect field defaults to the host that
+served the app. The device must trust your mkcert root CA (or the certificate
+must list the LAN IP in its SANs), which is already required for the HTTPS dev
+app itself.
 
 ## API
 

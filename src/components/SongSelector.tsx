@@ -56,7 +56,10 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
     // Score-server connection: when connected the catalog and the files come
     // from the server (see server/README.md) instead of the bundled public/ assets.
     const [serverInput, setServerInput] = useState<string>(
-        () => localStorage.getItem('mei-server-url') ?? 'http://localhost:3001'
+        // Default to the host serving the app (works from other devices, e.g. a
+        // tablet on the LAN) with the same protocol to avoid mixed-content blocks.
+        () => localStorage.getItem('mei-server-url')
+            ?? `${window.location.protocol}//${window.location.hostname}:3001`
     );
     const [serverError, setServerError] = useState<string | null>(null);
     const [isConnecting, setIsConnecting] = useState(false);
@@ -149,7 +152,7 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
     const handleConnect = async () => {
         const trimmed = serverInput.trim().replace(/\/+$/, '');
         if (!trimmed) return;
-        const base = /^https?:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`;
+        const base = /^https?:\/\//i.test(trimmed) ? trimmed : `${window.location.protocol}//${trimmed}`;
         setIsConnecting(true);
         setServerError(null);
         try {
@@ -360,7 +363,7 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                                     value={serverInput}
                                     onChange={(e) => setServerInput(e.target.value)}
                                     onKeyDown={(e) => { if (e.key === 'Enter') handleConnect(); }}
-                                    placeholder="http://localhost:3001"
+                                    placeholder={`${window.location.protocol}//${window.location.hostname}:3001`}
                                     style={{ ...inputStyle, flex: '0 1 200px', minWidth: 0 }}
                                 />
                                 <button
