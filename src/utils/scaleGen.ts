@@ -550,9 +550,15 @@ function xmlNote(p: Pitch, attrs: string, accidState: Map<string, number>, fifth
     const current = accidState.get(key) ?? inKey;
     let accid = '';
     if (p.alter !== current) {
+        // Needs a drawn accidental (differs from the signature / an earlier
+        // accidental in this measure); @accid is gestural too.
         accid = ` accid="${ACCID[p.alter]}"`;
         accidState.set(key, p.alter);
-    } else if (p.alter !== inKey) {
+    } else if (p.alter !== 0) {
+        // Sounding alteration with no glyph (key signature or a carried
+        // in-measure accidental). Verovio's MIDI export resolves neither —
+        // it only honors per-note accidentals — so make it gestural
+        // explicitly, exactly like Verovio's own MusicXML→MEI transcodes do.
         accid = ` accid.ges="${ACCID_GES[p.alter]}"`;
     }
     return `<note ${attrs} pname="${p.step.toLowerCase()}" oct="${p.oct}"${accid} />`;
