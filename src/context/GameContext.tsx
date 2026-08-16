@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, type ReactNode, useCallback } from 'react';
 import * as Tone from 'tone';
 
-import { Midi } from '@tonejs/midi';
+import type { TimemapData } from '../utils/timemap';
 
 export type HandSelection = 'right' | 'left' | 'both';
 
@@ -25,15 +25,14 @@ interface GameState {
     setMetronomeMuted: (muted: boolean) => void;
     pianoRange: { min: number; max: number } | null;
     setPianoRange: (range: { min: number; max: number } | null) => void;
-    playSize: number;
-    setPlaySize: (size: number) => void;
     playSizeTicks: number;
     setPlaySizeTicks: (ticks: number) => void;
     playPosition: number;
     setPlayPosition: (pos: number) => void;
-    loadMidiData: (base64: string) => void;
-    midiData: Midi | null;
-    ppqRatio: number;
+    /** Verovio timemap for the loaded song — the single source of truth for
+     *  note onsets, durations, measure ticks and song length. */
+    timemap: TimemapData | null;
+    loadTimemap: (data: TimemapData) => void;
     gameMode: 'standard' | 'practice';
     setGameMode: (mode: 'standard' | 'practice') => void;
     waitingForNotes: number[];
@@ -63,11 +62,9 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
     const [isAudioStarted, setAudioStarted] = useState(false);
     const [isMetronomeMuted, setMetronomeMuted] = useState(false);
     const [pianoRange, setPianoRange] = useState<{ min: number; max: number } | null>(null);
-    const [playSize, setPlaySize] = useState(0);
     const [playSizeTicks, setPlaySizeTicks] = useState(0);
     const [playPosition, setPlayPosition] = useState(0);
-    const [midiData, setMidiData] = useState<Midi | null>(null);
-    const [ppqRatio, setPpqRatio] = useState(1);
+    const [timemap, setTimemap] = useState<TimemapData | null>(null);
     const [gameMode, setGameMode] = useState<'standard' | 'practice'>('standard');
     const [waitingForNotes, setWaitingForNotesState] = useState<number[]>([]);
     const waitingForNotesRef = React.useRef<number[]>([]);
@@ -103,38 +100,20 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
             // If we cleared all notes we were waiting for, resume!
             if (next.length === 0 && prev.length > 0) {
                 console.log("All waiting notes cleared. Resuming!");
+                // Nudge past the pause point so the transport-scheduled pause
+                // event at this exact tick doesn't immediately re-fire.
+                Tone.getTransport().ticks += 1;
                 Tone.getTransport().start();
             }
             return next;
         });
     }, []);
 
-    const loadMidiData = useCallback((base64: string) => {
-        import('@tonejs/midi').then(({ Midi }) => {
-            try {
-                const binaryString = window.atob(base64);
-                const len = binaryString.length;
-                const bytes = new Uint8Array(len);
-                for (let i = 0; i < len; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                const midi = new Midi(bytes);
-
-                const tonePPQ = Tone.getTransport().PPQ;
-                const midiPPQ = midi.header.ppq;
-                const ppqRatio = tonePPQ / midiPPQ;
-                const adjustedTicks = midi.durationTicks * ppqRatio;
-
-                console.log(`Midi Loaded. PPQ[Tone/Midi]: ${tonePPQ}/${midiPPQ}. DurationTicks: ${midi.durationTicks} -> ${adjustedTicks}`);
-
-                setPlaySize(midi.duration);
-                setPlaySizeTicks(adjustedTicks);
-                setMidiData(midi);
-                setPpqRatio(ppqRatio);
-            } catch (error) {
-                console.error("Error parsing MIDI data:", error);
-            }
-        });
+    const loadTimemap = useCallback((data: TimemapData) => {
+        console.log(`Timemap loaded. Onsets: ${data.onsets.length}, totalTicks: ${data.totalTicks}`);
+        setTimemap(data);
+        // Song length: end of the last measure.
+        setPlaySizeTicks(data.totalTicks);
     }, []);
 
     return (
@@ -151,15 +130,12 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
             setMetronomeMuted,
             pianoRange,
             setPianoRange,
-            playSize,
-            setPlaySize,
             playSizeTicks,
             setPlaySizeTicks,
             playPosition,
             setPlayPosition,
-            loadMidiData,
-            midiData,
-            ppqRatio,
+            timemap,
+            loadTimemap,
             gameMode,
             setGameMode,
             waitingForNotes,
@@ -191,36 +167,71 @@ export const useGame = () => {
     return context;
 };
 
-// Fix 2: pre-sort all notes into a flat array once per MIDI load so the
-// practice-mode interval can use a forward-advancing cursor instead of
-// scanning every note on every 50 ms tick (O(1) amortised vs O(n)).
-// trackIndex is carried so piano hand-selection can filter per-iteration.
-function buildSortedNotes(midi: Midi, ratio: number): Array<{ tick: number; midi: number; trackIndex: number }> {
-    const flat: Array<{ tick: number; midi: number; trackIndex: number }> = [];
-    midi.tracks.forEach((track, trackIndex) => {
-        track.notes.forEach(note => {
-            flat.push({ tick: note.ticks * ratio, midi: note.midi, trackIndex });
-        });
-    });
-    return flat.sort((a, b) => a.tick - b.tick);
+/**
+ * Practice pause points are scheduled directly on the Tone transport at the
+ * exact onset ticks from the Verovio timemap. Unlike the previous 50 ms
+ * polling lookahead, a scheduled event cannot be jumped over by a late timer
+ * tick — which is what made 16th/32nd notes skip at higher tempi. The timemap
+ * also pre-groups chords (one entry per musical moment), so no epsilon-based
+ * note gathering is needed.
+ *
+ * `mapNotes` turns an onset's notes into the MIDI numbers to wait for
+ * (hand filtering for piano, pad mapping for drums); returning [] skips the
+ * pause point entirely.
+ */
+function usePracticePauseSchedule(
+    mapNotes: (notes: TimemapData['onsets'][number]['notes']) => number[],
+) {
+    const { timemap, gameMode, setPlayPosition, setWaitingForNotes } = useGame();
+
+    // Read via refs inside transport callbacks so a mode/handler change never
+    // forces a full reschedule of every event.
+    const gameModeRef = useRef(gameMode);
+    useEffect(() => { gameModeRef.current = gameMode; }, [gameMode]);
+    const mapNotesRef = useRef(mapNotes);
+    useEffect(() => { mapNotesRef.current = mapNotes; }, [mapNotes]);
+
+    useEffect(() => {
+        if (!timemap) return;
+        const transport = Tone.getTransport();
+        const ids: number[] = [];
+
+        for (const onset of timemap.onsets) {
+            const id = transport.schedule(() => {
+                if (gameModeRef.current !== 'practice') return;
+                const notes = Array.from(new Set(mapNotesRef.current(onset.notes)));
+                if (notes.length === 0) return;
+                console.log(`Pausing for notes [${notes.join(', ')}] at ${onset.tick}`);
+                transport.pause();
+                // The callback fires within the audio lookahead window, so the
+                // transport is a hair before the onset — snap to the exact tick.
+                transport.ticks = onset.tick;
+                setPlayPosition(onset.tick);
+                setWaitingForNotes(notes);
+            }, `${onset.tick}i`);
+            ids.push(id);
+        }
+
+        return () => { ids.forEach(id => transport.clear(id)); };
+    }, [timemap, setPlayPosition, setWaitingForNotes]);
 }
 
 // Hook to manage MIDI File Duration and Limits
 export const useMidiFile = () => {
-    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, setWaitingForNotes, waitingForNotes, setSongCompleted, handSelection } = useGame();
+    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, setWaitingForNotes, setSongCompleted, handSelection } = useGame();
 
     const { waitingForNotesRef } = useGame();
 
-    // Fix 2: sorted notes cache + forward cursor (rebuilt whenever midiData changes)
-    const sortedNotesRef = useRef<Array<{ tick: number; midi: number; trackIndex: number }>>([]);
-    const noteCursorRef = useRef(0);
-    const prevNowRef = useRef(0);
-
-    useEffect(() => {
-        if (!midiData) { sortedNotesRef.current = []; return; }
-        sortedNotesRef.current = buildSortedNotes(midiData, ppqRatio);
-        noteCursorRef.current = 0;
-    }, [midiData, ppqRatio]);
+    // Piano hand selection: staff 1 = right hand, staff 2 = left hand — same
+    // ordering as the MIDI tracks used elsewhere (track 0 = right, 1 = left).
+    usePracticePauseSchedule(
+        useCallback(
+            notes => notes
+                .filter(n => isTrackActiveForHand(n.staff - 1, handSelection))
+                .map(n => n.midi),
+            [handSelection],
+        ),
+    );
 
     useEffect(() => {
         if (!playSizeTicks || !isPlaying) return;
@@ -240,84 +251,18 @@ export const useMidiFile = () => {
                 return;
             }
 
-            // PRACTICE MODE CHECK
-            if (gameMode === 'practice' && midiData) {
-
-                if (waitingForNotesRef.current.length > 0) {
-                    if (Tone.getTransport().state !== 'paused') {
-                        Tone.getTransport().pause();
-                    }
-                    return;
-                }
-
-                // Lookahead Calculation based on Tempo and Poll Interval
-                const intervalSec = 0.050; // 50ms
-                const currentBpm = Tone.getTransport().bpm.value;
-                const ppq = Tone.getTransport().PPQ;
-                const ticksPerSecond = (currentBpm / 60) * ppq;
-                const ticksPerPoll = ticksPerSecond * intervalSec;
-
-                // Safety factor of 1.5 to ensure overlap between checks
-                const dynamicCheckAhead = Math.max(20, ticksPerPoll * 1.5);
-
-                const sorted = sortedNotesRef.current;
-
-                // Fix 2: reset cursor on backward seek (e.g. user dragged back)
-                if (now < prevNowRef.current - 50) {
-                    let lo = 0, hi = sorted.length;
-                    while (lo < hi) {
-                        const mid = (lo + hi) >> 1;
-                        if (sorted[mid].tick <= now) lo = mid + 1;
-                        else hi = mid;
-                    }
-                    noteCursorRef.current = lo;
-                }
-                prevNowRef.current = now;
-
-                // Advance cursor past notes we have already passed
-                while (noteCursorRef.current < sorted.length && sorted[noteCursorRef.current].tick <= now) {
-                    noteCursorRef.current++;
-                }
-
-                // Skip ahead past notes whose hand is currently muted — the
-                // pause point should be the next *active-hand* note.
-                let cursorPos = noteCursorRef.current;
-                while (cursorPos < sorted.length && !isTrackActiveForHand(sorted[cursorPos].trackIndex, handSelection)) {
-                    cursorPos++;
-                }
-                const closestTick = cursorPos < sorted.length ? sorted[cursorPos].tick : Infinity;
-
-                // If closest tick is imminent, gather ALL active-hand notes at that tick
-                if (closestTick !== Infinity && (closestTick - now) < dynamicCheckAhead) {
-                    // Fix 6: scale epsilon with tempo so difficulty feels consistent
-                    // at 120 BPM = 15 ticks; at 60 BPM = 30 ticks; at 180 BPM = 10 ticks
-                    const TICK_EPSILON = Math.round((120 / currentBpm) * 15);
-
-                    const notesAtTick: number[] = [];
-                    let i = cursorPos;
-                    while (i < sorted.length && sorted[i].tick - closestTick < TICK_EPSILON) {
-                        if (isTrackActiveForHand(sorted[i].trackIndex, handSelection)) {
-                            notesAtTick.push(sorted[i].midi);
-                        }
-                        i++;
-                    }
-
-                    const uniqueNotes = Array.from(new Set(notesAtTick));
-
-                    if (uniqueNotes.length > 0) {
-                        console.log(`Pausing for notes [${uniqueNotes.join(', ')}] at ${closestTick} (Lookahead: ${dynamicCheckAhead.toFixed(1)})`);
-                        Tone.getTransport().pause();
-                        Tone.getTransport().ticks = closestTick;
-                        setPlayPosition(closestTick);
-                        setWaitingForNotes(uniqueNotes);
-                    }
+            // While waiting for notes in practice mode, keep the transport
+            // paused even if the user hits play.
+            if (gameMode === 'practice' && waitingForNotesRef.current.length > 0) {
+                if (Tone.getTransport().state !== 'paused') {
+                    Tone.getTransport().pause();
                 }
             }
 
         }, 50); // 50ms interval
 
         return () => clearInterval(interval);
-    }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, waitingForNotes, setWaitingForNotes, handSelection]);
+    }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, setWaitingForNotes, setSongCompleted, waitingForNotesRef]);
 };
 
 // MEI pitch-based MIDI note → primary pad MIDI note
@@ -334,20 +279,20 @@ const MEI_TO_PAD: Record<number, number> = {
 
 // Hook to manage Drum Loop Duration and Limits
 export const useDrumsMidiFile = () => {
-    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, setWaitingForNotes, waitingForNotes, seek, setSongCompleted } = useGame();
+    const { playSizeTicks, isPlaying, setPlayPosition, gameMode, seek, setSongCompleted } = useGame();
 
     const { waitingForNotesRef } = useGame();
 
-    // Fix 2: sorted notes cache + forward cursor
-    const sortedNotesRef = useRef<Array<{ tick: number; midi: number; trackIndex: number }>>([]);
-    const noteCursorRef = useRef(0);
-    const prevNowRef = useRef(0);
-
-    useEffect(() => {
-        if (!midiData) { sortedNotesRef.current = []; return; }
-        sortedNotesRef.current = buildSortedNotes(midiData, ppqRatio);
-        noteCursorRef.current = 0;
-    }, [midiData, ppqRatio]);
+    // Drums wait on pad notes: map Verovio's pitched rendering to pads and
+    // drop anything without a pad (no hand filtering for drums).
+    usePracticePauseSchedule(
+        useCallback(
+            notes => notes
+                .map(n => MEI_TO_PAD[n.midi])
+                .filter((pad): pad is number => pad !== undefined),
+            [],
+        ),
+    );
 
     useEffect(() => {
         if (!playSizeTicks || !isPlaying) return;
@@ -363,76 +308,17 @@ export const useDrumsMidiFile = () => {
                 return;
             }
 
-            // PRACTICE MODE CHECK
-            if (gameMode === 'practice' && midiData) {
-
-                if (waitingForNotesRef.current.length > 0) {
-                    if (Tone.getTransport().state !== 'paused') {
-                        Tone.getTransport().pause();
-                    }
-                    return;
-                }
-
-                // Lookahead Calculation based on Tempo and Poll Interval
-                const intervalSec = 0.050; // 50ms
-                const currentBpm = Tone.getTransport().bpm.value;
-                const ppq = Tone.getTransport().PPQ;
-                const ticksPerSecond = (currentBpm / 60) * ppq;
-                const ticksPerPoll = ticksPerSecond * intervalSec;
-
-                // Safety factor of 1.5 to ensure overlap between checks
-                const dynamicCheckAhead = Math.max(20, ticksPerPoll * 1.5);
-
-                const sorted = sortedNotesRef.current;
-
-                // Fix 2: reset cursor on backward seek
-                if (now < prevNowRef.current - 50) {
-                    let lo = 0, hi = sorted.length;
-                    while (lo < hi) {
-                        const mid = (lo + hi) >> 1;
-                        if (sorted[mid].tick <= now) lo = mid + 1;
-                        else hi = mid;
-                    }
-                    noteCursorRef.current = lo;
-                }
-                prevNowRef.current = now;
-
-                // Advance cursor past notes we have already passed
-                while (noteCursorRef.current < sorted.length && sorted[noteCursorRef.current].tick <= now) {
-                    noteCursorRef.current++;
-                }
-
-                const cursorPos = noteCursorRef.current;
-                const closestTick = cursorPos < sorted.length ? sorted[cursorPos].tick : Infinity;
-
-                // If closest tick is imminent, gather ALL notes at that tick
-                if (closestTick !== Infinity && (closestTick - now) < dynamicCheckAhead) {
-                    // Fix 6: tempo-adaptive epsilon
-                    const TICK_EPSILON = Math.round((120 / currentBpm) * 15);
-
-                    const notesAtTick: number[] = [];
-                    let i = cursorPos;
-                    while (i < sorted.length && sorted[i].tick - closestTick < TICK_EPSILON) {
-                        const padNote = MEI_TO_PAD[sorted[i].midi];
-                        if (padNote !== undefined) notesAtTick.push(padNote);
-                        i++;
-                    }
-
-                    const uniqueNotes = Array.from(new Set(notesAtTick));
-
-                    if (uniqueNotes.length > 0) {
-                        console.log(`Pausing for notes [${uniqueNotes.join(', ')}] at ${closestTick} (Lookahead: ${dynamicCheckAhead.toFixed(1)})`);
-                        Tone.getTransport().pause();
-                        Tone.getTransport().ticks = closestTick;
-                        setPlayPosition(closestTick);
-                        setWaitingForNotes(uniqueNotes);
-                    }
+            // While waiting for notes in practice mode, keep the transport
+            // paused even if the user hits play.
+            if (gameMode === 'practice' && waitingForNotesRef.current.length > 0) {
+                if (Tone.getTransport().state !== 'paused') {
+                    Tone.getTransport().pause();
                 }
             }
 
         }, 50); // 50ms interval
 
         return () => clearInterval(interval);
-    }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, midiData, ppqRatio, waitingForNotes, setWaitingForNotes, seek]);
+    }, [playSizeTicks, isPlaying, setPlayPosition, gameMode, seek, setSongCompleted, waitingForNotesRef]);
 };
 

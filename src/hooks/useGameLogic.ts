@@ -30,7 +30,7 @@ export interface GameLogicState {
 }
 
 export function useGameLogic() {
-    const { midiData, playPosition, ppqRatio, gameMode, waitingForNotes, resumePractice, isPlaying, selectedSong, instrument, handSelection } = useGame();
+    const { timemap, playPosition, gameMode, waitingForNotes, resumePractice, isPlaying, selectedSong, instrument, handSelection } = useGame();
     // Drums never filter by hand; piano uses the user's L/R/Both selection.
     const activeHand = instrument === 'piano' ? handSelection : 'both';
     // Saxo: shift incoming controller notes into the written score domain before
@@ -64,37 +64,33 @@ export function useGameLogic() {
     // Derive a stable display name from the song path
     const songName = selectedSong ? (selectedSong.split('/').pop() ?? selectedSong) : '';
 
-    // Precomputed note groups for miss detection: one entry per source MIDI tick
-    // (chord notes share a tick), with `end` being the latest end across the chord.
+    // Precomputed note groups for miss detection: the timemap onsets are
+    // already one entry per musical moment (chords pre-grouped, tie
+    // continuations erased), with `end` being the latest end across the chord.
     const noteGroups = useMemo(() => {
-        if (!midiData) return [] as Array<{ tick: number; end: number; sourceTick: number }>;
-        const map = new Map<number, { tick: number; end: number; sourceTick: number }>();
-        midiData.tracks.forEach((track, trackIndex) => {
-            if (!isTrackActiveForHand(trackIndex, activeHand)) return;
-            track.notes.forEach(note => {
-                const start = note.ticks * ppqRatio;
-                const end = start + note.durationTicks * ppqRatio;
-                const existing = map.get(note.ticks);
-                if (existing) {
-                    if (end > existing.end) existing.end = end;
-                } else {
-                    map.set(note.ticks, { tick: start, end, sourceTick: note.ticks });
-                }
-            });
-        });
-        return Array.from(map.values()).sort((a, b) => a.end - b.end);
-    }, [midiData, ppqRatio, activeHand]);
+        if (!timemap) return [] as Array<{ tick: number; end: number; sourceTick: number }>;
+        const groups: Array<{ tick: number; end: number; sourceTick: number }> = [];
+        for (const onset of timemap.onsets) {
+            let end = -1;
+            for (const n of onset.notes) {
+                if (!isTrackActiveForHand(n.staff - 1, activeHand)) continue;
+                if (n.endTick > end) end = n.endTick;
+            }
+            if (end >= 0) groups.push({ tick: onset.tick, end, sourceTick: onset.tick });
+        }
+        return groups.sort((a, b) => a.end - b.end);
+    }, [timemap, activeHand]);
 
     // Clear resolved set when the song changes OR when the hand selection
     // changes (active groups differ, so old "resolved" markers shouldn't carry over).
     useEffect(() => {
         resolvedTicksRef.current = new Set();
         prevPlayPositionRef.current = 0;
-    }, [midiData, activeHand]);
+    }, [timemap, activeHand]);
 
     // Calculate expected notes based on current play position
     const expectedNotes = useMemo(() => {
-        if (!midiData) return [];
+        if (!timemap) return [];
 
         const currentTicks = playPosition;
         const notes: ExpectedNote[] = [];
@@ -111,17 +107,15 @@ export function useGameLogic() {
             return currentTicks >= noteStart - TOLERANCE_TICKS && currentTicks <= noteEnd;
         };
 
-        midiData.tracks.forEach((track, trackIndex) => {
-            if (!isTrackActiveForHand(trackIndex, activeHand)) return;
-            track.notes.forEach(note => {
-                const OFFSET_TICKS = 0 * 192;
-                const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
-                const end = start + (note.durationTicks * ppqRatio);
-                if (isNoteValid(start, end, note.midi)) {
-                    notes.push({ note: note.midi, trackIndex });
+        for (const onset of timemap.onsets) {
+            for (const n of onset.notes) {
+                const trackIndex = n.staff - 1;
+                if (!isTrackActiveForHand(trackIndex, activeHand)) continue;
+                if (isNoteValid(onset.tick, n.endTick, n.midi)) {
+                    notes.push({ note: n.midi, trackIndex });
                 }
-            });
-        });
+            }
+        }
 
         if (gameMode === 'practice' && waitingForNotes.length > 0) {
             const result = notes.filter(n => waitingForNotes.includes(n.note));
@@ -135,7 +129,7 @@ export function useGameLogic() {
             i === self.findIndex(t => t.note === n.note && t.trackIndex === n.trackIndex)
         );
 
-    }, [midiData, playPosition, ppqRatio, gameMode, waitingForNotes, activeHand]);
+    }, [timemap, playPosition, gameMode, waitingForNotes, activeHand]);
 
 
     // Validation Logic
@@ -213,7 +207,7 @@ export function useGameLogic() {
 
         // Standard Mode Validation (event-based via lastNote)
         if (!lastNote) return;
-        if (!midiData) return;
+        if (!timemap) return;
         // Only score when the transport is actually playing
         if (!isPlaying) return;
         if (!selectedSong) return;
@@ -229,18 +223,16 @@ export function useGameLogic() {
             instrument === 'drums' ? (MIDI_PAD_MAP[lastNote.note] ?? lastNote.note)
             : lastNote.note + inputOffset;
 
-        for (let trackIndex = 0; trackIndex < midiData.tracks.length; trackIndex++) {
-            if (!isTrackActiveForHand(trackIndex, activeHand)) continue;
-            const track = midiData.tracks[trackIndex];
-            for (const note of track.notes) {
-                if (note.midi !== noteToMatch) continue;
-                const OFFSET_TICKS = 0 * 192;
-                const start = (note.ticks * ppqRatio) + OFFSET_TICKS;
-                const end = start + (note.durationTicks * ppqRatio);
+        for (const onset of timemap.onsets) {
+            // Onsets are tick-sorted — everything past the hit window is future.
+            if (onset.tick - TOLERANCE_TICKS > hitTime) break;
+            for (const n of onset.notes) {
+                if (n.midi !== noteToMatch) continue;
+                if (!isTrackActiveForHand(n.staff - 1, activeHand)) continue;
 
-                if (hitTime >= start - TOLERANCE_TICKS && hitTime <= end) {
+                if (hitTime >= onset.tick - TOLERANCE_TICKS && hitTime <= n.endTick) {
                     hit = true;
-                    hitSourceTick = note.ticks;
+                    hitSourceTick = onset.tick;
                     break;
                 }
             }
@@ -258,8 +250,8 @@ export function useGameLogic() {
             setTimeout(() => setFeedback(null), 500);
         }
 
-    }, [lastNote, activeNotes, midiData, playPosition, gameMode, waitingForNotes, resumePractice, ppqRatio,
-        isPlaying, selectedSong, songName, instrument, recordHit, recordWrong, recordGood]);
+    }, [lastNote, activeNotes, timemap, playPosition, gameMode, waitingForNotes, resumePractice,
+        isPlaying, selectedSong, songName, instrument, activeHand, recordHit, recordWrong, recordGood]);
 
     // Reset the wronged-flag whenever a new note group arrives so each group
     // starts with a clean first-attempt slate.

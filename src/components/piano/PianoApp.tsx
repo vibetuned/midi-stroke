@@ -20,7 +20,7 @@ interface PianoAppProps {
 export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
     useAudio();
     useMidiFile();
-    const { selectedSong, setSelectedSong, gameMode, midiData, songCompleted, setSongCompleted } = useGame();
+    const { selectedSong, setSelectedSong, gameMode, timemap, songCompleted, setSongCompleted } = useGame();
     const { recordPlay, recordSessionEnd, resetSession, sessionStats } = useStats();
 
     const [prevSong, setPrevSong] = useState<string | null>(null);
@@ -46,9 +46,9 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
         if (!songCompleted || !selectedSong) return;
         const statsMode = gameMode === 'standard' ? 'rhythm' : 'practice';
         const songName = selectedSong.split('/').pop() ?? selectedSong;
-        const totalNotes = midiData
-            ? new Set(midiData.tracks.flatMap(t => t.notes.map(n => n.ticks))).size
-            : 0;
+        // One timemap onset = one hit/good moment (chords pre-grouped,
+        // tie continuations already erased).
+        const totalNotes = timemap ? timemap.onsets.length : 0;
         const precision = totalNotes > 0 ? sessionStats.score / totalNotes : 0;
         recordPlay(selectedSong, songName, statsMode);
         recordSessionEnd(selectedSong, songName, statsMode, precision, sessionStats.maxCombo);

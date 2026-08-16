@@ -16,7 +16,7 @@ function accColor(acc: number): string {
  * Practice mode →  combo streak  |  n/total  |  ✓ goods  ✗ wrongs   acc%
  */
 export const LiveStats: React.FC = () => {
-    const { selectedSong, gameMode, midiData } = useGame();
+    const { selectedSong, gameMode, timemap } = useGame();
     const { sessionStats } = useStats();
 
     if (!selectedSong) return null;
@@ -30,11 +30,9 @@ export const LiveStats: React.FC = () => {
     // Don't render until at least one event happened
     if (total === 0) return null;
 
-    // Count unique tick positions — notes at the same tick form a chord and
-    // are recorded as one hit/good, so they should count as one here too.
-    const totalNotes = midiData
-        ? new Set(midiData.tracks.flatMap(t => t.notes.map(n => n.ticks))).size
-        : null;
+    // One timemap onset = one hit/good moment — chords are pre-grouped and
+    // tie continuations already erased, so they count as one here too.
+    const totalNotes = timemap ? timemap.onsets.length : null;
 
     const comboColor = combo >= 10 ? '#facc15' : combo >= 5 ? '#fb923c' : '#e2e8f0';
 

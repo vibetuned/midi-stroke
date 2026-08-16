@@ -4,6 +4,7 @@ import { useVerovio } from '../../hooks/useVerovio';
 import { useGame } from '../../context/GameContext';
 import { useStats } from '../../context/StatsContext';
 import { resolveSongUrl } from '../../utils/songUrl';
+import { extractTimemap, type TimemapData } from '../../utils/timemap';
 import * as PIXI from 'pixi.js';
 
 interface MeasureData {
@@ -20,9 +21,6 @@ const SCORE_BG_HEX = 0x888888;
 
 // Fix 11: ordered loading steps used by the progress dots
 const LOADING_STEPS = ['Loading Score...', 'Rendering SVG...', 'Slicing Textures...'];
-
-// Offset between MIDI playback ticks and score ticks.
-const OFFSET_TICKS = 192;
 
 // Fix 1: binary search helpers — O(log n) instead of O(n) findIndex
 function findMeasureAtTick(mData: MeasureData[], tick: number): number {
@@ -48,7 +46,7 @@ function findMeasureAtX(mData: MeasureData[], x: number): number {
 export const PianoScoreView: React.FC = () => {
     const { toolkit } = useVerovio();
     // Fix 7: destructure setSelectedSong for error-recovery back button
-    const { isPlaying, setIsPlaying, loadMidiData, seek, selectedSong, setSelectedSong, playPosition, instrument, handSelection } = useGame();
+    const { isPlaying, setIsPlaying, loadTimemap, seek, selectedSong, setSelectedSong, playPosition, instrument, handSelection } = useGame();
     const { sessionStats } = useStats();
 
     const [loadingMsg, setLoadingMsg] = useState<string>('Initializing Engine...');
@@ -116,7 +114,7 @@ export const PianoScoreView: React.FC = () => {
         if (w > prevWrongsRef.current) {
             const total = totalScoreTicksRef.current;
             if (total > 0) {
-                const scoreTick = Math.max(0, Math.min(total, playPositionRef.current - OFFSET_TICKS));
+                const scoreTick = Math.max(0, Math.min(total, playPositionRef.current));
                 setErrorTicks(prev => [...prev, scoreTick]);
             }
         } else if (w < prevWrongsRef.current) {
@@ -140,7 +138,7 @@ export const PianoScoreView: React.FC = () => {
             Math.abs(playPosition - prev) > 80;
         if (!isSeeking) return;
 
-        const cutoff = Math.max(0, playPosition - OFFSET_TICKS);
+        const cutoff = Math.max(0, playPosition);
         setErrorTicks(curr => curr.filter(t => t <= cutoff));
     }, [playPosition]);
 
@@ -229,7 +227,7 @@ export const PianoScoreView: React.FC = () => {
                             }
                         }
 
-                        seek(targetTick + OFFSET_TICKS);
+                        seek(targetTick);
                     }
                 });
 
@@ -253,12 +251,16 @@ export const PianoScoreView: React.FC = () => {
                     }
 
                     if (!isDragging.current && measureDataRef.current.length > 0) {
-                        const scoreTick = playPositionRef.current - OFFSET_TICKS;
+                        const scoreTick = playPositionRef.current;
 
                         const mData = measureDataRef.current;
                         let globalX = 0;
 
-                        if (scoreTick <= 0) {
+                        // Park the cursor at the first real measure while inside
+                        // the n="0" count-in measure (which doubles as the sticky
+                        // clef strip and never scrolls).
+                        const musicStartTick = mData.length > 1 ? mData[1].startTick : 0;
+                        if (scoreTick <= musicStartTick) {
                             globalX = mData.length > 1 ? mData[1].x : mData[0].x;
                         } else if (scoreTick >= mData[mData.length - 1].endTick) {
                             globalX = mData[mData.length - 1].x + mData[mData.length - 1].width;
@@ -280,7 +282,7 @@ export const PianoScoreView: React.FC = () => {
                     const playheadEl = playheadRef.current;
                     const totalTicks = totalScoreTicksRef.current;
                     if (playheadEl && totalTicks > 0) {
-                        const scoreTick = playPositionRef.current - OFFSET_TICKS;
+                        const scoreTick = playPositionRef.current;
                         const pct = Math.max(0, Math.min(100, (scoreTick / totalTicks) * 100));
                         playheadEl.style.left = `${pct}%`;
                     }
@@ -340,28 +342,23 @@ export const PianoScoreView: React.FC = () => {
                 try {
                     setLoadingMsg('Rendering SVG...');
 
-                    let parsedTicksInMeasure = 768;
+                    // Source MEI DOM — used to map note ids to staves (hand
+                    // selection) inside extractTimemap.
+                    let xmlDoc: Document | null = null;
                     try {
-                        const parser = new DOMParser();
-                        const xmlDoc = parser.parseFromString(data, "text/xml");
-                        const meterSig = xmlDoc.querySelector("meterSig");
-                        if (meterSig) {
-                            const countAttr = meterSig.getAttribute("count");
-                            const unitAttr = meterSig.getAttribute("unit");
-                            if (countAttr && unitAttr) {
-                                const count = parseInt(countAttr, 10);
-                                const unit = parseInt(unitAttr, 10);
-                                if (!isNaN(count) && !isNaN(unit) && unit > 0) {
-                                    parsedTicksInMeasure = count * (4 / unit) * 192;
-                                }
-                            }
-                        }
+                        xmlDoc = new DOMParser().parseFromString(data, "text/xml");
                     } catch (e) {
-                        console.error("Error parsing MEI for meterSig:", e);
+                        console.error("Error parsing MEI:", e);
                     }
 
                     toolkit.loadData(data);
                     const svgData = toolkit.renderToSVG(1, {});
+
+                    // Timemap from the same loadData call as the SVG, so the
+                    // measure ids match — exact tick timeline for cursor sync
+                    // and practice pause scheduling.
+                    const timemapData = extractTimemap(toolkit, xmlDoc);
+                    loadTimemap(timemapData);
 
                     if (hiddenSvgRef.current) {
                         hiddenSvgRef.current.innerHTML = svgData;
@@ -371,14 +368,10 @@ export const PianoScoreView: React.FC = () => {
                         // replacing the arbitrary 50ms setTimeout.
                         requestAnimationFrame(() => {
                             if (hiddenSvgRef.current) {
-                                processSvgToPixi(svgData, hiddenSvgRef.current, parsedTicksInMeasure);
+                                processSvgToPixi(svgData, hiddenSvgRef.current, timemapData);
                             }
                         });
                     }
-
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const midiBase64 = (toolkit as any).renderToMIDI();
-                    loadMidiData(midiBase64);
 
                 } catch (e) {
                     console.error("Verovio render error:", e);
@@ -390,9 +383,9 @@ export const PianoScoreView: React.FC = () => {
                 setLoadingMsg('Error loading score');
             });
 
-    }, [toolkit, loadMidiData, selectedSong]);
+    }, [toolkit, loadTimemap, selectedSong]);
 
-    const processSvgToPixi = async (svgString: string, hiddenDiv: HTMLDivElement, ticksInMeasureVal: number = 768) => {
+    const processSvgToPixi = async (svgString: string, hiddenDiv: HTMLDivElement, timemapData: TimemapData) => {
         if (!appRef.current) return;
         setLoadingMsg('Slicing Textures...');
         const measures = Array.from(hiddenDiv.querySelectorAll('.system .measure'));
@@ -453,12 +446,22 @@ export const PianoScoreView: React.FC = () => {
             handBottomOverlayRef.current = null;
         }
 
+        // Measure start ticks come from the Verovio timemap — exact values that
+        // handle the n="0" count-in measure, pickups, meter changes and
+        // irregular bars. The SVG measure ids match the timemap ids because
+        // both come from the same loadData call. If an id is somehow missing,
+        // carry the previous tick forward (zero-length measure).
+        let runningTick = 0;
+        const startTicks = measures.map(m => {
+            const t = timemapData.measureTicks.get(m.id);
+            if (t !== undefined) runningTick = t;
+            return runningTick;
+        });
+
         const mData: MeasureData[] = [];
-        let currentTick = 0;
 
         measures.forEach((m, index) => {
             const bbox = measureBBoxes[index];
-            const ticksInMeasure = index === 0 ? 0 : ticksInMeasureVal;
 
             // Slurs/ties are rendered inside the measure where they start, so a
             // curve crossing the barline inflates that measure's bbox width past
@@ -475,10 +478,9 @@ export const PianoScoreView: React.FC = () => {
                 id: m.id,
                 x,
                 width,
-                startTick: currentTick,
-                endTick: currentTick + ticksInMeasure
+                startTick: startTicks[index],
+                endTick: index + 1 < startTicks.length ? startTicks[index + 1] : timemapData.totalTicks
             });
-            currentTick += ticksInMeasure;
         });
 
         measureDataRef.current = mData;
@@ -487,8 +489,8 @@ export const PianoScoreView: React.FC = () => {
         totalWidthRef.current = svgOuterBBox.width;
 
         // Minimap: derive total tick range and per-measure boundary percentages.
-        // mData[0] is the sticky/clef-only measure (zero ticks), so its startTick
-        // gives us 0% and we append 100% for the final endTick.
+        // mData[0] is the count-in measure that doubles as the sticky clef strip,
+        // so boundaries start from mData[1] and we append 100% for the final endTick.
         const totalTicks = mData[mData.length - 1].endTick;
         totalScoreTicksRef.current = totalTicks;
         if (totalTicks > 0) {
@@ -623,7 +625,7 @@ export const PianoScoreView: React.FC = () => {
         if (!el || totalTicks <= 0) return;
         const rect = el.getBoundingClientRect();
         const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-        seek(pct * totalTicks + OFFSET_TICKS);
+        seek(pct * totalTicks);
     };
 
     const onMinimapDown = (e: React.PointerEvent<HTMLDivElement>) => {
