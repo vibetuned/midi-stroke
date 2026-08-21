@@ -1,4 +1,5 @@
 import { parseScaleUrl, scaleDataUrl } from './scaleGen';
+import { OPFS_PREFIX, readOpfsSong } from './opfs';
 
 /**
  * URL of the song catalog: the score server's manifest when connected,
@@ -23,6 +24,10 @@ export function buildSongUrl(
     path: string,
     name: string,
 ): string {
+    // Uploaded (OPFS) collections are client-local — never routed via a server.
+    if (path.startsWith(OPFS_PREFIX)) {
+        return `${path}/${name}`;
+    }
     if (serverBase) {
         const category = path.split('/').slice(1).join('/');
         return `${serverBase}/api/${instrument}/files/${encodeURIComponent(category)}/${encodeURIComponent(name)}`;
@@ -45,9 +50,25 @@ export function resolveSongUrl(selectedSong: string): string {
     if (
         selectedSong.startsWith('/') ||
         selectedSong.startsWith('blob:') ||
+        selectedSong.startsWith(OPFS_PREFIX) ||
         /^https?:\/\//i.test(selectedSong)
     ) {
         return selectedSong;
     }
     return `/${selectedSong}`;
+}
+
+/**
+ * Load a song's MEI text. OPFS-backed songs ("opfs:…", uploaded ZIPs) are
+ * read from the Origin Private File System; everything else resolves to a
+ * URL and is fetched (bundled files, score-server files, blob:/data: URLs).
+ */
+export async function loadSongText(selectedSong: string): Promise<string> {
+    if (selectedSong.startsWith(OPFS_PREFIX)) {
+        return readOpfsSong(selectedSong);
+    }
+    const path = resolveSongUrl(selectedSong);
+    const response = await fetch(path);
+    if (!response.ok) throw new Error(`Failed to load ${path}`);
+    return response.text();
 }

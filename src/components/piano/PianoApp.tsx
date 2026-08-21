@@ -125,7 +125,9 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
                 </div>
             </header>
 
-            <main style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+            {/* The score sits as a vertically-centered band (like the saxo view)
+                rather than filling the whole slack. */}
+            <main style={{ flex: 1, minHeight: 0, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <MidiStatus />
                 <PianoScoreView />
             </main>

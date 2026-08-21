@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { useStats } from '../context/StatsContext';
 import { buildSongUrl, catalogUrl, resolveSongUrl } from '../utils/songUrl';
+import { OPFS_PREFIX, isOpfsSupported, listOpfsSongs, importZipToOpfs, deleteOpfsCollection } from '../utils/opfs';
 import { ScaleBuilder } from './ScaleBuilder';
 
 // Must match the server's slug rule for instruments/categories (server/src/app.ts).
@@ -50,9 +51,14 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
     const { isAudioStarted, pianoRange, selectedSong, setSelectedSong, instrument, serverBase, setServerBase } = useGame();
     const { getSongStats } = useStats();
     const [files, setFiles] = useState<SongFile[]>([]);
-    const [availablePaths, setAvailablePaths] = useState<string[]>([]);
     const [selectedPath, setSelectedPath] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
+
+    // ZIP-uploaded collections stored in the Origin Private File System.
+    const [opfsFiles, setOpfsFiles] = useState<SongFile[]>([]);
+    const [opfsRefresh, setOpfsRefresh] = useState(0);
+    const [zipStatus, setZipStatus] = useState<string | null>(null);
+    const [isImportingZip, setIsImportingZip] = useState(false);
     // Offline-cache presence for the pieces of the visible collection, keyed by record name.
     const [cacheMap, setCacheMap] = useState<Record<string, boolean>>({});
 
@@ -84,10 +90,6 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
             })
             .then((data: SongFile[]) => {
                 setFiles(data);
-                const paths = Array.from(new Set(data.map(f => f.path)));
-                setAvailablePaths(paths);
-                // Keep the current selection when it survives the reload (e.g. after an upload)
-                setSelectedPath(prev => (prev && paths.includes(prev)) ? prev : (paths[0] ?? ''));
                 setIsLoading(false);
             })
             .catch(err => {
@@ -97,15 +99,44 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
             });
     }, [instrument, serverBase, catalogRefresh]);
 
-    // Pieces of the currently-selected collection.
-    const recordsForPath = useMemo(
-        () => selectedPath && selectedPath !== SCALES_PATH ? files.filter(f => f.path === selectedPath) : [],
-        [selectedPath, files],
+    // ZIP-uploaded collections live in OPFS alongside the catalog.
+    useEffect(() => {
+        let cancelled = false;
+        listOpfsSongs(instrument)
+            .then(list => { if (!cancelled) setOpfsFiles(list); })
+            .catch(() => { if (!cancelled) setOpfsFiles([]); });
+        return () => { cancelled = true; };
+    }, [instrument, opfsRefresh]);
+
+    const allFiles = useMemo(() => [...files, ...opfsFiles], [files, opfsFiles]);
+    const availablePaths = useMemo(
+        () => Array.from(new Set(allFiles.map(f => f.path))),
+        [allFiles],
     );
 
-    // Batch-check offline cache status for every piece in the visible collection.
+    // Keep the current selection when it survives a reload (e.g. after an
+    // upload or ZIP import); otherwise fall back to the first collection.
     useEffect(() => {
-        if (!('caches' in window) || recordsForPath.length === 0) {
+        if (isLoading) return;
+        setSelectedPath(prev =>
+            (prev === SCALES_PATH || (prev && availablePaths.includes(prev)))
+                ? prev
+                : (availablePaths[0] ?? '')
+        );
+    }, [availablePaths, isLoading]);
+
+    // Pieces of the currently-selected collection.
+    const recordsForPath = useMemo(
+        () => selectedPath && selectedPath !== SCALES_PATH ? allFiles.filter(f => f.path === selectedPath) : [],
+        [selectedPath, allFiles],
+    );
+
+    const isOpfsPath = selectedPath.startsWith(OPFS_PREFIX);
+
+    // Batch-check offline cache status for every piece in the visible collection.
+    // Uploaded (OPFS) collections are already on-device — no cache handling.
+    useEffect(() => {
+        if (!('caches' in window) || recordsForPath.length === 0 || selectedPath.startsWith(OPFS_PREFIX)) {
             setCacheMap({});
             return;
         }
@@ -119,7 +150,7 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
             if (!cancelled) setCacheMap(Object.fromEntries(entries));
         }).catch(() => { if (!cancelled) setCacheMap({}); });
         return () => { cancelled = true; };
-    }, [recordsForPath, serverBase, instrument]);
+    }, [recordsForPath, serverBase, instrument, selectedPath]);
 
     const cacheRecord = async (name: string) => {
         if (!('caches' in window)) return;
@@ -147,9 +178,40 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
 
     // Piece count + how many have been played, for a collection's rail entry.
     const collectionStats = (path: string): { total: number; played: number } => {
-        const recs = files.filter(f => f.path === path);
+        const recs = allFiles.filter(f => f.path === path);
         const played = recs.filter(f => bestScore(path, f.name) !== null).length;
         return { total: recs.length, played };
+    };
+
+    const zipInputRef = useRef<HTMLInputElement>(null);
+
+    const handleZipImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = ''; // allow re-picking the same zip later
+        if (!file) return;
+        setIsImportingZip(true);
+        setZipStatus(null);
+        try {
+            const { collection, count } = await importZipToOpfs(instrument, file);
+            setZipStatus(`Imported ${count} piece${count === 1 ? '' : 's'} into "${collection}" ✓`);
+            setOpfsRefresh(n => n + 1);
+            setSelectedPath(`${OPFS_PREFIX}${instrument}/${collection}`);
+        } catch (err) {
+            console.error('ZIP import failed:', err);
+            setZipStatus(err instanceof Error ? err.message : 'ZIP import failed');
+        } finally {
+            setIsImportingZip(false);
+        }
+    };
+
+    const handleDeleteCollection = async (path: string) => {
+        if (!window.confirm(`Delete the uploaded collection "${collectionLabel(path)}" from this device?`)) return;
+        try {
+            await deleteOpfsCollection(path);
+            setOpfsRefresh(n => n + 1);
+        } catch (err) {
+            console.error('Failed to delete uploaded collection:', err);
+        }
     };
 
     const handleConnect = async () => {
@@ -268,7 +330,7 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                     <h2 style={{ margin: 0, fontSize: '1.15rem' }}>🎵 Select Music</h2>
                     {!isLoading && (
                         <span style={{ color: 'var(--color-text-secondary, #9a9aa8)', fontSize: '0.85rem' }}>
-                            {files.length} pieces · {availablePaths.length} collections
+                            {allFiles.length} pieces · {availablePaths.length} collections
                         </span>
                     )}
                     {onDismiss && (
@@ -298,11 +360,26 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                             {availablePaths.length === 0 && instrument !== 'piano' && <Empty>No collections found.</Empty>}
                             {availablePaths.map(p => {
                                 const isActive = p === selectedPath;
+                                const isUploaded = p.startsWith(OPFS_PREFIX);
                                 const { total, played } = collectionStats(p);
                                 return (
                                     <button key={p} onClick={() => setSelectedPath(p)} style={collectionButtonStyle(isActive)}>
-                                        <div style={{ fontSize: '0.9rem', fontWeight: isActive ? 600 : 400 }}>
-                                            {collectionLabel(p)}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                            <div style={{ flex: 1, minWidth: 0, fontSize: '0.9rem', fontWeight: isActive ? 600 : 400 }}>
+                                                {isUploaded && '📦 '}{collectionLabel(p)}
+                                            </div>
+                                            {isUploaded && (
+                                                // role=button (not a nested <button>) so it can live inside the row button
+                                                <span
+                                                    role="button"
+                                                    tabIndex={-1}
+                                                    title="Delete this uploaded collection from this device"
+                                                    onClick={(e) => { e.stopPropagation(); handleDeleteCollection(p); }}
+                                                    style={deleteChipStyle}
+                                                >
+                                                    🗑
+                                                </span>
+                                            )}
                                         </div>
                                         <div style={subLabelStyle}>
                                             🎵 {total}{played > 0 && ` · ✓ ${played}`}
@@ -343,16 +420,19 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                                                     {Math.round(score * 100)}%
                                                 </span>
                                             )}
-                                            {/* role=button (not a nested <button>) so it can live inside the row button */}
-                                            <span
-                                                role="button"
-                                                tabIndex={-1}
-                                                title={cached ? 'Cached offline — click to remove' : 'Save for offline'}
-                                                onClick={(e) => { e.stopPropagation(); (cached ? evictRecord : cacheRecord)(f.name); }}
-                                                style={cacheChipStyle(cached)}
-                                            >
-                                                {cached ? '💾' : '📥'}
-                                            </span>
+                                            {/* Uploaded (OPFS) pieces are already on-device — no offline-cache chip.
+                                                role=button (not a nested <button>) so it can live inside the row button */}
+                                            {!isOpfsPath && (
+                                                <span
+                                                    role="button"
+                                                    tabIndex={-1}
+                                                    title={cached ? 'Cached offline — click to remove' : 'Save for offline'}
+                                                    onClick={(e) => { e.stopPropagation(); (cached ? evictRecord : cacheRecord)(f.name); }}
+                                                    style={cacheChipStyle(cached)}
+                                                >
+                                                    {cached ? '💾' : '📥'}
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}
@@ -369,6 +449,20 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                         <button onClick={() => fileInputRef.current?.click()} style={secondaryButtonStyle}>
                             📁 Local MEI File
                         </button>
+                        {/* ZIP of MEI scores → permanent on-device collection (OPFS) */}
+                        {isOpfsSupported() && (
+                            <>
+                                <input ref={zipInputRef} type="file" accept=".zip" style={{ display: 'none' }} onChange={handleZipImport} />
+                                <button
+                                    onClick={() => zipInputRef.current?.click()}
+                                    disabled={isImportingZip}
+                                    title="Import a ZIP of MEI scores as a new collection stored on this device"
+                                    style={{ ...secondaryButtonStyle, cursor: isImportingZip ? 'wait' : 'pointer' }}
+                                >
+                                    {isImportingZip ? 'Importing…' : '📦 Import ZIP'}
+                                </button>
+                            </>
+                        )}
                         <div style={{ flex: 1 }} />
                         {serverBase ? (
                             <>
@@ -397,6 +491,12 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                             </>
                         )}
                     </div>
+
+                    {zipStatus && (
+                        <div style={{ fontSize: '0.85rem', color: zipStatus.includes('✓') ? '#7bd88f' : '#e66' }}>
+                            {zipStatus}
+                        </div>
+                    )}
 
                     {serverError && (
                         <div style={{ fontSize: '0.85rem', color: '#e66' }}>{serverError}</div>
@@ -513,6 +613,13 @@ const scoreBadgeStyle = (pct: number): React.CSSProperties => ({
     padding: '1px 7px', borderRadius: '9px', flexShrink: 0,
     color: scoreColor(pct), border: `1px solid ${scoreColor(pct)}55`,
 });
+
+const deleteChipStyle: React.CSSProperties = {
+    fontSize: '0.8rem', lineHeight: 1, flexShrink: 0,
+    padding: '2px 5px', borderRadius: '8px', cursor: 'pointer',
+    opacity: 0.65,
+    border: '1px solid rgba(255,255,255,0.15)',
+};
 
 const cacheChipStyle = (cached: boolean): React.CSSProperties => ({
     fontSize: '0.9rem', lineHeight: 1, flexShrink: 0,

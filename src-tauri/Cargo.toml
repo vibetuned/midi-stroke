@@ -1,0 +1,30 @@
+[package]
+name = "midi-stroke"
+version = "0.1.0"
+description = "Midi Stroke — piano, drums & saxo MIDI trainer"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+midir = "0.10"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# CoreMIDI delivers hot-plug notifications to the run loop of the thread
+# that created the MIDI client — the poll thread must PUMP one on macOS
+# or the device list stays frozen at the startup snapshot.
+[target.'cfg(target_os = "macos")'.dependencies]
+core-foundation = "0.10"
+
+[features]
+# Embed ../dist and serve it over tauri:// instead of loading devUrl.
+# `tauri build` enables this automatically; plain cargo needs it explicitly:
+#   cargo build --release --features custom-protocol
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+# Fast-enough builds; full LTO not worth it for the shell.
+lto = false

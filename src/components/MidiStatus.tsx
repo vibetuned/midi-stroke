@@ -2,9 +2,8 @@ import React from 'react';
 import { useMidi } from '../hooks/useMidi';
 
 export const MidiStatus: React.FC = () => {
-    const { midiAccess, inputs, activeNotes } = useMidi();
-    const isMidiActive = !!midiAccess;
-    const deviceCount = inputs.length;
+    const { isMidiActive, deviceNames, activeNotes } = useMidi();
+    const deviceCount = deviceNames.length;
 
     return (
         <div style={{

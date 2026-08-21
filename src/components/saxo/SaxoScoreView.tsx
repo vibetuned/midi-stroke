@@ -3,8 +3,9 @@ import * as Tone from 'tone';
 import { useVerovio } from '../../hooks/useVerovio';
 import { useGame } from '../../context/GameContext';
 import { useStats } from '../../context/StatsContext';
-import { resolveSongUrl } from '../../utils/songUrl';
+import { loadSongText } from '../../utils/songUrl';
 import { extractTimemap, type TimemapData } from '../../utils/timemap';
+import { ensureCountInMeasure } from '../../utils/mei';
 import * as PIXI from 'pixi.js';
 
 interface MeasureData {
@@ -298,26 +299,27 @@ export const SaxoScoreView: React.FC = () => {
         };
         toolkit.setOptions(options);
 
-        const path = resolveSongUrl(selectedSong);
-
-        fetch(path)
-            .then(response => {
-                if (!response.ok) throw new Error(`Failed to load ${path}`);
-                return response.text();
-            })
+        loadSongText(selectedSong)
             .then(data => {
                 try {
                     setLoadingMsg('Rendering SVG...');
 
-                    // Source MEI DOM — used by extractTimemap for note→staff mapping.
+                    // Source MEI DOM — used by extractTimemap for note→staff
+                    // mapping, and to inject the n="0" count-in measure into
+                    // imported scores that lack it.
                     let xmlDoc: Document | null = null;
+                    let meiData = data;
                     try {
                         xmlDoc = new DOMParser().parseFromString(data, "text/xml");
+                        if (ensureCountInMeasure(xmlDoc)) {
+                            meiData = new XMLSerializer().serializeToString(xmlDoc);
+                            console.log('Injected count-in measure (score had none)');
+                        }
                     } catch (e) {
                         console.error("Error parsing MEI:", e);
                     }
 
-                    toolkit.loadData(data);
+                    toolkit.loadData(meiData);
                     const svgData = toolkit.renderToSVG(1, {});
 
                     // Timemap from the same loadData call as the SVG, so the
@@ -545,7 +547,9 @@ export const SaxoScoreView: React.FC = () => {
     };
 
     return (
-        <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', background: SCORE_BG_COLOR, touchAction: 'none' }}>
+        // A bounded band, vertically centered by the parent column — a single
+        // staff in a full-height canvas reads as a huge gray wall.
+        <div style={{ position: 'relative', width: '100%', height: 'min(100%, 48vh)', minHeight: '200px', overflow: 'hidden', background: SCORE_BG_COLOR, touchAction: 'none' }}>
             {loadingMsg && (
                 <div style={{
                     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,

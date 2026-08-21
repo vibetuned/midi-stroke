@@ -49,7 +49,9 @@ export default defineConfig({
     }),
   ],
   server: {
-    https: fs.existsSync('./certs/localhost+2-key.pem')
+    // The Tauri shell loads http://localhost:5173 (`npm run dev:tauri`);
+    // the https certs are only for LAN Web-MIDI use in a browser.
+    https: !process.env.TAURI_DEV && fs.existsSync('./certs/localhost+2-key.pem')
       ? {
           key: fs.readFileSync('./certs/localhost+2-key.pem'),
           cert: fs.readFileSync('./certs/localhost+2.pem'),

@@ -125,12 +125,20 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
                 </div>
             </header>
 
-            {/* Split layout: VirtualSaxo (left ~1/4) + SaxoScoreView (right ~3/4) */}
-            <main style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'row' }}>
-                <div style={{ flex: '0 0 25%', minWidth: 0, display: 'flex' }}>
-                    <VirtualSaxo />
+            {/* Split layout: VirtualSaxo (left, content-sized) + SaxoScoreView (right).
+                The left column hugs the fingering chart instead of a viewport
+                percentage; the score sits as a vertically-centered band rather
+                than filling the whole column height. */}
+            <main style={{ flex: 1, minHeight: 0, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'row' }}>
+                {/* The fingering panel is a centered band matching the score's
+                    height, so both sit aligned with the theme background above
+                    and below. */}
+                <div style={{ flex: '0 0 clamp(200px, 25vw, 340px)', minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <div style={{ height: 'min(100%, 48vh)', minHeight: '200px', display: 'flex' }}>
+                        <VirtualSaxo />
+                    </div>
                 </div>
-                <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+                <div style={{ flex: 1, position: 'relative', minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <MidiStatus />
                     <SaxoScoreView />
                 </div>

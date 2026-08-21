@@ -334,7 +334,9 @@ export const VirtualSaxo: React.FC = memo(() => {
 
             alignItems: 'center',
 
-            justifyContent: 'flex-start',
+            // Center the label + chart as one group, so the chart stays right
+            // under the note name instead of drifting to the column's middle.
+            justifyContent: 'center',
 
             padding: '1rem 0.5rem',
 
@@ -376,7 +378,9 @@ export const VirtualSaxo: React.FC = memo(() => {
 
 
 
-            <div style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '8px', position: 'relative' }}>
+            {/* Basis = the chart's 560px design height; shrinks on short windows
+                but never grows past it (flex-grow 0), keeping it by the label. */}
+            <div style={{ flex: '0 1 560px', minHeight: 0, width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '8px', position: 'relative' }}>
                 <button
                     onClick={() => setMirrored(m => !m)}
                     title={mirrored ? 'Mirrored (player view) — click for front view' : 'Front view — click for mirrored (player view)'}
@@ -401,7 +405,11 @@ export const VirtualSaxo: React.FC = memo(() => {
                 </button>
                 <svg
                     viewBox="0 0 300 560"
-                    style={{ height: '100%', maxWidth: '170px', minHeight: 0 }}
+                    // Explicit aspect-ratio: WebKit doesn't derive the width of a
+                    // viewBox-only SVG from a percentage height the way Chrome does.
+                    // maxHeight caps the chart at its design size so tall windows
+                    // don't blow it up into a giant panel.
+                    style={{ height: '100%', width: 'auto', aspectRatio: '300 / 560', maxWidth: '170px', maxHeight: '560px', minHeight: 0 }}
                     preserveAspectRatio="xMidYMid meet"
                 >
                     <path

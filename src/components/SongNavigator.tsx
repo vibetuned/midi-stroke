@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { buildSongUrl, catalogUrl } from '../utils/songUrl';
+import { listOpfsSongs } from '../utils/opfs';
 import { describeScaleUrl } from '../utils/scaleGen';
 import { SongMarqueeButton } from './SongMarqueeButton';
 
@@ -16,14 +17,27 @@ interface SongNavigatorProps {
 
 export const SongNavigator: React.FC<SongNavigatorProps> = ({ onChangeRequest }) => {
     const { selectedSong, setSelectedSong, instrument, serverBase } = useGame();
-    const [files, setFiles] = useState<SongFile[]>([]);
+    const [catalogFiles, setCatalogFiles] = useState<SongFile[]>([]);
+    const [opfsFiles, setOpfsFiles] = useState<SongFile[]>([]);
 
     useEffect(() => {
         fetch(catalogUrl(serverBase, instrument))
             .then(res => res.json())
-            .then((data: SongFile[]) => setFiles(data))
+            .then((data: SongFile[]) => setCatalogFiles(data))
             .catch(err => console.error(`Failed to load ${instrument} song catalog:`, err));
     }, [instrument, serverBase]);
+
+    // ZIP-uploaded (OPFS) collections — refreshed per song change so a fresh
+    // import is picked up as soon as one of its pieces is playing.
+    useEffect(() => {
+        let cancelled = false;
+        listOpfsSongs(instrument)
+            .then(list => { if (!cancelled) setOpfsFiles(list); })
+            .catch(() => { if (!cancelled) setOpfsFiles([]); });
+        return () => { cancelled = true; };
+    }, [instrument, selectedSong]);
+
+    const files = [...catalogFiles, ...opfsFiles];
 
     if (!selectedSong) return null;
 

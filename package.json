@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "dev:tauri": "TAURI_DEV=1 vite",
+    "tauri": "tauri",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -15,6 +17,7 @@
   "dependencies": {
     "@types/d3": "^7.4.3",
     "d3": "^7.9.0",
+    "fflate": "^0.8.3",
     "pixi.js": "^8.16.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -23,6 +26,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@tauri-apps/cli": "^2.11.4",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { type Course, type CourseModule, type CourseVideo, moduleFileUrl, videoProgressKey } from '../../utils/course';
+import { isTauri, DEPLOYED_ORIGIN } from '../../utils/platform';
 
 interface VideoSplashProps {
     course: Course;
@@ -69,7 +70,11 @@ export const VideoSplash: React.FC<VideoSplashProps> = ({
                 {video.youtubeId ? (
                     <iframe
                         key={video.youtubeId}
-                        src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?autoplay=1&rel=0`}
+                        // Tauri: route through the deployed https wrapper — YouTube
+                        // rejects embeds on the tauri:// scheme (player error 153).
+                        src={isTauri()
+                            ? `${DEPLOYED_ORIGIN}/yt.html?v=${video.youtubeId}`
+                            : `https://www.youtube-nocookie.com/embed/${video.youtubeId}?autoplay=1&rel=0`}
                         title={video.title}
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
