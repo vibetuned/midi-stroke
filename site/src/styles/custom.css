@@ -1,0 +1,43 @@
+/* Midi Stroke guide — matches the app's dark chrome and indigo accent. */
+
+:root {
+  --sl-font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --sl-color-accent-low: #1e2040;
+  --sl-color-accent: #646cff;
+  --sl-color-accent-high: #c9ccff;
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #e9e9f1;
+  --sl-color-gray-2: #c3c4d2;
+  --sl-color-gray-3: #8d8fa3;
+  --sl-color-gray-4: #5a5c6e;
+  --sl-color-gray-5: #3a3b49;
+  --sl-color-gray-6: #26272f;
+  --sl-color-gray-7: #1b1c22;
+  --sl-color-black: #121214;
+}
+
+:root[data-theme="light"] {
+  --sl-color-accent-low: #dfe1ff;
+  --sl-color-accent: #4a51d8;
+  --sl-color-accent-high: #23277a;
+  --sl-color-white: #17181d;
+  --sl-color-gray-1: #24252e;
+  --sl-color-gray-2: #3c3e4b;
+  --sl-color-gray-3: #5b5d6d;
+  --sl-color-gray-4: #8d8f9f;
+  --sl-color-gray-5: #c9cad4;
+  --sl-color-gray-6: #eeeef3;
+  --sl-color-gray-7: #f7f7fa;
+  --sl-color-black: #ffffff;
+}
+
+/* Screenshots: framed, rounded, and never wider than the prose column. */
+.sl-markdown-content img {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 10px;
+}
+
+/* Musical glyphs inside prose (♭ ♯ ♮) need a font that has them. */
+.sl-markdown-content {
+  font-feature-settings: normal;
+}

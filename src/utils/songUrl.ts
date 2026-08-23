@@ -8,7 +8,7 @@ import { OPFS_PREFIX, readOpfsSong } from './opfs';
 export function catalogUrl(serverBase: string | null, instrument: string): string {
     return serverBase
         ? `${serverBase}/api/${instrument}/manifest`
-        : `/${instrument}_files.json`;
+        : `${import.meta.env.BASE_URL}${instrument}_files.json`;
 }
 
 /**
@@ -55,7 +55,9 @@ export function resolveSongUrl(selectedSong: string): string {
     ) {
         return selectedSong;
     }
-    return `/${selectedSong}`;
+    // Bundled catalog path ("piano/…/x.mei") — a stable stats key; prefix the
+    // deploy base (usually "/", "/app/" on the Pages deploy) to fetch it.
+    return `${import.meta.env.BASE_URL}${selectedSong}`;
 }
 
 /**

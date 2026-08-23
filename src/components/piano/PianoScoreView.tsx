@@ -530,43 +530,53 @@ export const PianoScoreView: React.FC = () => {
 
         const targetY = (appRef.current.screen.height / scaleFactor - TEXTURE_HEIGHT) / 2;
 
+        // Rasterise at device resolution: SVG images draw vector-sharp at any
+        // destination size, so slicing at dpr keeps the staff crisp on retina
+        // instead of GPU-upscaling 1× textures.
+        const res = Math.min(window.devicePixelRatio || 1, 2);
+
         for (let x = 0; x < totalW; x += TEXTURE_WIDTH) {
+            const sliceW = Math.min(TEXTURE_WIDTH, totalW - x);
             const canvas = document.createElement('canvas');
-            canvas.width = Math.min(TEXTURE_WIDTH, totalW - x);
-            canvas.height = TEXTURE_HEIGHT;
+            canvas.width = Math.ceil(sliceW * res);
+            canvas.height = Math.ceil(TEXTURE_HEIGHT * res);
             const ctx = canvas.getContext('2d');
             if (ctx) {
-                ctx.drawImage(img, x, 0, canvas.width, TEXTURE_HEIGHT, 0, 0, canvas.width, TEXTURE_HEIGHT);
+                ctx.drawImage(img, x, 0, sliceW, TEXTURE_HEIGHT, 0, 0, sliceW * res, TEXTURE_HEIGHT * res);
             }
             const texture = PIXI.Texture.from(canvas);
             const sprite = new PIXI.Sprite(texture);
+            sprite.scale.set(1 / res);
             sprite.x = x;
             sprite.y = targetY;
             scrollContainerRef.current?.addChild(sprite);
         }
 
-        // Sticky Overlay Sprite
+        // Sticky Overlay Sprite (device-resolution raster, like the slices)
+        const stickyW = stickyWidthRef.current;
         const stickyCanvas = document.createElement('canvas');
-        stickyCanvas.width = stickyWidthRef.current;
-        stickyCanvas.height = TEXTURE_HEIGHT;
+        stickyCanvas.width = Math.ceil(stickyW * res);
+        stickyCanvas.height = Math.ceil(TEXTURE_HEIGHT * res);
         const stickyCtx = stickyCanvas.getContext('2d');
         if (stickyCtx) {
+            stickyCtx.scale(res, res);
             // Fix 8: use constant so this always matches the container background
             stickyCtx.fillStyle = SCORE_BG_COLOR;
-            stickyCtx.fillRect(0, 0, stickyCanvas.width - 30, TEXTURE_HEIGHT);
+            stickyCtx.fillRect(0, 0, stickyW - 30, TEXTURE_HEIGHT);
 
-            const gradient = stickyCtx.createLinearGradient(stickyCanvas.width - 30, 0, stickyCanvas.width, 0);
+            const gradient = stickyCtx.createLinearGradient(stickyW - 30, 0, stickyW, 0);
             gradient.addColorStop(0, 'rgba(136, 136, 136, 1)');
             gradient.addColorStop(1, 'rgba(136, 136, 136, 0)');
             stickyCtx.fillStyle = gradient;
-            stickyCtx.fillRect(stickyCanvas.width - 30, 0, 30, TEXTURE_HEIGHT);
+            stickyCtx.fillRect(stickyW - 30, 0, 30, TEXTURE_HEIGHT);
 
-            stickyCtx.drawImage(img, 0, 0, stickyCanvas.width, TEXTURE_HEIGHT, 0, 0, stickyCanvas.width, TEXTURE_HEIGHT);
+            stickyCtx.drawImage(img, 0, 0, stickyW, TEXTURE_HEIGHT, 0, 0, stickyW, TEXTURE_HEIGHT);
         }
 
         const stickyContainer = new PIXI.Container();
         const stickyTexture = PIXI.Texture.from(stickyCanvas);
         const stickySprite = new PIXI.Sprite(stickyTexture);
+        stickySprite.scale.set(1 / res);
 
         stickyContainer.scale.set(scaleFactor);
         stickyContainer.x = window.innerWidth * 0.05;

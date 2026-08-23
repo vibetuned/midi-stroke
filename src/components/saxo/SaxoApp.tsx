@@ -120,7 +120,7 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
                             justifyContent: 'center',
                         }}
                     >
-                        <img src="/stats.svg" alt="Stats" style={{ width: '20px', height: '20px' }} />
+                        <img src={`${import.meta.env.BASE_URL}stats.svg`} alt="Stats" style={{ width: '20px', height: '20px' }} />
                     </button>
                 </div>
             </header>

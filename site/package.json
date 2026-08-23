@@ -1,0 +1,19 @@
+{
+  "name": "midi-stroke-site",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Midi Stroke user guide — Astro Starlight site deployed at the root of ms.vibetuned.com (the app itself lives under /app)",
+  "type": "module",
+  "scripts": {
+    "predev": "npm run assets",
+    "dev": "astro dev",
+    "prebuild": "npm run assets",
+    "build": "astro build",
+    "preview": "astro preview",
+    "assets": "rm -rf public/screenshots && cp -R ../docs/screenshots public/screenshots"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.41.7",
+    "astro": "^7.2.1"
+  }
+}

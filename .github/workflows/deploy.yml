@@ -1,5 +1,9 @@
 name: Deploy to GitHub Pages
 
+# ms.vibetuned.com layout:
+#   /      → the Starlight user guide (site/)
+#   /app/  → the trainer itself (built with DEPLOY_BASE=/app/)
+
 on:
   push:
     branches: [main]
@@ -25,13 +29,28 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      - name: Build the app (served under /app/)
+        run: |
+          npm ci
+          DEPLOY_BASE=/app/ npm run build
 
-      - run: npm run build
+      - name: Build the docs site (served at the root)
+        working-directory: site
+        run: |
+          npm ci
+          npm run build
+
+      - name: Compose site + app
+        run: |
+          mkdir -p out
+          cp -R site/dist/. out/
+          mkdir -p out/app
+          cp -R dist/. out/app/
+          cp public/CNAME out/CNAME
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: out
 
   deploy:
     needs: build

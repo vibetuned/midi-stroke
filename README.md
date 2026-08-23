@@ -4,6 +4,8 @@
 **Midi Stroke** is a high-performance, web-based training suite designed to bridge the gap between technical execution and professional music notation.
 By leveraging real-time MIDI data and industry-standard rendering engines, it provides a data-driven environment for mastering melodic keys, rhythmic percussion, wind-controller saxophone, and written theory.
 
+**▶ Use it now: [ms.vibetuned.com/app](https://ms.vibetuned.com/app/)** · **User guide: [ms.vibetuned.com](https://ms.vibetuned.com/)** · **Desktop app: [releases](https://github.com/vibetuned/midi-stroke/releases)**
+
 ![Instrument selection](docs/screenshots/splash.png)
 
 ---
@@ -78,6 +80,9 @@ The application is built on a web stack trying to be optimized for low-latency a
   - **Saxophone:** monophonic wind-controller input with written-pitch transposition and breath (CC) capture
 * **Dynamic Notation Mapping:** Interactive sheet music that responds to MIDI input, providing instant visual confirmation of accuracy.
 * **Two Game Modes:** *Rhythm* (play along in time, scored with hit/miss windows) and *Practice* (playback waits for the correct note).
+* **Bring Your Own Scores:** load a single MEI file, or **import a ZIP of MEI scores** as a permanent on-device collection (stored in the browser's OPFS, offline-capable, delete anytime). Scores need no special preparation — the one-beat count-in measure (`n="0"`) is injected automatically at load time if missing.
+
+![Song picker with ZIP import](docs/screenshots/song-selector.png)
 * **Scale Generator (Piano):** technique exercises in all 24 keys engraved on demand — scales, intervals, triads, arpeggios and cadences with conservatory fingering — plus key-aware graying of the virtual keyboard.
 * **Theory Courses:** video lessons paired with fill-in-the-blank score exercises, answered from piano, circle of fifths, or MIDI input.
 * **Precision Tempo Control:** A high-resolution transport system for granular practice, from slow-motion technical drills to full-speed performance.

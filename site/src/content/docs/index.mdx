@@ -1,0 +1,61 @@
+---
+title: Midi Stroke
+description: A MIDI training suite for piano, finger drums, wind-controller saxophone and music theory — real engraved scores, two game modes, and per-song stats.
+template: splash
+hero:
+  tagline: Precision MIDI training on real engraved scores — piano, finger drums, saxophone and written theory, in your browser or on your desktop.
+  image:
+    alt: Midi Stroke
+    file: ../../assets/logo.svg
+  actions:
+    - text: Open the app
+      link: https://ms.vibetuned.com/app/
+      icon: rocket
+    - text: Getting started
+      link: getting-started/
+      variant: minimal
+    - text: Desktop app
+      link: desktop/
+      variant: minimal
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+Midi Stroke connects your MIDI instrument to professionally engraved sheet
+music (Verovio + MEI) and scores what you play, note by note. Two modes on
+every piece: **Rhythm** — play along in time, scored with hit/miss windows —
+and **Practice** — playback pauses on each note and waits until you press the
+right one.
+
+![Instrument selection](/screenshots/splash.png)
+
+<CardGrid>
+  <Card title="🎹 Piano" icon="seti:audio">
+    Grand-staff training with hand selection (L / R / both), a sticky clef
+    strip, a seekable minimap with wrong-note markers, a glowing virtual
+    keyboard — and a scale generator covering all 24 keys.
+    [Read the guide](instruments/piano/)
+  </Card>
+  <Card title="🥁 Drums" icon="seti:audio">
+    Finger-drumming patterns on a percussion staff, built for the Yamaha
+    FGDP-50 — with a step-sequencer grid that tracks the playhead.
+    [Read the guide](instruments/drums/)
+  </Card>
+  <Card title="🎷 Saxo" icon="seti:audio">
+    Single-voice melodic training for wind controllers (TravelSax), with a
+    live fingering chart, breath meter and mirror view.
+    [Read the guide](instruments/saxo/)
+  </Card>
+  <Card title="🎼 Theory" icon="open-book">
+    Course player pairing lesson videos with fill-in-the-blank worksheet
+    exercises on real engraved scores.
+    [Read the guide](instruments/theory/)
+  </Card>
+</CardGrid>
+
+## Bring your own scores
+
+Load a single MEI file, or import a whole **ZIP of MEI scores** as a new
+collection stored permanently on your device — no server needed. Scores
+don't need any special preparation: the app adds its one-beat count-in
+measure automatically. [Songs & importing →](songs/)

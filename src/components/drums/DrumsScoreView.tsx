@@ -376,16 +376,23 @@ export const DrumsScoreView: React.FC = () => {
 
         const targetY = (appRef.current.screen.height / scaleFactor - TEXTURE_HEIGHT) / 2;
 
+        // Rasterise at device resolution: SVG images draw vector-sharp at any
+        // destination size, so slicing at dpr keeps the staff crisp on retina
+        // instead of GPU-upscaling 1× textures.
+        const res = Math.min(window.devicePixelRatio || 1, 2);
+
         for (let x = 0; x < totalW; x += TEXTURE_WIDTH) {
+            const sliceW = Math.min(TEXTURE_WIDTH, totalW - x);
             const canvas = document.createElement('canvas');
-            canvas.width = Math.min(TEXTURE_WIDTH, totalW - x);
-            canvas.height = TEXTURE_HEIGHT;
+            canvas.width = Math.ceil(sliceW * res);
+            canvas.height = Math.ceil(TEXTURE_HEIGHT * res);
             const ctx = canvas.getContext('2d');
             if (ctx) {
-                ctx.drawImage(img, x, 0, canvas.width, TEXTURE_HEIGHT, 0, 0, canvas.width, TEXTURE_HEIGHT);
+                ctx.drawImage(img, x, 0, sliceW, TEXTURE_HEIGHT, 0, 0, sliceW * res, TEXTURE_HEIGHT * res);
             }
             const texture = PIXI.Texture.from(canvas);
             const sprite = new PIXI.Sprite(texture);
+            sprite.scale.set(1 / res);
             sprite.x = x;
             sprite.y = targetY;
             scrollContainerRef.current?.addChild(sprite);

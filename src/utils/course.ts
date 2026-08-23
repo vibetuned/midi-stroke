@@ -42,13 +42,13 @@ export interface CoursesManifest {
 }
 
 export async function fetchCoursesManifest(): Promise<CoursesManifest> {
-    const res = await fetch('/courses_files.json');
+    const res = await fetch(`${import.meta.env.BASE_URL}courses_files.json`);
     if (!res.ok) throw new Error(`Failed to load course manifest (${res.status})`);
     return res.json();
 }
 
 export function moduleFileUrl(course: Course, module: CourseModule, relative: string): string {
-    return `/${course.path}/${module.id}/${relative}`;
+    return `${import.meta.env.BASE_URL}${course.path}/${module.id}/${relative}`;
 }
 
 export function exerciseFileUrl(course: Course, module: CourseModule, exercise: CourseExercise, file: string): string {

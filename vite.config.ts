@@ -5,6 +5,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Pages deploy serves the app under https://ms.vibetuned.com/app/ (the root
+  // is the Starlight docs site) — deploy.yml builds with DEPLOY_BASE=/app/.
+  // Local dev and the Tauri shell keep the default root base.
+  base: process.env.DEPLOY_BASE || '/',
   plugins: [
     react(),
     VitePWA({
@@ -18,7 +22,7 @@ export default defineConfig({
         background_color: '#1a1a2e',
         display: 'standalone',
         icons: [
-          { src: '/vite.svg', sizes: 'any', type: 'image/svg+xml' },
+          { src: `${process.env.DEPLOY_BASE || '/'}vite.svg`, sizes: 'any', type: 'image/svg+xml' },
         ],
       },
       workbox: {
