@@ -7,25 +7,34 @@ Midi Stroke also ships as a **desktop app** (built with Tauri): the same
 trainer, with MIDI handled **natively** — so it works regardless of browser
 Web MIDI support, and hot-plugging devices just works.
 
-## Download
+## Install
 
-Grab the build for your platform from the
-[GitHub releases](https://github.com/vibetuned/midi-stroke/releases):
+### macOS — Homebrew
 
-| Platform | File |
-|---|---|
-| macOS (Apple Silicon) | `Midi Stroke_…_aarch64.dmg` |
-| macOS (Intel) | `Midi Stroke_…_x64.dmg` |
-| Linux (Debian/Ubuntu) | `.deb` |
-| Linux (other) | `.AppImage` |
-
-**macOS note:** the builds are not code-signed yet, so the first launch is
-blocked by Gatekeeper. Right-click the app → **Open** (once), or clear the
-quarantine flag:
+One universal build for Apple Silicon and Intel, signed and notarized:
 
 ```sh
-xattr -dr com.apple.quarantine "Midi Stroke.app"
+brew install --cask vibetuned/tap/midi-stroke
 ```
+
+Updates arrive with `brew upgrade`. (You can also download the `.dmg`
+directly from the [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).)
+
+### Debian / Ubuntu — apt
+
+The site hosts a signed apt repository:
+
+```sh
+sudo curl -fsSL https://ms.vibetuned.com/apt/midi-stroke.asc -o /etc/apt/keyrings/midi-stroke.asc
+echo "deb [signed-by=/etc/apt/keyrings/midi-stroke.asc] https://ms.vibetuned.com/apt stable main" | sudo tee /etc/apt/sources.list.d/midi-stroke.list
+sudo apt update && sudo apt install midi-stroke
+```
+
+### Other Linux
+
+Grab the `.AppImage` from the
+[GitHub releases](https://github.com/vibetuned/midi-stroke/releases), make
+it executable and run it.
 
 ## What's different from the browser
 

@@ -3,10 +3,14 @@ name: Deploy to GitHub Pages
 # ms.vibetuned.com layout:
 #   /      → the Starlight user guide (site/)
 #   /app/  → the trainer itself (built with DEPLOY_BASE=/app/)
+#   /apt/  → signed apt repository serving the latest release deb
 
 on:
   push:
     branches: [main]
+  # A published release refreshes the site's apt repository (below).
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -47,6 +51,41 @@ jobs:
           mkdir -p out/app
           cp -R dist/. out/app/
           cp public/CNAME out/CNAME
+
+      # Signed apt repository at /apt — the Ubuntu/Debian install channel
+      # (a Launchpad PPA would rebuild from source on their builders; a
+      # binary repo serves the CI-built deb instead). Skipped until the
+      # APT_GPG_PRIVATE_KEY secret and a published release exist.
+      - name: apt repository (latest release deb, signed)
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        if: env.APT_GPG_PRIVATE_KEY != ''
+        run: |
+          set -euo pipefail
+          mkdir -p out/apt/pool/main
+          if ! gh release download --repo "$GITHUB_REPOSITORY" --pattern '*_amd64.deb' --dir out/apt/pool/main; then
+            echo "no published release with a deb yet — apt repo skipped"
+            rm -rf out/apt
+            exit 0
+          fi
+          gpg --batch --import <<< "$APT_GPG_PRIVATE_KEY"
+          cd out/apt
+          mkdir -p dists/stable/main/binary-amd64
+          apt-ftparchive --arch amd64 packages pool > dists/stable/main/binary-amd64/Packages
+          gzip -k dists/stable/main/binary-amd64/Packages
+          apt-ftparchive \
+            -o APT::FTPArchive::Release::Origin=midi-stroke \
+            -o APT::FTPArchive::Release::Label=midi-stroke \
+            -o APT::FTPArchive::Release::Suite=stable \
+            -o APT::FTPArchive::Release::Codename=stable \
+            -o APT::FTPArchive::Release::Components=main \
+            -o APT::FTPArchive::Release::Architectures=amd64 \
+            release dists/stable > dists/stable/Release
+          gpg --batch --armor --detach-sign -o dists/stable/Release.gpg dists/stable/Release
+          gpg --batch --clearsign -o dists/stable/InRelease dists/stable/Release
+          gpg --batch --armor --export > midi-stroke.asc
+          echo "apt repo: $(ls pool/main)"
 
       - uses: actions/upload-pages-artifact@v3
         with:

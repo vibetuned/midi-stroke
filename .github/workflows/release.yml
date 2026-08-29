@@ -1,7 +1,8 @@
 name: Release desktop app
 
 # Builds the Tauri desktop app and attaches the bundles to a DRAFT GitHub
-# release — publish the draft when you're ready to ship.
+# release — publish the draft when you're ready to ship. Publishing then
+# triggers publish-cask.yml (Homebrew tap) and deploy.yml (apt repository).
 #
 # Trigger it either by pushing a version tag:
 #   git tag v0.0.1 && git push origin v0.0.1
@@ -22,15 +23,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # One universal binary for Apple Silicon + Intel: a single dmg
+          # asset, which is also what the Homebrew cask points at.
           - platform: macos-latest
-            args: --target aarch64-apple-darwin --bundles app,dmg
-            rust-targets: aarch64-apple-darwin
-          - platform: macos-latest
-            args: --target x86_64-apple-darwin --bundles app,dmg
-            rust-targets: x86_64-apple-darwin
+            args: --target universal-apple-darwin --bundles app,dmg
+          # Oldest LTS runner = broadest glibc compatibility for the deb.
           - platform: ubuntu-22.04
             args: --bundles deb,appimage
-            rust-targets: ''
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -42,8 +41,10 @@ jobs:
           cache: npm
 
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.rust-targets }}
+
+      - name: Add macOS universal targets
+        if: startsWith(matrix.platform, 'macos')
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
 
       - uses: swatinem/rust-cache@v2
         with:
@@ -68,13 +69,26 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # macOS code signing + notarization (ignored on Linux).
+          # tauri-action imports the Developer ID certificate into a
+          # throwaway keychain, signs the app, submits the dmg to Apple's
+          # notary service, and staples the ticket. Unset secrets (e.g. on
+          # a fork) leave the build unsigned rather than failing it.
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           tagName: v__VERSION__
           releaseName: 'Midi Stroke v__VERSION__'
           releaseBody: >
-            Midi Stroke desktop app. macOS builds are unsigned — right-click →
-            Open on first launch (or remove the quarantine flag with
-            `xattr -dr com.apple.quarantine "Midi Stroke.app"`).
+            Midi Stroke desktop app — signed and notarized macOS universal
+            dmg, Debian package and AppImage. Prefer the package managers:
+            `brew install --cask vibetuned/tap/midi-stroke` on macOS, or the
+            apt repository at https://ms.vibetuned.com/apt on Debian/Ubuntu
+            (see https://ms.vibetuned.com/desktop/).
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
