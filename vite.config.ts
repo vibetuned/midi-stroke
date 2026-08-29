@@ -4,7 +4,10 @@ import fs from 'node:fs'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+// `mode` is 'tauri' when started by the Tauri shell (`npm run dev:tauri`).
+// A mode flag rather than an env var: `FOO=1 vite` is POSIX-only and breaks
+// on Windows, where npm runs scripts through cmd.exe.
+export default defineConfig(({ mode }) => ({
   // Pages deploy serves the app under https://ms.vibetuned.com/app/ (the root
   // is the Starlight docs site) — deploy.yml builds with DEPLOY_BASE=/app/.
   // Local dev and the Tauri shell keep the default root base.
@@ -53,13 +56,18 @@ export default defineConfig({
     }),
   ],
   server: {
+    // Never watch the Rust tree: `tauri dev` relinks target/debug/*.exe on
+    // every rebuild, and Windows holds an exclusive lock on the new binary —
+    // the watcher then dies with EBUSY and takes the dev server with it.
+    // (Harmless elsewhere; Tauri watches src-tauri itself.)
+    watch: { ignored: ['**/src-tauri/**'] },
     // The Tauri shell loads http://localhost:5173 (`npm run dev:tauri`);
     // the https certs are only for LAN Web-MIDI use in a browser.
-    https: !process.env.TAURI_DEV && fs.existsSync('./certs/localhost+2-key.pem')
+    https: mode !== 'tauri' && fs.existsSync('./certs/localhost+2-key.pem')
       ? {
           key: fs.readFileSync('./certs/localhost+2-key.pem'),
           cert: fs.readFileSync('./certs/localhost+2.pem'),
         }
       : undefined,
   },
-})
+}))

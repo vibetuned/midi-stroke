@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "dev:tauri": "TAURI_DEV=1 vite",
+    "dev:tauri": "vite --mode tauri",
     "tauri": "tauri",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
