@@ -20,6 +20,16 @@ brew install --cask vibetuned/tap/midi-stroke
 Updates arrive with `brew upgrade`. (You can also download the `.dmg`
 directly from the [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).)
 
+### Windows — winget
+
+```sh
+winget install Vibetuned.MidiStroke
+```
+
+Or download the `*-setup.exe` installer from the
+[GitHub releases](https://github.com/vibetuned/midi-stroke/releases) — it
+bootstraps the WebView2 runtime automatically if it's missing.
+
 ### Debian / Ubuntu — apt
 
 The site hosts a signed apt repository:
@@ -39,8 +49,9 @@ it executable and run it.
 ## What's different from the browser
 
 - **MIDI is native** — the shell connects every MIDI input port directly
-  (CoreMIDI / ALSA / WinMM) and streams notes, velocity and breath control
-  to the trainer. No Web MIDI needed, no permission prompt.
+  (CoreMIDI on macOS, WinMM on Windows, ALSA on Linux) and streams notes,
+  velocity and breath control to the trainer. No Web MIDI needed, no
+  permission prompt.
 - Everything else is identical: same scores, same modes, same imports
   (ZIP collections work and persist), same stats. Note that stats and
   imported collections are stored per app — the desktop app and your browser

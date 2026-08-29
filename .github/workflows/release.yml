@@ -30,6 +30,9 @@ jobs:
           # Oldest LTS runner = broadest glibc compatibility for the deb.
           - platform: ubuntu-22.04
             args: --bundles deb,appimage
+          # NSIS setup.exe; WebView2 is bootstrapped by the installer.
+          - platform: windows-latest
+            args: --bundles nsis
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -85,10 +88,11 @@ jobs:
           releaseName: 'Midi Stroke v__VERSION__'
           releaseBody: >
             Midi Stroke desktop app — signed and notarized macOS universal
-            dmg, Debian package and AppImage. Prefer the package managers:
-            `brew install --cask vibetuned/tap/midi-stroke` on macOS, or the
-            apt repository at https://ms.vibetuned.com/apt on Debian/Ubuntu
-            (see https://ms.vibetuned.com/desktop/).
+            dmg, Windows installer, Debian package and AppImage. Prefer the
+            package managers: `brew install --cask vibetuned/tap/midi-stroke`
+            on macOS, `winget install Vibetuned.MidiStroke` on Windows, or
+            the apt repository at https://ms.vibetuned.com/apt on
+            Debian/Ubuntu (see https://ms.vibetuned.com/desktop/).
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}

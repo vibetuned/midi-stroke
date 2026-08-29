@@ -1,0 +1,22 @@
+# LF in the repository and in the working tree on every platform.
+#
+# Without this, a Windows build rewrites tracked text files with CRLF and
+# they surface as modified with no content change — Cargo.toml and
+# gen/schemas/*.json did exactly that during battuta's first Windows run.
+* text=auto eol=lf
+
+# Line-ending translation must never touch these.
+*.png   binary
+*.ico   binary
+*.icns  binary
+*.mp3   binary
+*.wav   binary
+*.ogg   binary
+*.gif   binary
+*.zip   binary
+*.woff  binary
+*.woff2 binary
+
+# Read by Linux tooling — CRLF breaks them.
+*.sh       text eol=lf
+*.desktop  text eol=lf

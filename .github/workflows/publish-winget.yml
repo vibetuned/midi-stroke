@@ -1,0 +1,48 @@
+# Submits the new version to microsoft/winget-pkgs whenever a release is
+# PUBLISHED, so `winget install Vibetuned.MidiStroke` tracks releases.
+#
+# Two prerequisites, both one-time:
+#  - the WINGET_TOKEN secret: a CLASSIC PAT with the public_repo scope
+#    (wingetcreate forks microsoft/winget-pkgs and opens the PR as you) —
+#    the same one battuta uses;
+#  - the package must already exist in winget-pkgs — the FIRST version is
+#    submitted by hand (moderation wants a human on the initial PR):
+#
+#      wingetcreate new https://github.com/vibetuned/midi-stroke/releases/download/v<V>/Midi.Stroke_<V>_x64-setup.exe
+#
+#    using "Vibetuned.MidiStroke" as the package identifier. Until that PR
+#    is merged this workflow detects the missing manifest and skips.
+name: publish-winget
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  winget:
+    runs-on: windows-latest
+    env:
+      WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+    steps:
+      - name: submit the version bump
+        if: env.WINGET_TOKEN != ''
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          # First release: the manifest path does not exist yet — skip
+          # rather than fail every release until the manual PR is merged.
+          gh api repos/microsoft/winget-pkgs/contents/manifests/v/Vibetuned/MidiStroke *> $null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Vibetuned.MidiStroke is not in winget-pkgs yet — submit the first version manually with 'wingetcreate new' (see this workflow's header)."
+            exit 0
+          }
+          $version = $env:TAG.TrimStart("v")
+          $asset = gh release view $env:TAG --repo $env:GITHUB_REPOSITORY --json assets -q '.assets[].name' |
+            Where-Object { $_ -match '-setup\.exe$' } | Select-Object -First 1
+          if (-not $asset) { throw "no *-setup.exe asset on $env:TAG" }
+          $url = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:TAG/$asset"
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          ./wingetcreate.exe update Vibetuned.MidiStroke --version $version --urls $url --submit --token $env:WINGET_TOKEN

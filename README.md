@@ -4,7 +4,7 @@
 **Midi Stroke** is a high-performance, web-based training suite designed to bridge the gap between technical execution and professional music notation.
 By leveraging real-time MIDI data and industry-standard rendering engines, it provides a data-driven environment for mastering melodic keys, rhythmic percussion, wind-controller saxophone, and written theory.
 
-**▶ Use it now: [ms.vibetuned.com/app](https://ms.vibetuned.com/app/)** · **User guide: [ms.vibetuned.com](https://ms.vibetuned.com/)** · **Desktop app:** `brew install --cask vibetuned/tap/midi-stroke` (macOS) · [apt repo](https://ms.vibetuned.com/desktop/) (Debian/Ubuntu) · [releases](https://github.com/vibetuned/midi-stroke/releases)
+**▶ Use it now: [ms.vibetuned.com/app](https://ms.vibetuned.com/app/)** · **User guide: [ms.vibetuned.com](https://ms.vibetuned.com/)** · **Desktop app:** `brew install --cask vibetuned/tap/midi-stroke` (macOS) · `winget install Vibetuned.MidiStroke` (Windows) · [apt repo](https://ms.vibetuned.com/desktop/) (Debian/Ubuntu) · [releases](https://github.com/vibetuned/midi-stroke/releases)
 
 ![Instrument selection](docs/screenshots/splash.png)
 
