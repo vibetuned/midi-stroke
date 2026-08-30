@@ -81,6 +81,35 @@ fn main() {
             println!("sysex brightness {v}% -> {name}");
             std::thread::sleep(std::time::Duration::from_millis(300));
         }
+        "listen" => {
+            // Dump every incoming message (incl. sysex) from an INPUT port.
+            // args: <port-idx-in-INPUT-list> [seconds]; run with no args first
+            // won't list inputs — use `listen-list` for that.
+            let secs: u64 = args.get(3).map(|s| s.parse().unwrap()).unwrap_or(30);
+            let mut inp = midir::MidiInput::new("lumi-probe-in").unwrap();
+            inp.ignore(midir::Ignore::None);
+            let iports = inp.ports();
+            let iname = inp.port_name(&iports[idx]).unwrap_or_default();
+            println!("listening on [{idx}] {iname} for {secs}s — move keys/press things now");
+            let _conn = inp
+                .connect(
+                    &iports[idx],
+                    "probe-listen",
+                    move |ts, msg, _| {
+                        let hex: Vec<String> = msg.iter().map(|b| format!("{b:02X}")).collect();
+                        println!("{ts} [{} bytes] {}", msg.len(), hex.join(" "));
+                    },
+                    (),
+                )
+                .unwrap();
+            std::thread::sleep(std::time::Duration::from_secs(secs));
+        }
+        "listen-list" => {
+            let inp = midir::MidiInput::new("lumi-probe-in").unwrap();
+            for (i, p) in inp.ports().iter().enumerate() {
+                println!("in[{}] {}", i, inp.port_name(p).unwrap_or_default());
+            }
+        }
         other => println!("unknown mode {other}"),
     }
 }

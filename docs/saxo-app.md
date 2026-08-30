@@ -333,3 +333,21 @@ Fork `ScoreView` and:
 - **Broadening the song list** — when going past A4–E5, extend the `VirtualSaxo` fingering table to
   the chromatic + altissimo/low-pinky range, and add a graceful out-of-range fallback.
 </content>
+
+---
+
+## Appendix: TravelSax physical-key protocol (decoded)
+
+The TravelSax reports each finger key independently of breath (verified by
+sniffing a real device; matches the `play.odiseimusic.com` app's own
+`t=14, n=15` constants):
+
+- **CC #14** (`Bn 0E vv`) — a key was **pressed**; `vv` is the key index (0–22).
+- **CC #15** (`Bn 0F vv`) — that key was **released**.
+
+Maintain a set: add on CC#14, remove on CC#15 → the live fingering, with no
+note-on required. `useMidi()` exposes this as `saxKeys: number[]`.
+
+Each drawn key in `VirtualSaxo` carries its device key index (`code`, traced
+against real hardware), so the chart lights the physically pressed switches
+directly from `saxKeys` — no learned table needed.

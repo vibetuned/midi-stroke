@@ -54,6 +54,11 @@ export function useMidi() {
     // CC#11 (expression), or channel pressure. Only updated when the value
     // actually changes, so instruments that send no breath trigger no re-renders.
     const [breath, setBreath] = useState(0);
+    // TravelSax physical key state, breath-independent: the controller reports
+    // each key press on CC#14 (value = key index) and each release on CC#15.
+    // Tracking the set lets the saxo app preview a fingering before any note
+    // sounds. Decoded from real hardware — see docs/saxo-app.md.
+    const [saxKeys, setSaxKeys] = useState<number[]>([]);
 
     // Shared message decoding — fed raw bytes by both the Web MIDI path and
     // the Tauri native bridge.
@@ -90,6 +95,13 @@ export function useMidi() {
         // For 0xD0 the second byte (`data1`) carries the pressure value.
         else if (command === 208) {
             setBreath(prev => (prev === data1 ? prev : data1));
+        }
+        // TravelSax key press (CC#14) / release (CC#15); value = key index.
+        else if (command === 176 && data1 === 14) {
+            setSaxKeys(prev => (prev.includes(data2) ? prev : [...prev, data2].sort((a, b) => a - b)));
+        }
+        else if (command === 176 && data1 === 15) {
+            setSaxKeys(prev => (prev.includes(data2) ? prev.filter(k => k !== data2) : prev));
         }
     }, []);
 
@@ -164,5 +176,5 @@ export function useMidi() {
         });
     }, [handleMidiBytes, handleMidiMessage]);
 
-    return { isMidiActive, deviceNames, activeNotes, lastNote, breath };
+    return { isMidiActive, deviceNames, activeNotes, lastNote, breath, saxKeys };
 }

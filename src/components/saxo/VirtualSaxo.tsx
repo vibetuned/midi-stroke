@@ -24,6 +24,10 @@ interface SaxoKey {
 
     ref: KeyRef;
 
+    // TravelSax physical key index: the value byte of the CC#14 (press) /
+    // CC#15 (release) messages this switch sends — lights the key when held.
+    code: number;
+
     shape: 'circle' | 'ellipse' | 'rrect' | 'half';
 
     label?: string;
@@ -48,58 +52,58 @@ const KEYS: SaxoKey[] = [
 
     // Main front keys
 
-    { ref: { main: 1 }, shape: 'circle', cx: 140, cy: 100, r: 22, label: 'B' },
+    { ref: { main: 1 }, code: 0x09, shape: 'circle', cx: 140, cy: 100, r: 22, label: 'B' },
 
-    { ref: { main: 2 }, shape: 'circle', cx: 140, cy: 163, r: 22, label: 'A' },
+    { ref: { main: 2 }, code: 0x08, shape: 'circle', cx: 140, cy: 163, r: 22, label: 'A' },
 
-    { ref: { main: 3 }, shape: 'circle', cx: 140, cy: 226, r: 22, label: 'G' },
+    { ref: { main: 3 }, code: 0x07, shape: 'circle', cx: 140, cy: 226, r: 22, label: 'G' },
 
-    { ref: { main: 4 }, shape: 'circle', cx: 140, cy: 322, r: 22, label: 'F' },
+    { ref: { main: 4 }, code: 0x06, shape: 'circle', cx: 140, cy: 322, r: 22, label: 'F' },
 
-    { ref: { main: 5 }, shape: 'circle', cx: 140, cy: 385, r: 22, label: 'E' },
+    { ref: { main: 5 }, code: 0x03, shape: 'circle', cx: 140, cy: 385, r: 22, label: 'E' },
 
-    { ref: { main: 6 }, shape: 'circle', cx: 140, cy: 448, r: 22, label: 'D' },
+    { ref: { main: 6 }, code: 0x02, shape: 'circle', cx: 140, cy: 448, r: 22, label: 'D' },
 
     // Octave (thumb), front F (teardrop), bis
 
-    { ref: { oct: true }, shape: 'ellipse', cx: 92, cy: 120, rx: 10, ry: 25, rot: -12, label: '8' },
+    { ref: { oct: true }, code: 0x0F, shape: 'ellipse', cx: 92, cy: 120, rx: 10, ry: 25, rot: -12, label: '8' },
 
-    { ref: { aux: 'frontF' }, shape: 'ellipse', cx: 140, cy: 50, rx: 10, ry: 25, rot: 60 },
+    { ref: { aux: 'frontF' }, code: 0x14, shape: 'ellipse', cx: 140, cy: 50, rx: 10, ry: 25, rot: 60 },
 
-    { ref: { aux: 'bis' }, shape: 'circle', cx: 172, cy: 132, r: 9 },
+    { ref: { aux: 'bis' }, code: 0x13, shape: 'circle', cx: 172, cy: 132, r: 9 },
 
     // Palm keys (upper right)
 
-    { ref: { aux: 'palmEb' }, shape: 'ellipse', cx: 220, cy: 80, rx: 12, ry: 26, rot: 160 },
+    { ref: { aux: 'palmEb' }, code: 0x0B, shape: 'ellipse', cx: 220, cy: 80, rx: 12, ry: 26, rot: 160 },
 
-    { ref: { aux: 'palmD' }, shape: 'ellipse', cx: 255, cy: 120, rx: 12, ry: 26, rot: 160 },
+    { ref: { aux: 'palmD' }, code: 0x0C, shape: 'ellipse', cx: 255, cy: 120, rx: 12, ry: 26, rot: 160 },
 
-    { ref: { aux: 'palmF' }, shape: 'ellipse', cx: 215, cy: 130, rx: 12, ry: 26, rot: 160 },
+    { ref: { aux: 'palmF' }, code: 0x0A, shape: 'ellipse', cx: 215, cy: 130, rx: 12, ry: 26, rot: 160 },
 
 
     // Left pinky table (G#, low C#, low B, low Bb) — at the right-side cluster
-    { ref: { aux: 'gsharp' }, shape: 'rrect', x: 180, y: 230, w: 50, h: 20, rrx: 8 },
-    { ref: { aux: 'lowB' }, shape: 'rrect', x: 180, y: 260, w: 20, h: 20, rrx: 8 },
-    { ref: { aux: 'lowCs' }, shape: 'rrect', x: 210, y: 260, w: 20, h: 20, rrx: 8 },
-    { ref: { aux: 'lowBb' }, shape: 'rrect', x: 180, y: 290, w: 50, h: 20, rrx: 8 },
+    { ref: { aux: 'gsharp' }, code: 0x04, shape: 'rrect', x: 180, y: 230, w: 50, h: 20, rrx: 8 },
+    { ref: { aux: 'lowB' }, code: 0x11, shape: 'rrect', x: 180, y: 260, w: 20, h: 20, rrx: 8 },
+    { ref: { aux: 'lowCs' }, code: 0x12, shape: 'rrect', x: 210, y: 260, w: 20, h: 20, rrx: 8 },
+    { ref: { aux: 'lowBb' }, code: 0x10, shape: 'rrect', x: 180, y: 290, w: 50, h: 20, rrx: 8 },
 
-    // Side keys (left column) — side E lights for E6/F6; the others are decorative
-    { ref: { aux: 'sideE' }, shape: 'rrect', x: 64, y: 220, w: 20, h: 30, rrx: 9 },
-    { ref: { deco: true }, shape: 'rrect', x: 64, y: 260, w: 20, h: 30, rrx: 10 },
-    { ref: { deco: true }, shape: 'rrect', x: 64, y: 300, w: 20, h: 30, rrx: 10 },
+    // Side keys (left column) — side E lights for E6/F6; the others are never expected
+    { ref: { aux: 'sideE' }, code: 0x0D, shape: 'rrect', x: 64, y: 220, w: 20, h: 30, rrx: 9 },
+    { ref: { deco: true }, code: 0x0E, shape: 'rrect', x: 64, y: 260, w: 20, h: 30, rrx: 10 },
+    { ref: { deco: true }, code: 0x05, shape: 'rrect', x: 64, y: 300, w: 20, h: 30, rrx: 10 },
 
 
     // F# / alternate keys (left of RH stack)
 
-    { ref: { deco: true }, shape: 'ellipse', cx: 95, cy: 360, rx: 10, ry: 25, rot: 200 },
+    { ref: { deco: true }, code: 0x16, shape: 'ellipse', cx: 95, cy: 360, rx: 10, ry: 25, rot: 200 },
 
-    { ref: { deco: true }, shape: 'ellipse', cx: 95, cy: 420, rx: 10, ry: 25, rot: 160 },
+    { ref: { deco: true }, code: 0x15, shape: 'ellipse', cx: 95, cy: 420, rx: 10, ry: 25, rot: 160 },
 
 
     // Right pinky (bottom): low Eb (top half) + low C (bottom half)
 
-    { ref: { aux: 'eb' }, shape: 'half', cx: 140, cy: 512, r: 24, side: 'top' },
-    { ref: { aux: 'lowC' }, shape: 'half', cx: 140, cy: 524, r: 24, side: 'bottom' },
+    { ref: { aux: 'eb' }, code: 0x01, shape: 'half', cx: 140, cy: 512, r: 24, side: 'top' },
+    { ref: { aux: 'lowC' }, code: 0x00, shape: 'half', cx: 140, cy: 524, r: 24, side: 'bottom' },
 
 ];
 
@@ -275,7 +279,7 @@ export const VirtualSaxo: React.FC = memo(() => {
 
     const { expectedNotes } = useGameLogic();
 
-    const { activeNotes, breath } = useMidi();
+    const { activeNotes, breath, saxKeys } = useMidi();
 
 
 
@@ -291,13 +295,10 @@ export const VirtualSaxo: React.FC = memo(() => {
 
     const fingering = target != null ? getSaxoFingering(target) : null;
 
-    // The player's *actual* fingering: map their currently-held controller note
-    // into the written domain and look up its canonical fingering.
-    const heldDeviceNotes = Array.from(activeNotes.keys());
-    const activeWritten = heldDeviceNotes.length
-        ? Math.max(...heldDeviceNotes) + SAXO_INPUT_TRANSPOSE_SEMITONES
-        : null;
-    const activeFingering = activeWritten != null ? getSaxoFingering(activeWritten) : null;
+    // The player's *actual* pressed switches, straight from the TravelSax key
+    // state (CC#14 press / CC#15 release) — breath-independent, so the chart
+    // shows the held keys even before any note sounds.
+    const pressed = new Set(saxKeys);
 
     const noteName = target != null ? Tone.Frequency(target, 'midi').toNote() : '—';
 
@@ -370,7 +371,9 @@ export const VirtualSaxo: React.FC = memo(() => {
 
                 <div style={{ fontSize: '0.7rem', color: '#777', marginTop: '0.25rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
 
-                    {target == null ? 'waiting' : outOfRange ? 'out of range' : isOpen ? 'all open' : 'fingering'}
+                    {target == null
+                        ? 'waiting'
+                        : outOfRange ? 'out of range' : isOpen ? 'all open' : 'fingering'}
 
                 </div>
 
@@ -418,7 +421,7 @@ export const VirtualSaxo: React.FC = memo(() => {
                         fill="none" stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round"
                     />
                     {keys.map((k, i) => (
-                        <Key key={i} k={k} expected={isPressed(k.ref, fingering)} active={isPressed(k.ref, activeFingering)} markWrong={fingering != null} />
+                        <Key key={i} k={k} expected={isPressed(k.ref, fingering)} active={pressed.has(k.code)} markWrong={fingering != null} />
                     ))}
                 </svg>
                 <BreathMeter value={breath} />

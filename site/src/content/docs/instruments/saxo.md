@@ -20,6 +20,14 @@ keys to release show red, and the note name sits right above the chart.
 - **Breath meter** — a live column showing your breath level, read from the
   controller (CC 2 / 7 / 11 or channel pressure).
 
+## Live key display (no breath needed)
+
+The TravelSax reports which keys your fingers are holding independently of
+breath, and each switch on the chart is mapped to its physical key on the
+device — so the chart lights exactly what you're pressing **before you
+blow**, handy for checking a fingering or switching cleanly between notes
+without an accidental note sounding.
+
 ## Pitch and transposition
 
 The scores are in **written pitch** for E♭ alto and the app expects your
