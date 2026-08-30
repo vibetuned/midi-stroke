@@ -35,6 +35,23 @@ both** toggle in the play controls:
 - **Virtual keyboard** — expected keys glow (color-coded by hand), pressed
   keys light up, and key names are labeled.
 
+## ROLI light guide
+
+With a ROLI Piano / LUMI Keys connected, the expected notes also light up
+**on the hardware** — per key, chords included, in your keyboard's own
+colors — and for scale exercises the whole keyboard is painted in the
+exercise's key (root + scale). Two device notes:
+
+- The incoming-note lights show in every mode, but their brightness is fixed
+  by the firmware — the **rainbow mode** (cycle with the power button) looks
+  best, since its mid-brightness colors let the guide lights stand out.
+- No setup needed: the guide activates automatically when a ROLI output is
+  detected, in the browser and in the desktop app.
+- **Managed browsers**: enterprise-policy Chrome installs can silently
+  swallow outgoing MIDI even while the permission looks granted (the console
+  shows the device and the sends, but nothing reaches it). If the lights stay
+  dark on a work machine, use an unmanaged browser or the desktop app.
+
 ## Scale generator
 
 The song picker's **🎼 Scale generator** entry engraves technique exercises

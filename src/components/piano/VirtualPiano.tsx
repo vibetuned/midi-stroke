@@ -1,8 +1,18 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useEffect } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useGameLogic } from '../../hooks/useGameLogic';
 import { useMidi } from '../../hooks/useMidi';
-import { scaleUrlPitchClasses } from '../../utils/scaleGen';
+import { scaleUrlPitchClasses, parseScaleUrl, type ScaleMode } from '../../utils/scaleGen';
+import { lightHardwareKeys, configureHardwareScale, tonicPitchClass, type HardwareScale } from '../../utils/keyLights';
+
+// Generator modes → the nearest scale the ROLI hardware can display
+// (melodic minor has no LUMI equivalent; harmonic shares the raised 7th).
+const HARDWARE_SCALE: Record<ScaleMode, HardwareScale> = {
+    major: 'major',
+    natural: 'minor',
+    harmonic: 'harmonicMinor',
+    melodic: 'harmonicMinor',
+};
 import * as Tone from 'tone';
 
 // Pressed-but-not-expected keys light up in this red ("release me") — same
@@ -30,6 +40,23 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
         () => (selectedSong ? scaleUrlPitchClasses(selectedSong) : null),
         [selectedSong],
     );
+
+    // ROLI light guide: mirror the expected notes onto the hardware keys via
+    // note-on/off (per-key, chords included). No-op without a ROLI output.
+    useEffect(() => {
+        lightHardwareKeys(expectedNotes.map(e => e.note));
+    }, [expectedNotes]);
+    // All lights off when the keyboard unmounts (song change / leaving piano).
+    useEffect(() => () => lightHardwareKeys([]), []);
+
+    // Scale exercises: paint the exercise's key onto the hardware (root +
+    // scale), mirroring the grayed-out foreign keys on the virtual keyboard.
+    useEffect(() => {
+        const spec = selectedSong ? parseScaleUrl(selectedSong) : null;
+        if (!spec) return;
+        const pc = tonicPitchClass(spec.tonic);
+        if (pc !== null) configureHardwareScale(pc, HARDWARE_SCALE[spec.mode]);
+    }, [selectedSong]);
 
     if (!pianoRange) return null;
 

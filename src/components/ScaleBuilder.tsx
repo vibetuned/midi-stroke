@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { CircleOfFifths, type Ring } from './theory/CircleOfFifths';
+import { prewarmScaleLights } from '../utils/keyLights';
 import { useVerovio } from '../hooks/useVerovio';
 import {
     SCALE_FORMS, SCALE_RHYTHMS, buildScaleUrl, describeScaleUrl, generateScaleMei,
@@ -130,7 +131,13 @@ export const ScaleBuilder: React.FC<ScaleBuilderProps> = ({ onStart }) => {
                         Show fingering
                     </label>
 
-                    <button onClick={() => onStart(url)} style={startButtonStyle} title={url}>
+                    <button
+                        // prewarm inside the click: the ROLI scale-paint sysex
+                        // permission prompt needs a user gesture in Chrome.
+                        onClick={() => { prewarmScaleLights(); onStart(url); }}
+                        style={startButtonStyle}
+                        title={url}
+                    >
                         ▶ Start — {describeScaleUrl(url)}
                     </button>
                 </div>

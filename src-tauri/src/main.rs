@@ -6,6 +6,65 @@ fn js_log(msg: String) {
     eprintln!("[js] {msg}");
 }
 
+/// MIDI OUTPUT shim — the webview has no Web MIDI, so hardware key lights
+/// (ROLI LUMI SysEx, see src/utils/keyLights.ts) go through these commands.
+/// The connection is cached per port name; a vanished device just errors the
+/// send and reconnects on the next call.
+struct MidiOut(std::sync::Mutex<Option<(String, midir::MidiOutputConnection)>>);
+
+/// Names of every MIDI output port currently present.
+#[tauri::command]
+fn midi_outputs() -> Vec<String> {
+    let Ok(probe) = midir::MidiOutput::new("midi-stroke-out-probe") else {
+        return Vec::new();
+    };
+    probe
+        .ports()
+        .iter()
+        .filter_map(|p| probe.port_name(p).ok())
+        .collect()
+}
+
+/// Send raw MIDI bytes (e.g. a SysEx frame) to the first output port whose
+/// name matches `port_match` (a case-insensitive regex alternation like
+/// "lumi|roli").
+#[tauri::command]
+fn midi_send(
+    port_match: String,
+    data: Vec<u8>,
+    state: tauri::State<'_, MidiOut>,
+) -> Result<(), String> {
+    let needles: Vec<String> = port_match.split('|').map(|s| s.trim().to_lowercase()).collect();
+    let matches = |name: &str| {
+        let lower = name.to_lowercase();
+        needles.iter().any(|n| !n.is_empty() && lower.contains(n))
+    };
+
+    let mut cached = state.0.lock().map_err(|e| e.to_string())?;
+
+    // Reuse the cached connection when it still matches; otherwise (re)connect.
+    if !matches!(&*cached, Some((name, _)) if matches(name)) {
+        let out = midir::MidiOutput::new("midi-stroke-out").map_err(|e| e.to_string())?;
+        let port = out
+            .ports()
+            .into_iter()
+            .find(|p| out.port_name(p).map(|n| matches(&n)).unwrap_or(false))
+            .ok_or_else(|| format!("no MIDI output matching '{port_match}'"))?;
+        let name = out.port_name(&port).unwrap_or_default();
+        let conn = out.connect(&port, "midi-stroke-lights").map_err(|e| e.to_string())?;
+        eprintln!("[shell] midi out connected: {name}");
+        *cached = Some((name, conn));
+    }
+
+    if let Some((_, conn)) = cached.as_mut() {
+        if let Err(e) = conn.send(&data) {
+            *cached = None; // stale connection (device unplugged) — drop it
+            return Err(e.to_string());
+        }
+    }
+    Ok(())
+}
+
 /// Native MIDI: the Tauri webview (WKWebView / WebKitGTK) has no Web MIDI
 /// API, so the shell bridges it — every input port is connected and each
 /// channel-voice message streams to the webview as a Tauri event
@@ -104,12 +163,13 @@ fn main() {
         eprintln!("[shell] mode: embedded assets (self-contained build) v{}", env!("CARGO_PKG_VERSION"));
     }
     tauri::Builder::default()
+        .manage(MidiOut(std::sync::Mutex::new(None)))
         .setup(|app| {
             use tauri::Manager;
             spawn_midi(app.app_handle().clone());
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![js_log])
+        .invoke_handler(tauri::generate_handler![js_log, midi_outputs, midi_send])
         .run(tauri::generate_context!())
         .expect("error while running midi-stroke");
 }
