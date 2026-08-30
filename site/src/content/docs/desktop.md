@@ -9,6 +9,13 @@ Web MIDI support, and hot-plugging devices just works.
 
 ## Install
 
+Every release ships a signed macOS universal dmg, a Windows installer, a
+Debian package and an AppImage — all attached to the
+[GitHub releases](https://github.com/vibetuned/midi-stroke/releases)
+(the [latest release](https://github.com/vibetuned/midi-stroke/releases/latest)
+is always the one to grab). What each version ships is recorded in the
+[changelog](https://github.com/vibetuned/midi-stroke/blob/main/CHANGELOG.md).
+
 ### macOS — Homebrew
 
 One universal build for Apple Silicon and Intel, signed and notarized:

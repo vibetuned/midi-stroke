@@ -1,6 +1,7 @@
 # Midi Stroke — Docs
 
 Developer documentation for the instrument apps and the shared engine.
+Release history lives in [../CHANGELOG.md](../CHANGELOG.md).
 
 - **[architecture.md](architecture.md)** — start here. The shared engine: routing, `GameContext`,
   hooks, the score-rendering pipeline, assets, stats, theming, and the instrument switch-point

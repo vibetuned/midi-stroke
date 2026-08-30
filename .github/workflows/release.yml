@@ -92,7 +92,9 @@ jobs:
             package managers: `brew install --cask vibetuned/tap/midi-stroke`
             on macOS, `winget install Vibetuned.MidiStroke` on Windows, or
             the apt repository at https://ms.vibetuned.com/apt on
-            Debian/Ubuntu (see https://ms.vibetuned.com/desktop/).
+            Debian/Ubuntu (see https://ms.vibetuned.com/desktop/). What this
+            release ships:
+            https://github.com/vibetuned/midi-stroke/blob/main/CHANGELOG.md
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
