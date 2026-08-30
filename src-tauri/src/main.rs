@@ -12,6 +12,17 @@ fn js_log(msg: String) {
 /// send and reconnects on the next call.
 struct MidiOut(std::sync::Mutex<Option<(String, midir::MidiOutputConnection)>>);
 
+/// True for MIDI ports created by this process itself. midir gives every
+/// connection a client-visible app port (ALSA: an output connection port is
+/// READable, an input one WRITEable — names look like
+/// "midi-stroke-out:midi-stroke-lights 128:0"), so the connect-everything
+/// input bridge would otherwise subscribe to our own key-light output and
+/// feed every guide note-on straight back to the trainer as a key press,
+/// self-advancing practice mode (verified: examples/loopback_probe.rs).
+fn own_port(name: &str) -> bool {
+    name.contains("midi-stroke")
+}
+
 /// Names of every MIDI output port currently present.
 #[tauri::command]
 fn midi_outputs() -> Vec<String> {
@@ -22,6 +33,7 @@ fn midi_outputs() -> Vec<String> {
         .ports()
         .iter()
         .filter_map(|p| probe.port_name(p).ok())
+        .filter(|n| !own_port(n))
         .collect()
 }
 
@@ -48,7 +60,7 @@ fn midi_send(
         let port = out
             .ports()
             .into_iter()
-            .find(|p| out.port_name(p).map(|n| matches(&n)).unwrap_or(false))
+            .find(|p| out.port_name(p).map(|n| matches(&n) && !own_port(&n)).unwrap_or(false))
             .ok_or_else(|| format!("no MIDI output matching '{port_match}'"))?;
         let name = out.port_name(&port).unwrap_or_default();
         let conn = out.connect(&port, "midi-stroke-lights").map_err(|e| e.to_string())?;
@@ -94,13 +106,23 @@ fn spawn_midi(app: tauri::AppHandle) {
             let names = (|| -> Option<Vec<String>> {
                 let mut probe = midir::MidiInput::new("midi-stroke-probe").ok()?;
                 probe.ignore(midir::Ignore::None);
-                Some(probe.ports().iter().filter_map(|p| probe.port_name(p).ok()).collect())
+                Some(
+                    probe
+                        .ports()
+                        .iter()
+                        .filter_map(|p| probe.port_name(p).ok())
+                        .filter(|n| !own_port(n))
+                        .collect(),
+                )
             })()
             .unwrap_or_default();
             if names != last_names {
                 connections.clear(); // drop = disconnect
                 if let Ok(probe) = midir::MidiInput::new("midi-stroke-probe") {
                     for port in probe.ports() {
+                        if probe.port_name(&port).map(|n| own_port(&n)).unwrap_or(true) {
+                            continue; // never subscribe to our own key-light stream
+                        }
                         let Ok(mut input) = midir::MidiInput::new("midi-stroke") else { continue };
                         input.ignore(midir::Ignore::None);
                         let app2 = app.clone();

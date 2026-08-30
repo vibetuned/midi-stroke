@@ -161,6 +161,17 @@ export function configureHardwareScale(tonicPc: number, scale: HardwareScale): v
 const lit = new Set<number>();
 
 /**
+ * Drop keys from the lit-model without sending anything: the device wipes a
+ * guide light by itself when the player presses and releases that key (the
+ * local key animation overrides our received note-on). Report released keys
+ * here so the next lightHardwareKeys() re-sends the note-on when the same
+ * note is expected again (repeated notes) instead of diffing it away.
+ */
+export function forgetHardwareKeys(notes: number[]): void {
+    notes.forEach(n => lit.delete(n));
+}
+
+/**
  * Light exactly this set of MIDI notes on the hardware — notes no longer in
  * the set are turned off, new ones on. Pass [] to clear everything.
  */

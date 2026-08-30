@@ -630,12 +630,12 @@ const cacheChipStyle = (cached: boolean): React.CSSProperties => ({
 });
 
 const selectStyle: React.CSSProperties = {
-    width: '100%', padding: '0.7rem 0.8rem', borderRadius: '8px',
-    background: '#22222a', color: 'white',
+    width: '100%', padding: '0.7rem 1.6rem 0.7rem 0.8rem', borderRadius: '8px',
+    backgroundColor: '#22222a', color: 'white',
     border: '1px solid rgba(255,255,255,0.15)', fontSize: '0.95rem',
 };
 
-const inputStyle: React.CSSProperties = { ...selectStyle };
+const inputStyle: React.CSSProperties = { ...selectStyle, padding: '0.7rem 0.8rem' };
 
 const secondaryButtonStyle: React.CSSProperties = {
     padding: '0.7rem 1.2rem', fontSize: '0.9rem',

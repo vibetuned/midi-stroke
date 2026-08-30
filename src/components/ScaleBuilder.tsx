@@ -179,8 +179,8 @@ const labelStyle: React.CSSProperties = {
 };
 
 const selectStyle: React.CSSProperties = {
-    padding: '0.5rem 0.6rem', borderRadius: '8px',
-    background: '#22222a', color: 'white',
+    padding: '0.5rem 1.5rem 0.5rem 0.6rem', borderRadius: '8px',
+    backgroundColor: '#22222a', color: 'white',
     border: '1px solid rgba(255,255,255,0.15)', fontSize: '0.9rem',
 };
 

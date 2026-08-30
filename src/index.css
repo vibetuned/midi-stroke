@@ -102,3 +102,39 @@ body {
   0%   { transform: translate3d(0, 0, 0); }
   100% { transform: translate3d(var(--marquee-offset), 0, 0); }
 }
+
+/* Native form controls, desktop build (Tauri). On Linux the WebKitGTK
+   select popup is drawn on the GTK side (tauri#11755): white default
+   background + the page's inherited white text = white on white.
+   appearance:none + color-scheme:dark + explicit option colors is the
+   closest CSS gets (same treatment as battuta's status-bar selects); the
+   chevron the appearance reset removes returns as a background image.
+   Component select styles must use backgroundColor, not the background
+   shorthand — the shorthand would wipe the chevron. */
+:root {
+  color-scheme: dark;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239a9aa8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+select option {
+  background: #22222a;
+  color: #fff;
+}
+
+/* Circle-of-fifths hub engraving: Verovio emits black glyph fills and
+   currentColor strokes pinned by color="black" on its inner <svg>. Recolor
+   with CSS (author rules beat presentation attributes) rather than
+   filter: invert(1) — WebKitGTK doesn't apply CSS filters to SVG <g>
+   elements, which left the clef/key-sig black on the dark hub on Linux. */
+.cof-keysig,
+.cof-keysig svg {
+  color: #e8e8e8;
+  fill: #e8e8e8;
+}

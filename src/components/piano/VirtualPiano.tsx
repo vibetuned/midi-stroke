@@ -1,9 +1,9 @@
-import React, { memo, useMemo, useEffect } from 'react';
+import React, { memo, useMemo, useEffect, useRef } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useGameLogic } from '../../hooks/useGameLogic';
 import { useMidi } from '../../hooks/useMidi';
 import { scaleUrlPitchClasses, parseScaleUrl, type ScaleMode } from '../../utils/scaleGen';
-import { lightHardwareKeys, configureHardwareScale, tonicPitchClass, type HardwareScale } from '../../utils/keyLights';
+import { lightHardwareKeys, forgetHardwareKeys, configureHardwareScale, tonicPitchClass, type HardwareScale } from '../../utils/keyLights';
 
 // Generator modes → the nearest scale the ROLI hardware can display
 // (melodic minor has no LUMI equivalent; harmonic shares the raised 7th).
@@ -43,9 +43,17 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
 
     // ROLI light guide: mirror the expected notes onto the hardware keys via
     // note-on/off (per-key, chords included). No-op without a ROLI output.
+    // The device wipes a guide light itself once the player presses and
+    // releases that key, so keys the player just released are dropped from
+    // the lit-model before re-asserting — a repeated note then gets its
+    // note-on re-sent instead of being diffed away as "already lit".
+    const prevHeldRef = useRef<Set<number>>(new Set());
     useEffect(() => {
+        const held = new Set(activeNotes.keys());
+        forgetHardwareKeys([...prevHeldRef.current].filter(n => !held.has(n)));
+        prevHeldRef.current = held;
         lightHardwareKeys(expectedNotes.map(e => e.note));
-    }, [expectedNotes]);
+    }, [expectedNotes, activeNotes]);
     // All lights off when the keyboard unmounts (song change / leaving piano).
     useEffect(() => () => lightHardwareKeys([]), []);
 
