@@ -8,8 +8,8 @@
  * stable string that doubles as a stats key — and resolved on demand into an
  * MEI document (see resolveSongUrl).
  *
- * The design follows the four layers of definition.md (mirrored, with the
- * musical sources, in docs/saxo-scales.md):
+ * The design follows the four layers of the original brief (restated, with
+ * the musical sources and the two corrections to it, in docs/saxo-scales.md):
  *
  *  1. Transposition & tessitura. Concert pitch (the harmonic state you think
  *     in, the key the band is in) is kept separate from written pitch (what

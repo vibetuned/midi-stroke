@@ -8,18 +8,37 @@ description: What you need, how to connect your MIDI instrument, and your first 
 - **A MIDI instrument** — a keyboard for piano, a pad controller (built for
   the Yamaha FGDP-50) for drums, or a wind controller (built for the
   TravelSax) for saxo. Theory works without one.
-- **A browser with Web MIDI** — Chrome, Edge or Opera. Safari and Firefox
-  don't ship the Web MIDI API; on those, use the
-  [desktop app](../desktop/), which bridges MIDI natively.
+- **Midi Stroke** — the [desktop app](../desktop/) on macOS, Windows or
+  Linux, or the web app in a browser with Web MIDI.
 
-Open **[ms.vibetuned.com/app](https://ms.vibetuned.com/app/)**, plug in your
-instrument (ideally before opening the page, so it's detected right away),
-and pick an instrument card.
+### Install the desktop app
+
+This is the way to run it. MIDI is handled by the operating system
+(CoreMIDI, WinMM, ALSA), so no browser support question arises, hot-plugging
+a controller works, and everything runs offline.
+
+```sh
+brew install --cask vibetuned/tap/midi-stroke   # macOS
+winget install Vibetuned.MidiStroke             # Windows
+```
+
+On Debian and Ubuntu there is a signed apt repository, and an AppImage for
+everything else — see the [desktop app page](../desktop/) for both, and for
+what each release ships.
+
+### Or use the browser
+
+**[ms.vibetuned.com/app](https://ms.vibetuned.com/app/)** runs the same
+trainer in **Chrome, Edge or Opera**. Safari and Firefox don't ship the Web
+MIDI API, so on those the desktop app is the only option.
+
+Either way, plug your instrument in first (so it's detected right away), then
+pick an instrument card.
 
 ## First session
 
-1. **Start** — the first click boots the audio engine (browsers require a
-   gesture before an app may make sound).
+1. **Start** — the first click boots the audio engine (one gesture is needed
+   before any app may make sound).
 2. **Piano only: calibrate your keys** — press the lowest and the highest key
    of your keyboard once. The virtual keyboard then only draws keys you
    actually have.
@@ -47,10 +66,15 @@ the first note.
 - **Hand selection (piano)** — L / R / both; the inactive staff dims and its
   notes stop being expected.
 - **Stats** — precision, combos and history are kept per piece and per mode,
-  locally in your browser. The 📊 button in the header opens the history.
+  on the device. The 📊 button in the header opens the history. The desktop
+  app and your browser keep separate histories, since each stores its own.
 
 ## MIDI status
 
 The pill in the top-right shows whether MIDI is live and how many input
 devices are connected. All connected inputs are listened to at once — no
 device picking needed.
+
+In the desktop app the connection is native, so a device plugged in mid-session
+appears on its own. In the browser the first session asks for the Web MIDI
+permission, and the pill stays red until it is granted.

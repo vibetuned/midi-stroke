@@ -31,8 +31,8 @@ sax:Bb-bebopdom-scalar-full-eighths-x1-alto-a1w0h0
     └────────────────────────────────────────── root (concert, unless the w flag is set)
 ```
 
-The design follows the four layers of `definition.md`, the brief this was built
-from. Everything below says what was implemented and — where the brief and the
+The design follows the four layers of the original brief this was built from.
+Everything below says what was implemented and — where the brief and the
 standard repertoire disagree — which one won and why.
 
 ---
@@ -94,7 +94,7 @@ eighths starting from a chord tone.
 | Bebop minor (♮7) | im7 | 1 2 ♭3 4 5 6 ♭7 ♮7 | ♮7 between ♭7 and 1 |
 | Bebop melodic minor | mMaj7 | 1 2 ♭3 4 5 ♯5 6 7 | ♯5 between 5 and 6 |
 
-> **One correction to the brief.** `definition.md` lists the bebop dorian with
+> **One correction to the brief.** The brief lists the bebop dorian with
 > the ♮3 passing tone *and* claims its downbeats carry 1, ♭3, 5 and ♭7. Those
 > two statements cannot both hold: inserting the passing tone at the third
 > degree pushes 5 and ♭7 onto odd scale steps, so they fall on the offbeats.

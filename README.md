@@ -123,9 +123,13 @@ Single-voice melodic training for wind controllers (built for the TravelSax). Th
 
 The saxophone counterpart of the piano scale generator, built for jazz practice rather than conservatory technique. Pick a key on the **circle of fifths** — in **concert pitch**, so you think in the key the band is playing, and the part is engraved transposed for your horn (alto, tenor, soprano or baritone) — then a scale, a pattern, and how much of the instrument to cover.
 
+![Jazz scale generator](docs/screenshots/jazz-generator.png)
+
 The scales are the jazz vocabulary: the **bebop** scales, whose added chromatic passing tone puts the chord tones on the downbeats; the **melodic minor modes** (lydian dominant, altered, locrian ♯2 …); the **symmetrical** scales; and the pentatonic/blues family. The patterns are what players actually practise: scales in thirds, the digital cells (1-2-3-5, 3-5-7-9), triad pairs, and three kinds of chromatic **enclosure** around every chord tone. **Jazz articulation** slurs each offbeat into the downbeat and accents the top of every leap wider than a minor third.
 
-Exercises are laid out on the **real keyed range** of the horn (written B♭3–F6, optionally the high F♯), so "full range" means the Bergonzi-style traversal — root up to the top of the instrument, down to the bottom, back to the root — not an abstract octave count.
+Exercises are laid out on the **real keyed range** of the horn (written B♭3–F6, optionally the high F♯), so "full range" means the Bergonzi-style traversal — root up to the top of the instrument, down to the bottom, back to the root — not an abstract octave count. Generated exercises then play like any other piece, with their own stats:
+
+![Generated bebop exercise in the score view](docs/screenshots/jazz-exercise.png)
 
 ### 🎼 Theory — [docs/theory-app.md](docs/theory-app.md)
 

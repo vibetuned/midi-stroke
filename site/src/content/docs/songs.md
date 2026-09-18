@@ -25,10 +25,10 @@ use a ZIP import for that.
 collection named after the ZIP file — `My Songs.zip` becomes the collection
 **My_Songs** under the current instrument. What you should know:
 
-- **It's permanent and on-device.** The files are unpacked into your
-  browser's private storage (OPFS), so the collection survives reloads and
-  works offline. It belongs to this browser on this device — it isn't synced
-  anywhere.
+- **It's permanent and on-device.** The files are unpacked into the app's
+  private storage (OPFS), so the collection survives restarts and works
+  offline. It belongs to that app on that device — the desktop app and your
+  browser each keep their own, and neither is synced anywhere.
 - **Anything reasonable works**: nested folders inside the ZIP are
   flattened, non-MEI files and macOS metadata are ignored.
 - Imported collections show a 📦 marker in the rail and a 🗑 chip to delete
@@ -61,5 +61,8 @@ connected; they're always local.
 
 ## Offline
 
-Midi Stroke is a PWA: the app shell, engraving engine and any pieces you've
-cached (📥) or imported (📦) keep working with no network at all.
+The [desktop app](../desktop/) carries the app shell and the engraving engine
+with it, so it starts with no network at all; only lesson videos and the piano
+samples need to be fetched. In the browser the same holds through the PWA: the
+shell, the engraving engine and any pieces you've cached (📥) or imported (📦)
+keep working offline.

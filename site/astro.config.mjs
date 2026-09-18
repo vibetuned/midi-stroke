@@ -33,6 +33,7 @@ export default defineConfig({
         {
           label: "Start here",
           items: [
+            { slug: "desktop", label: "Install the app" },
             { slug: "getting-started" },
             { slug: "songs" },
           ],
@@ -49,7 +50,6 @@ export default defineConfig({
         {
           label: "More",
           items: [
-            { slug: "desktop" },
             { slug: "development" },
           ],
         },

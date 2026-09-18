@@ -566,7 +566,7 @@ const overlayStyle: React.CSSProperties = {
 };
 
 const cardStyle: React.CSSProperties = {
-    width: 'min(1000px, 94vw)', height: 'min(640px, 88vh)',
+    width: 'min(1000px, 94vw)', height: 'min(720px, 88vh)',
     background: 'var(--color-bg-primary, #16161c)',
     border: '1px solid rgba(255,255,255,0.12)',
     borderRadius: '14px', display: 'flex', flexDirection: 'column',

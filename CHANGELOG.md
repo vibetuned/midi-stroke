@@ -6,6 +6,84 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
+## Unreleased
+
+### The saxo jazz scale generator
+
+- **Jazz exercises engraved on demand**, the saxophone counterpart of the
+  piano scale generator: the song picker's **🎼 Jazz generator** entry builds
+  bebop scales, patterns and enclosures across the horn, started like any
+  other piece through a synthetic `sax:` URL that doubles as its stats key.
+  Full design record in [docs/saxo-scales.md](docs/saxo-scales.md).
+- **Concert pitch and written pitch are separate.** Pick the key the band is
+  playing and the part is engraved transposed for your horn — alto, tenor,
+  soprano or baritone — with both keys shown as you work. Transposition keeps
+  the spelling, and a written root that would need nine sharps is respelled
+  (concert F♯ on alto reads E♭, not D♯).
+- **Exercises are laid out on the real keyed range** (written B♭3–F6, or F♯6
+  with the extra key), so the generator can never ask for a note the horn
+  does not have. *Full horn* is the Bergonzi-style traversal — root to the
+  top of the instrument, down to the bottom, back to the root — alongside the
+  usual 1–3 octaves.
+- **22 scales**: the four bebop scales plus a ♮7 bebop minor, the parent
+  scales, the six melodic-minor modes, the symmetrical scales, and the
+  pentatonic/blues family including the 9-note jazz blues.
+- **8 patterns**: scalar, thirds, the digital cells (1-2-3-5, 3-5-7-9), triad
+  pairs, and three chromatic approach/enclosure figures around every chord
+  tone. Cells that would run off the end of the horn are skipped rather than
+  clipped, so each keeps its shape.
+- **Jazz articulation**: slurs each offbeat into the downbeat, accents the top
+  note of every leap wider than a minor third. Playback stays straight —
+  scoring follows the engraved rhythm, so swung eighths would be marked wrong.
+- **Chord tones on the downbeats** is treated as a property to verify, not to
+  assume: the builder badges only the scales where it actually holds, and it
+  is preserved through the turnarounds at both ends of the horn and across
+  repeats (a pass is an odd number of notes, so repeats drop the duplicated
+  root at the seam).
+
+### Notation engine
+
+- **One engraving layer for both generators** — measure layout, durations,
+  beaming, tuplets and the accidental rules moved out of the piano generator
+  into `src/utils/meiNotation.ts`. Verified by generating 5632 piano exercise
+  specs before and after: byte-identical output.
+- Accidentals reset at every barline, and an alteration that sounds without a
+  glyph is written `@accid.ges`, because Verovio's MIDI export resolves
+  neither the key signature nor carried accidentals — without it the
+  engraving and hit-detection would disagree.
+
+### Corrections to the source brief
+
+- The **bebop dorian** was specified with the ♮3 passing tone *and* with all
+  four m7 chord tones on the downbeats; those cannot both hold, since the
+  passing tone pushes the 5 and ♭7 onto odd scale steps. The scale is kept as
+  written (it is the same collection as the bebop dominant a fourth below,
+  whose chord tones are what land on the beat) and **bebop minor (♮7)**, the
+  variant that does put all four on the beat, was added beside it.
+- The **double chromatic above** was specified as ♭6 → ♮6 → 5, which steps up
+  before descending; the standard figure descends chromatically onto the
+  target and that is what is generated.
+
+### Verification
+
+- `npm run check:jazz` sweeps ~850 specs — every scale × pattern, every root ×
+  horn × key domain, every rhythm × range × repeat count — checking that
+  Verovio renders each one, that every note is inside the horn, that the
+  exported MIDI sounds exactly what was engraved, that the timemap starts
+  after the count-in and the last bar is complete, and that downbeat-aligned
+  scales stay aligned.
+- Driven end to end in a headless browser, splash through to the scrolling
+  score view.
+
+### Docs
+
+- New [docs/saxo-scales.md](docs/saxo-scales.md); the user guide's saxo page
+  gained a generator section with screenshots.
+- **The guide now leads with the native app**: install moves to the top of
+  the sidebar, the landing page's first action installs the desktop build with
+  per-platform commands, and getting-started treats the browser as the
+  alternative rather than the default.
+
 ## 0.0.1 — 2026-08-30
 
 The first release: the complete four-instrument training suite as a web app

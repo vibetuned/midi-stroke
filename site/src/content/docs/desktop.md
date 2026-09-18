@@ -1,11 +1,12 @@
 ---
 title: Desktop app
-description: The Tauri desktop build — native MIDI on every platform, including browsers without Web MIDI.
+description: Install Midi Stroke natively on macOS, Windows or Linux — MIDI through the operating system, no browser involved.
 ---
 
-Midi Stroke also ships as a **desktop app** (built with Tauri): the same
-trainer, with MIDI handled **natively** — so it works regardless of browser
-Web MIDI support, and hot-plugging devices just works.
+Midi Stroke runs as a **native app** on macOS, Windows and Linux, built with
+Tauri. This is the way to run it: MIDI is handled by the operating system
+itself, so no browser support question arises, hot-plugging a controller
+works, and the trainer runs offline.
 
 ## Install
 
@@ -53,12 +54,12 @@ Grab the `.AppImage` from the
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases), make
 it executable and run it.
 
-## What's different from the browser
+## What the native app gives you
 
 - **MIDI is native** — the shell connects every MIDI input port directly
   (CoreMIDI on macOS, WinMM on Windows, ALSA on Linux) and streams notes,
   velocity and breath control to the trainer. No Web MIDI needed, no
-  permission prompt.
+  permission prompt, and no Safari or Firefox dead end.
 - Everything else is identical: same scores, same modes, same imports
   (ZIP collections work and persist), same stats. Note that stats and
   imported collections are stored per app — the desktop app and your browser

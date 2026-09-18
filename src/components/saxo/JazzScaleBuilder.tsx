@@ -4,7 +4,7 @@ import { Stepper } from '../Stepper';
 import { chipStyle, labelStyle, previewBoxStyle, selectStyle, startButtonStyle } from '../builderStyles';
 import { useVerovio } from '../../hooks/useVerovio';
 import {
-    HORNS, JAZZ_PATTERNS, JAZZ_RHYTHMS, JAZZ_SCALES, WRITTEN_LOW,
+    HORNS, JAZZ_PATTERNS, JAZZ_RHYTHMS, JAZZ_SCALES,
     buildJazzUrl, defaultJazzSpec, downbeatAligned, generateJazzMei,
     jazzScaleSpelling, resolveJazzSpec,
     type HornId, type JazzPattern, type JazzRange, type JazzScaleId, type JazzSpec,
@@ -65,7 +65,7 @@ export const JazzScaleBuilder: React.FC<JazzScaleBuilderProps> = ({ onStart }) =
             });
             toolkit.loadData(generateJazzMei(spec));
             return toolkit.renderToSVG(1, {})
-                .replace('<svg ', '<svg style="height:150px;width:auto;" ');
+                .replace('<svg ', '<svg style="height:102px;width:auto;" ');
         } catch (e) {
             console.error('Jazz exercise preview render failed:', e);
             return null;
@@ -79,17 +79,17 @@ export const JazzScaleBuilder: React.FC<JazzScaleBuilderProps> = ({ onStart }) =
     const lineHigh = resolved.line.length ? midiName(resolved.line[resolved.line.length - 1].midi) : '—';
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', height: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', height: '100%' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
                 {/* Fixed-width box so the circle's aspect-ratio sizing cannot
                     feed back into this wrapping, scrollable flex row. */}
-                <div style={{ width: '300px', flexShrink: 0 }}>
+                <div style={{ width: '212px', flexShrink: 0 }}>
                     <CircleOfFifths
                         highlightKey={highlightKey}
                         selectableRings={['major']}
                         onKeySelect={(_ring, index) => setRootIndex(index)}
                     />
-                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.4rem', justifyContent: 'center' }}>
                         {(['concert', 'written'] as const).map(d => (
                             <button key={d} onClick={() => setDomain(d)} style={chipStyle(domain === d)}>
                                 {d} key
@@ -98,7 +98,7 @@ export const JazzScaleBuilder: React.FC<JazzScaleBuilderProps> = ({ onStart }) =
                     </div>
 
                     {/* What the choices actually produced, in both pitch domains. */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.78rem', marginTop: '0.7rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.22rem', fontSize: '0.74rem', marginTop: '0.5rem' }}>
                         <Row label="Sounds in" value={`${prettyRoot(resolved.concert)} ${resolved.def.chord}`} />
                         <Row label="You read" value={`${prettyRoot(resolved.written)} ${resolved.def.label}`} />
                         <Row label="Scale" value={spelling.map(d => d.name).join(' ')} />
@@ -111,7 +111,7 @@ export const JazzScaleBuilder: React.FC<JazzScaleBuilderProps> = ({ onStart }) =
                     </div>
                 </div>
 
-                <div style={{ flex: '1 1 260px', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                <div style={{ flex: '1 1 260px', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                     <label style={labelStyle}>
                         Scale
                         <select value={scale} onChange={e => setScale(e.target.value as JazzScaleId)} style={selectStyle}>
@@ -127,25 +127,30 @@ export const JazzScaleBuilder: React.FC<JazzScaleBuilderProps> = ({ onStart }) =
 
                     <label style={labelStyle}>
                         Pattern
-                        <select value={pattern} onChange={e => setPattern(e.target.value as JazzPattern)} style={selectStyle}>
+                        <select
+                            value={pattern}
+                            onChange={e => setPattern(e.target.value as JazzPattern)}
+                            style={selectStyle}
+                            title={patternHint}
+                        >
                             {JAZZ_PATTERNS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                         </select>
-                        <span style={hintStyle}>{patternHint}</span>
                     </label>
 
-                    <label style={labelStyle}>
-                        Horn
-                        <select value={horn} onChange={e => setHorn(e.target.value as HornId)} style={selectStyle}>
-                            {HORNS.map(h => <option key={h.id} value={h.id}>{h.label}</option>)}
-                        </select>
-                    </label>
-
-                    <label style={labelStyle}>
-                        Rhythm
-                        <select value={rhythm} onChange={e => setRhythm(e.target.value as Rhythm)} style={selectStyle}>
-                            {JAZZ_RHYTHMS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                        </select>
-                    </label>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <label style={{ ...labelStyle, flex: 1, minWidth: 0 }}>
+                            Horn
+                            <select value={horn} onChange={e => setHorn(e.target.value as HornId)} style={selectStyle}>
+                                {HORNS.map(h => <option key={h.id} value={h.id}>{h.label}</option>)}
+                            </select>
+                        </label>
+                        <label style={{ ...labelStyle, flex: 1, minWidth: 0 }}>
+                            Rhythm
+                            <select value={rhythm} onChange={e => setRhythm(e.target.value as Rhythm)} style={selectStyle}>
+                                {JAZZ_RHYTHMS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                            </select>
+                        </label>
+                    </div>
 
                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -168,9 +173,6 @@ export const JazzScaleBuilder: React.FC<JazzScaleBuilderProps> = ({ onStart }) =
                         <input type="checkbox" checked={highFs} onChange={e => setHighFs(e.target.checked)} />
                         Use the high F♯ key
                     </label>
-                    <span style={hintStyle}>
-                        Written range {midiName(WRITTEN_LOW)}–{highFs ? 'F♯6' : 'F6'}; every exercise is laid out inside it.
-                    </span>
 
                     <button onClick={() => onStart(url)} style={startButtonStyle} title={url}>
                         ▶ Start — {resolved.def.label} on {spelling[0]?.name} written
@@ -179,7 +181,7 @@ export const JazzScaleBuilder: React.FC<JazzScaleBuilderProps> = ({ onStart }) =
             </div>
 
             {/* Engraving preview (Verovio renders black-on-transparent; invert for the dark UI) */}
-            <div style={previewBoxStyle}>
+            <div style={{ ...previewBoxStyle, minHeight: '82px' }}>
                 {preview
                     ? <div style={{ filter: 'invert(0.92)' }} dangerouslySetInnerHTML={{ __html: preview }} />
                     : <span style={{ color: 'var(--color-text-secondary, #888)', fontSize: '0.85rem' }}>Loading preview…</span>}
@@ -200,10 +202,6 @@ const Row: React.FC<{ label: string; value: string }> = ({ label, value }) => (
         <span style={{ color: '#e8e8ef' }}>{value}</span>
     </div>
 );
-
-const hintStyle: React.CSSProperties = {
-    fontSize: '0.72rem', color: 'var(--color-text-secondary, #8a8a98)', lineHeight: 1.35,
-};
 
 const badgeStyle: React.CSSProperties = {
     alignSelf: 'flex-start', padding: '0.25rem 0.6rem', borderRadius: '12px',
