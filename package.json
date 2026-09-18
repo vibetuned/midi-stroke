@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "build:saxo": "node scripts/build-saxo-scores.mjs",
     "build:saxo-manifest": "node scripts/build-saxo-manifest.mjs",
-    "build:course-manifest": "node scripts/build-course-manifest.mjs"
+    "build:course-manifest": "node scripts/build-course-manifest.mjs",
+    "check:jazz": "node scripts/check-jazz-scales.mjs"
   },
   "dependencies": {
     "@types/d3": "^7.4.3",

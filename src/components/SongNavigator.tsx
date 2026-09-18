@@ -3,6 +3,7 @@ import { useGame } from '../context/GameContext';
 import { buildSongUrl, catalogUrl } from '../utils/songUrl';
 import { listOpfsSongs } from '../utils/opfs';
 import { describeScaleUrl } from '../utils/scaleGen';
+import { describeJazzUrl } from '../utils/jazzScaleGen';
 import { SongMarqueeButton } from './SongMarqueeButton';
 
 interface SongFile {
@@ -43,7 +44,8 @@ export const SongNavigator: React.FC<SongNavigatorProps> = ({ onChangeRequest })
 
     const isLocal = selectedSong.startsWith('blob:');
     // Server URLs carry percent-encoded names; show them decoded.
-    let songName = describeScaleUrl(selectedSong) ?? selectedSong.split('/').pop() ?? selectedSong;
+    let songName = describeScaleUrl(selectedSong) ?? describeJazzUrl(selectedSong)
+        ?? selectedSong.split('/').pop() ?? selectedSong;
     try {
         songName = decodeURIComponent(songName);
     } catch { /* keep raw name */ }

@@ -4,9 +4,88 @@
 **Midi Stroke** is a high-performance, web-based training suite designed to bridge the gap between technical execution and professional music notation.
 By leveraging real-time MIDI data and industry-standard rendering engines, it provides a data-driven environment for mastering melodic keys, rhythmic percussion, wind-controller saxophone, and written theory.
 
-**▶ Use it now: [ms.vibetuned.com/app](https://ms.vibetuned.com/app/)** · **User guide: [ms.vibetuned.com](https://ms.vibetuned.com/)** · **Desktop app:** `brew install --cask vibetuned/tap/midi-stroke` (macOS) · `winget install Vibetuned.MidiStroke` (Windows) · [apt repo](https://ms.vibetuned.com/desktop/) (Debian/Ubuntu) · [releases](https://github.com/vibetuned/midi-stroke/releases) · [changelog](CHANGELOG.md)
+**▶ Use it now: [ms.vibetuned.com/app](https://ms.vibetuned.com/app/)** · **User guide: [ms.vibetuned.com](https://ms.vibetuned.com/)** · **Desktop app: [install it natively](#install)** · [releases](https://github.com/vibetuned/midi-stroke/releases) · [changelog](CHANGELOG.md)
 
 ![Instrument selection](docs/screenshots/splash.png)
+
+---
+
+## Install
+
+Midi Stroke runs **in the browser** and as a **native desktop app** (Tauri) for
+macOS, Windows and Linux. The desktop build is the same trainer with **native
+MIDI** — the shell talks to CoreMIDI / WinMM / ALSA directly, so it needs no Web
+MIDI support and hot-plugging devices just works. Everything else is identical
+(same scores, modes, imports and stats — stored per app, so the desktop app and
+your browser each keep their own).
+
+| Platform | Install | Direct download |
+|---|---|---|
+| **macOS** | `brew install --cask vibetuned/tap/midi-stroke` | universal `.dmg`, signed + notarized |
+| **Windows** | `winget install Vibetuned.MidiStroke` | `*-setup.exe` (NSIS) |
+| **Debian / Ubuntu** | signed [apt repository](#debian--ubuntu--apt) | `.deb` |
+| **Other Linux** | — | `.AppImage` |
+| **Browser** | — | [ms.vibetuned.com/app](https://ms.vibetuned.com/app/) (PWA — installs and auto-updates) |
+
+Every release attaches all four bundles to the
+[GitHub releases](https://github.com/vibetuned/midi-stroke/releases) page (the
+[latest release](https://github.com/vibetuned/midi-stroke/releases/latest) is
+always the one to grab), and what each version ships is recorded in the
+[changelog](CHANGELOG.md). The long version of this page, with screenshots, is
+[ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/).
+
+### macOS — Homebrew
+
+```sh
+brew install --cask vibetuned/tap/midi-stroke
+```
+
+One universal build covering Apple Silicon and Intel, signed with Vibetuned's
+Apple Developer ID and notarized by Apple — no Gatekeeper warning. `brew
+upgrade` picks up new versions; the `.dmg` from the releases page installs the
+same build by hand.
+
+### Windows — winget
+
+```sh
+winget install Vibetuned.MidiStroke
+```
+
+Or run the `*-setup.exe` installer from the releases page — it bootstraps the
+WebView2 runtime automatically if the machine doesn't have it. The installer is
+not code-signed yet, so SmartScreen shows a warning on first run: *More info →
+Run anyway*.
+
+### Debian / Ubuntu — apt
+
+The site hosts a signed apt repository, so releases arrive with the system's
+regular updates:
+
+```sh
+sudo curl -fsSL https://ms.vibetuned.com/apt/midi-stroke.asc -o /etc/apt/keyrings/midi-stroke.asc
+echo "deb [signed-by=/etc/apt/keyrings/midi-stroke.asc] https://ms.vibetuned.com/apt stable main" | sudo tee /etc/apt/sources.list.d/midi-stroke.list
+sudo apt update && sudo apt install midi-stroke
+```
+
+(On a system without `/etc/apt/keyrings`, create it first:
+`sudo install -m 0755 -d /etc/apt/keyrings`.) The `.deb` from the releases page
+also installs standalone with `sudo apt install ./Midi.Stroke_<version>_amd64.deb`.
+
+### Other Linux — AppImage
+
+Grab the `.AppImage` from the releases page, make it executable, and run it:
+
+```sh
+chmod +x Midi.Stroke_*_amd64.AppImage
+./Midi.Stroke_*_amd64.AppImage
+```
+
+### Browser
+
+Nothing to install: open [ms.vibetuned.com/app](https://ms.vibetuned.com/app/)
+in a browser with Web MIDI support (Chrome, Edge, Opera). It is a PWA, so it
+installs to the desktop from the browser's own install button and auto-updates;
+scores, stats and imports stay on-device.
 
 ---
 
@@ -40,6 +119,14 @@ Single-voice melodic training for wind controllers (built for the TravelSax). Th
 
 ![Saxo app](docs/screenshots/saxo.png)
 
+#### Jazz scale generator — [docs/saxo-scales.md](docs/saxo-scales.md)
+
+The saxophone counterpart of the piano scale generator, built for jazz practice rather than conservatory technique. Pick a key on the **circle of fifths** — in **concert pitch**, so you think in the key the band is playing, and the part is engraved transposed for your horn (alto, tenor, soprano or baritone) — then a scale, a pattern, and how much of the instrument to cover.
+
+The scales are the jazz vocabulary: the **bebop** scales, whose added chromatic passing tone puts the chord tones on the downbeats; the **melodic minor modes** (lydian dominant, altered, locrian ♯2 …); the **symmetrical** scales; and the pentatonic/blues family. The patterns are what players actually practise: scales in thirds, the digital cells (1-2-3-5, 3-5-7-9), triad pairs, and three kinds of chromatic **enclosure** around every chord tone. **Jazz articulation** slurs each offbeat into the downbeat and accents the top of every leap wider than a minor third.
+
+Exercises are laid out on the **real keyed range** of the horn (written B♭3–F6, optionally the high F♯), so "full range" means the Bergonzi-style traversal — root up to the top of the instrument, down to the bottom, back to the root — not an abstract octave count.
+
 ### 🎼 Theory — [docs/theory-app.md](docs/theory-app.md)
 
 A **train & practice course player**: each course module pairs lesson videos with fill-in-the-blank worksheet exercises rendered as real engraved scores. Instead of playing along with a transport, you *write* music — entering notes from the clickable virtual piano, the circle-of-fifths wheel, or a MIDI keyboard — then check your work, reveal the model answer, or listen to either. Courses (Elementary rudiments, Notation, …) live as content under `public/courses/`, with per-exercise progress and watched-video tracking persisted locally. Exercise types cover interval ear-tests, primary triads and inversions, cadence writing, passing/auxiliary notes, dominant sevenths and more.
@@ -57,6 +144,7 @@ A **train & practice course player**: each course module pairs lesson videos wit
 | [docs/piano-app.md](docs/piano-app.md) | The Piano app (reference implementation). |
 | [docs/drums-app.md](docs/drums-app.md) | The Drums app and how it differs from Piano. |
 | [docs/saxo-app.md](docs/saxo-app.md) | The Saxo app: design, offline score pipeline, transposition, fingering chart, TravelSax input. |
+| [docs/saxo-scales.md](docs/saxo-scales.md) | The Saxo jazz scale generator: transposition/tessitura, the bebop and modern-jazz scales, patterns and enclosures, engraving and enharmonics. |
 | [docs/theory-app.md](docs/theory-app.md) | The Theory app: course/module content model, worksheet exercise engine, video player, input instruments. |
 
 ---
@@ -85,22 +173,48 @@ The application is built on a web stack trying to be optimized for low-latency a
 
 ![Song picker with ZIP import](docs/screenshots/song-selector.png)
 * **Scale Generator (Piano):** technique exercises in all 24 keys engraved on demand — scales, intervals, triads, arpeggios and cadences with conservatory fingering — plus key-aware graying of the virtual keyboard.
+* **Jazz Scale Generator (Saxo):** bebop scales, melodic-minor modes, symmetrical and blues scales in any concert key, engraved in written pitch for your horn across its full keyed range — with digital patterns, triad pairs, chromatic enclosures and jazz articulation.
 * **Theory Courses:** video lessons paired with fill-in-the-blank score exercises, answered from piano, circle of fifths, or MIDI input.
 * **Precision Tempo Control:** A high-resolution transport system for granular practice, from slow-motion technical drills to full-speed performance.
 * **Session Stats:** Per-song accuracy, combos, and history persisted locally.
 
 ---
 
-## Getting Started
+## Building from source
+
+To *use* Midi Stroke, install a release — see [Install](#install) above. This
+section is for hacking on it.
 
 ### Prerequisites
 * A MIDI-compatible keyboard, pad controller (e.g. Yamaha FGDP-50), or wind controller (e.g. TravelSax).
-* A modern web browser with Web MIDI API support (Chrome, Edge, Opera).
+* Node 22 (what CI builds with) for the web app; a browser with Web MIDI API support (Chrome, Edge, Opera) to run it — the desktop shell needs neither.
+* For the desktop shell: the [Rust toolchain](https://rustup.rs/), plus `libwebkit2gtk-4.1-dev`, `libasound2-dev` and `librsvg2-dev` on Linux, Xcode command-line tools on macOS, or the Visual Studio Build Tools C++ workload on Windows.
 
-### Installation
-1.  Clone the repository: `git clone https://github.com/your-username/midi-stroke.git`
+### The web app
+1.  Clone the repository: `git clone https://github.com/vibetuned/midi-stroke.git`
 2.  Install dependencies: `npm install`
 3.  Launch the development server: `npm run dev`
+
+### The desktop app (Tauri)
+
+```sh
+npm run tauri dev      # native shell against the dev server, hot reload included
+npm run tauri build    # release bundles for whichever OS you are on
+```
+
+Bundles land in `src-tauri/target/release/bundle/`. Tauri does not
+cross-compile — the webview is the native one on each platform (WKWebView,
+WebView2, WebKitGTK), so every OS builds its own artifact; on macOS,
+`rustup target add aarch64-apple-darwin x86_64-apple-darwin` and
+`npm run tauri build -- --target universal-apple-darwin` produce the one
+universal binary the Homebrew cask points at.
+
+Releases are built by CI instead: pushing a `v*` tag runs
+[.github/workflows/release.yml](.github/workflows/release.yml), which bundles
+all four artifacts (signing and notarizing the macOS one) and attaches them to
+a **draft** release. Publishing that draft is what updates the Homebrew cask,
+the winget manifest and the apt repository — see the exact dependency list and
+the per-platform bundle flags in that workflow.
 
 ### Score asset scripts
 
@@ -111,6 +225,7 @@ npm run build:saxo               # derive saxo scores from piano MEI (drop bass,
 npm run build:saxo-manifest      # regenerate public/saxo_files.json by scanning public/saxo/ (run after adding songs)
 npm run build:course-manifest    # regenerate the theory course manifest from public/courses/
 node scripts/build-keysig-assets.mjs  # re-engrave the circle-of-fifths key-signature assets (src/assets/keySignatures.ts)
+npm run check:jazz               # validate the saxo jazz generator (range, engraving vs MIDI, bebop downbeats)
 ```
 
 ### Local Network Access

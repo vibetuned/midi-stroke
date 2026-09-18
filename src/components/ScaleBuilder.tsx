@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { CircleOfFifths, type Ring } from './theory/CircleOfFifths';
+import { Stepper } from './Stepper';
+import { chipStyle, labelStyle, previewBoxStyle, selectStyle, startButtonStyle } from './builderStyles';
 import { prewarmScaleLights } from '../utils/keyLights';
 import { useVerovio } from '../hooks/useVerovio';
 import {
@@ -151,57 +153,4 @@ export const ScaleBuilder: React.FC<ScaleBuilderProps> = ({ onStart }) => {
             </div>
         </div>
     );
-};
-
-const Stepper: React.FC<{
-    label: string; value: number; min: number; max: number;
-    onChange: (v: number) => void; disabled?: boolean;
-}> = ({ label, value, min, max, onChange, disabled }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', opacity: disabled ? 0.45 : 1 }}>
-        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary, #9a9aa8)' }}>{label}</span>
-        <div style={{ display: 'flex', gap: '0.25rem' }}>
-            {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(v => (
-                <button
-                    key={v}
-                    onClick={() => !disabled && onChange(v)}
-                    style={chipStyle(value === v)}
-                >
-                    {v}
-                </button>
-            ))}
-        </div>
-    </div>
-);
-
-const labelStyle: React.CSSProperties = {
-    display: 'flex', flexDirection: 'column', gap: '0.25rem',
-    fontSize: '0.75rem', color: 'var(--color-text-secondary, #9a9aa8)',
-};
-
-const selectStyle: React.CSSProperties = {
-    padding: '0.5rem 1.5rem 0.5rem 0.6rem', borderRadius: '8px',
-    backgroundColor: '#22222a', color: 'white',
-    border: '1px solid rgba(255,255,255,0.15)', fontSize: '0.9rem',
-};
-
-const chipStyle = (active: boolean): React.CSSProperties => ({
-    padding: '0.3rem 0.7rem', borderRadius: '14px', fontSize: '0.8rem',
-    background: active ? 'var(--color-accent)' : 'transparent',
-    color: active ? '#fff' : 'var(--color-text-secondary, #cfcfd8)',
-    border: `1px solid ${active ? 'var(--color-accent)' : 'rgba(255,255,255,0.2)'}`,
-    cursor: 'pointer',
-});
-
-const startButtonStyle: React.CSSProperties = {
-    marginTop: '0.3rem', padding: '0.7rem 1rem', fontSize: '0.92rem', fontWeight: 600,
-    background: 'var(--color-accent)', color: 'white',
-    border: 'none', borderRadius: '10px', cursor: 'pointer', textAlign: 'left',
-};
-
-const previewBoxStyle: React.CSSProperties = {
-    overflowX: 'auto', overflowY: 'hidden', flexShrink: 0,
-    border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
-    padding: '0.4rem 0.6rem', minHeight: '120px',
-    display: 'flex', alignItems: 'center',
-    background: 'rgba(255,255,255,0.03)',
 };

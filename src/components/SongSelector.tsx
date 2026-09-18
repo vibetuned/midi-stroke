@@ -4,12 +4,20 @@ import { useStats } from '../context/StatsContext';
 import { buildSongUrl, catalogUrl, resolveSongUrl } from '../utils/songUrl';
 import { OPFS_PREFIX, isOpfsSupported, listOpfsSongs, importZipToOpfs, deleteOpfsCollection } from '../utils/opfs';
 import { ScaleBuilder } from './ScaleBuilder';
+import { JazzScaleBuilder } from './saxo/JazzScaleBuilder';
 
 // Must match the server's slug rule for instruments/categories (server/src/app.ts).
 const CATEGORY_RE = /^[a-z0-9][a-z0-9_-]*$/i;
 const NEW_CATEGORY = '__new__';
-// Rail entry for the generated scale exercises (piano only) — not a catalog path.
+// Rail entry for the generated exercises — not a catalog path. Piano gets the
+// conservatory scale generator, saxo the jazz one; the other instruments have
+// no generator and never show the entry.
 const SCALES_PATH = '__scales__';
+
+const GENERATORS: Record<string, { title: string; label: string; sub: string }> = {
+    piano: { title: 'Scale Generator', label: '🎼 Scale generator', sub: 'scales · arpeggios · cadences' },
+    saxo: { title: 'Jazz Scale Generator', label: '🎼 Jazz generator', sub: 'bebop · patterns · enclosures' },
+};
 
 interface SongFile {
     path: string;
@@ -49,6 +57,7 @@ function niceName(raw: string): string {
 
 export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
     const { isAudioStarted, pianoRange, selectedSong, setSelectedSong, instrument, serverBase, setServerBase } = useGame();
+    const generator = GENERATORS[instrument];
     const { getSongStats } = useStats();
     const [files, setFiles] = useState<SongFile[]>([]);
     const [selectedPath, setSelectedPath] = useState<string>('');
@@ -346,18 +355,18 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                     <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
                         {/* Collection list */}
                         <div style={railStyle}>
-                            {instrument === 'piano' && (
+                            {generator && (
                                 <button
                                     onClick={() => setSelectedPath(SCALES_PATH)}
                                     style={collectionButtonStyle(selectedPath === SCALES_PATH)}
                                 >
                                     <div style={{ fontSize: '0.9rem', fontWeight: selectedPath === SCALES_PATH ? 600 : 400 }}>
-                                        🎼 Scale generator
+                                        {generator.label}
                                     </div>
-                                    <div style={subLabelStyle}>scales · arpeggios · cadences</div>
+                                    <div style={subLabelStyle}>{generator.sub}</div>
                                 </button>
                             )}
-                            {availablePaths.length === 0 && instrument !== 'piano' && <Empty>No collections found.</Empty>}
+                            {availablePaths.length === 0 && !generator && <Empty>No collections found.</Empty>}
                             {availablePaths.map(p => {
                                 const isActive = p === selectedPath;
                                 const isUploaded = p.startsWith(OPFS_PREFIX);
@@ -389,11 +398,13 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                             })}
                         </div>
 
-                        {/* Piece list — or the scale builder for the generator entry */}
-                        {selectedPath === SCALES_PATH ? (
+                        {/* Piece list — or the exercise builder for the generator entry */}
+                        {selectedPath === SCALES_PATH && generator ? (
                             <div style={detailStyle}>
-                                <h3 style={sectionTitleStyle}>Scale Generator</h3>
-                                <ScaleBuilder onStart={setSelectedSong} />
+                                <h3 style={sectionTitleStyle}>{generator.title}</h3>
+                                {instrument === 'saxo'
+                                    ? <JazzScaleBuilder onStart={setSelectedSong} />
+                                    : <ScaleBuilder onStart={setSelectedSong} />}
                             </div>
                         ) : (
                         <div style={detailStyle}>

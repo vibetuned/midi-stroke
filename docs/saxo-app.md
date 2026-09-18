@@ -4,6 +4,11 @@
 > [piano-app.md](piano-app.md), and [drums-app.md](drums-app.md) first — this doc only describes
 > what is *new* for the saxophone.
 
+> The app also ships a **jazz scale generator** — bebop scales, digital patterns
+> and enclosures engraved on demand across the horn's range, in written pitch for
+> alto/tenor/soprano/baritone. It has its own document:
+> [saxo-scales.md](saxo-scales.md).
+
 The Saxo app is a **single-voice melodic** trainer. Musically it behaves like the Piano app with
 one staff (treble only), but the screen is laid out as a **left/right split**: a large scrolling
 score on the right and a minimalist **saxophone fingering display** on the left.
@@ -267,6 +272,17 @@ src/components/saxo/     ✅ DONE (runtime phase)
 
 docs/
   saxo-app.md            ← this file
+  saxo-scales.md         ✅ the jazz scale generator (bebop/patterns/enclosures)
+
+src/utils/
+  jazzScaleGen.ts        ✅ the generator: transposition, tessitura, scales, patterns
+  meiNotation.ts         ✅ shared engraving layer (also used by the piano generator)
+
+src/components/saxo/
+  JazzScaleBuilder.tsx   ✅ builder panel in the song selector
+
+scripts/
+  check-jazz-scales.mjs  ✅ validation sweep (npm run check:jazz)
 ```
 
 > Because adaptation is **offline**, `SaxoScoreView` loads the baked `saxo/...` MEI with **no
@@ -303,7 +319,12 @@ Fork `ScoreView` and:
      expected note's keys light up (C#5→all-open, B4→key 1); no runtime exceptions.
    - ✅ Input offset measured against a real TravelSax via the calibration readout = `+12`.
    - ⏳ **Still TODO here:** source the awkward chromatic fingerings (bis Bb, fork F#) from a chart.
-5. **Polish** — ✅ sax timbre in `useAudio` (saxo uses a reed-ish sawtooth `PolySynth` + lowpass +
+5. ✅ **Jazz scale generator** — `sax:` exercise URLs resolved like the piano
+   `scale:` ones, a builder in the song selector, and the piano generator's
+   engraving code extracted into a shared notation layer. See
+   [saxo-scales.md](saxo-scales.md); validated with `npm run check:jazz` and
+   headlessly in the browser (splash → saxo → generator → score view).
+6. **Polish** — ✅ sax timbre in `useAudio` (saxo uses a reed-ish sawtooth `PolySynth` + lowpass +
    vibrato instead of the piano sampler); ✅ `VirtualSaxo` redrawn as a thin **outline** sax with the
    **full key layout** (octave, front F, bis, B/A/G + F/E/D stacks, palm cluster, side keys, left
    pinky table, F♯ alternates, low Eb/C) — pressed keys light gold per note. ⏳ remaining: broaden the

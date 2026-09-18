@@ -22,12 +22,16 @@
  */
 
 import { keyAlter } from './musicxml';
+import {
+    layoutRun, newAccidState, serializeBeat,
+    type Beat, type NoteItem, type Pitch, type Rhythm,
+} from './meiNotation';
 
 export type ScaleForm =
     | 'parallel' | 'contrary' | 'thirds' | 'sixths' | 'tenths'
     | 'scaletriads' | 'inversions' | 'triads' | 'arpeggio' | 'dom7' | 'cadence';
 export type ScaleMode = 'major' | 'natural' | 'harmonic' | 'melodic';
-export type ScaleRhythm = 'quarters' | 'eighths' | '16ths' | 'triplets';
+export type ScaleRhythm = Rhythm;
 
 export interface ScaleSpec {
     tonic: string;       // "C", "F#", "Eb" — letter plus optional #/b
@@ -63,8 +67,6 @@ export const SCALE_RHYTHMS: Array<{ value: ScaleRhythm; label: string }> = [
 const LETTERS = 'CDEFGAB';
 // Letters ordered by fifths; index-1 (+7 per sharp in the tonic) = key fifths.
 const FIFTHS_ORDER = 'FCGDAEB';
-
-interface Pitch { step: string; alter: number; oct: number }
 
 // ---------------------------------------------------------------- URL codec
 
@@ -446,142 +448,13 @@ function buildMusic(spec: ScaleSpec): { rh: Music; lh: Music } {
 }
 
 // ---------------------------------------------------------- MEI serializing
+//
+// Durations, beaming, tuplets and accidentals are handled by meiNotation.ts
+// (shared with the saxo jazz generator); what stays here is the grand-staff
+// document shape and the <fing> control events.
 
-// Tick base: 12 per quarter (LCM of sixteenths and triplet eighths); 48/measure.
-const MEASURE_TICKS = 48;
-const UNIT_TICKS: Record<ScaleRhythm, number> = { quarters: 12, eighths: 6, '16ths': 3, triplets: 4 };
-const ACCID: Record<number, string> = { [-2]: 'ff', [-1]: 'f', 0: 'n', 1: 's', 2: 'x' };
-// Gestural accidentals use a different vocabulary: double sharp is "ss", not "x".
-const ACCID_GES: Record<number, string> = { [-2]: 'ff', [-1]: 'f', 0: 'n', 1: 's', 2: 'ss' };
-
-interface NoteItem {
-    id: string;
-    pitches: Pitch[];          // 1 = note, >1 = chord
-    dur: number;               // MEI dur value (1, 2, 4, 8, 16)
-    dots: number;
-    tie: '' | 'i' | 'm' | 't';
-    inTuplet: boolean;
-    fings: Array<number | null>;
-}
-
-interface Beat { items: NoteItem[]; tuplet: boolean }
-
-/** Chop a beat-aligned tick length into displayable durations (largest first). */
-function plainDurs(ticks: number, atMeasureStart: boolean): Array<{ dur: number; dots: number }> {
-    const out: Array<{ dur: number; dots: number }> = [];
-    let left = ticks;
-    if (atMeasureStart && left === 48) return [{ dur: 1, dots: 0 }];
-    for (const [t, dur, dots] of [[36, 2, 1], [24, 2, 0], [12, 4, 0], [9, 8, 1], [6, 8, 0], [3, 16, 0]] as const) {
-        while (left >= t) { out.push({ dur, dots }); left -= t; }
-    }
-    return out;
-}
-
-/**
- * Lay a hand's run out into measures of four beats. All events are one
- * rhythm unit long except the last, which is stretched (with ties where
- * needed) to close exactly on a barline.
- */
-function layoutRun(events: Ev[], rhythm: ScaleRhythm, nextId: () => string): Beat[][] {
-    const unit = UNIT_TICKS[rhythm];
-    const runTicks = (events.length - 1) * unit;
-    const finalTicks = MEASURE_TICKS - (runTicks % MEASURE_TICKS) || MEASURE_TICKS;
-    const isTriplet = rhythm === 'triplets';
-    const unitDur = rhythm === 'quarters' ? 4 : rhythm === '16ths' ? 16 : 8;
-
-    const measures: Beat[][] = [];
-    const beatAt = (pos: number): Beat => {
-        const m = Math.floor(pos / MEASURE_TICKS);
-        const b = Math.floor((pos % MEASURE_TICKS) / 12);
-        while (measures.length <= m) measures.push([]);
-        const measure = measures[m];
-        while (measure.length <= b) measure.push({ items: [], tuplet: false });
-        return measure[b];
-    };
-
-    let pos = 0;
-    events.forEach((ev, i) => {
-        const isFinal = i === events.length - 1;
-        if (!isFinal) {
-            const beat = beatAt(pos);
-            beat.tuplet ||= isTriplet;
-            beat.items.push({
-                id: nextId(), pitches: ev.pitches, dur: unitDur, dots: 0,
-                tie: '', inTuplet: isTriplet, fings: ev.fings,
-            });
-            pos += unit;
-            return;
-        }
-        // Final note: fill the open beat first (inside the tuplet for
-        // triplets), then plain tied values to the barline.
-        const chunks: Array<{ dur: number; dots: number; tuplet: boolean }> = [];
-        const inBeat = pos % 12;
-        if (inBeat !== 0) {
-            const fill = 12 - inBeat;
-            if (isTriplet) {
-                chunks.push({ dur: fill === 4 ? 8 : 4, dots: 0, tuplet: true });
-            } else {
-                plainDurs(fill, false).forEach(d => chunks.push({ ...d, tuplet: false }));
-            }
-        }
-        const rest = finalTicks - (inBeat === 0 ? 0 : 12 - inBeat);
-        plainDurs(rest, (pos + (inBeat ? 12 - inBeat : 0)) % MEASURE_TICKS === 0)
-            .forEach(d => chunks.push({ ...d, tuplet: false }));
-        chunks.forEach((c, k) => {
-            const beat = beatAt(pos);
-            beat.tuplet ||= c.tuplet;
-            beat.items.push({
-                id: nextId(), pitches: ev.pitches, dur: c.dur, dots: c.dots,
-                tie: chunks.length === 1 ? '' : k === 0 ? 'i' : k === chunks.length - 1 ? 't' : 'm',
-                inTuplet: c.tuplet, fings: k === 0 ? ev.fings : ev.fings.map(() => null),
-            });
-            const ticks = c.tuplet
-                ? (c.dur === 8 ? 4 : 8)
-                : [0, 48, 24, 0, 12, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 3][c.dur] * (c.dots ? 1.5 : 1);
-            pos += ticks;
-        });
-    });
-    return measures;
-}
-
-function xmlNote(p: Pitch, attrs: string, accidState: Map<string, number>, fifths: number): string {
-    const key = `${p.step}${p.oct}`;
-    const inKey = keyAlter(p.step, fifths);
-    const current = accidState.get(key) ?? inKey;
-    let accid = '';
-    if (p.alter !== current) {
-        // Needs a drawn accidental (differs from the signature / an earlier
-        // accidental in this measure); @accid is gestural too.
-        accid = ` accid="${ACCID[p.alter]}"`;
-        accidState.set(key, p.alter);
-    } else if (p.alter !== 0) {
-        // Sounding alteration with no glyph (key signature or a carried
-        // in-measure accidental). Verovio's MIDI export resolves neither —
-        // it only honors per-note accidentals — so make it gestural
-        // explicitly, exactly like Verovio's own MusicXML→MEI transcodes do.
-        accid = ` accid.ges="${ACCID_GES[p.alter]}"`;
-    }
-    return `<note ${attrs} pname="${p.step.toLowerCase()}" oct="${p.oct}"${accid} />`;
-}
-
-function serializeItem(it: NoteItem, accidState: Map<string, number>, fifths: number): string {
-    const durAttrs = `dur="${it.dur}"${it.dots ? ` dots="${it.dots}"` : ''}${it.tie ? ` tie="${it.tie}"` : ''}`;
-    if (it.pitches.length > 1) {
-        const notes = it.pitches
-            .map((p, i) => xmlNote(p, `xml:id="${it.id}-${i}"`, accidState, fifths))
-            .join('');
-        return `<chord xml:id="${it.id}" ${durAttrs}>${notes}</chord>`;
-    }
-    return xmlNote(it.pitches[0], `xml:id="${it.id}" ${durAttrs}`, accidState, fifths);
-}
-
-function serializeBeat(beat: Beat, accidState: Map<string, number>, fifths: number): string {
-    let inner = beat.items.map(it => serializeItem(it, accidState, fifths)).join('');
-    const beamable = beat.items.length > 1 && beat.items.every(it => it.dur >= 8);
-    if (beamable) inner = `<beam>${inner}</beam>`;
-    if (beat.tuplet) inner = `<tuplet num="3" numbase="2">${inner}</tuplet>`;
-    return inner;
-}
+/** A laid-out item's payload: one finger (or null) per pitch of the event. */
+type Fings = Array<number | null>;
 
 /** MEI for a spec, in the dialect of the bundled piano files. */
 export function generateScaleMei(spec: ScaleSpec): string {
@@ -590,13 +463,14 @@ export function generateScaleMei(spec: ScaleSpec): string {
     let counter = 0;
     const nextId = () => `sg${++counter}`;
 
-    const toMeasures = (m: Music): Beat[][] => m.kind === 'run'
-        ? layoutRun(m.events, spec.rhythm, nextId)
+    const toMeasures = (m: Music): Array<Array<Beat<Fings>>> => m.kind === 'run'
+        ? layoutRun(m.events.map(ev => ({ pitches: ev.pitches, data: ev.fings })), spec.rhythm, nextId)
         : m.measures.map(ev => [{
             items: [{
                 id: nextId(), pitches: ev.pitches, dur: 1, dots: 0,
-                tie: '' as const, inTuplet: false, fings: ev.fings,
-            }],
+                tie: '' as const, inTuplet: false, data: ev.fings,
+                first: true, attrs: '',
+            } satisfies NoteItem<Fings>],
             tuplet: false,
         }]);
 
@@ -607,12 +481,14 @@ export function generateScaleMei(spec: ScaleSpec): string {
     const measureXml: string[] = [];
     for (let m = 0; m < count; m++) {
         const fings: string[] = [];
-        const staffXml = ([[1, rhMeasures[m]], [2, lhMeasures[m]]] as Array<[number, Beat[] | undefined]>)
+        const staffXml = ([[1, rhMeasures[m]], [2, lhMeasures[m]]] as Array<[number, Array<Beat<Fings>> | undefined]>)
             .map(([n, beats]) => {
-                const accidState = new Map<string, number>();
+                const accidState = newAccidState();
                 const inner = (beats ?? []).map(b => serializeBeat(b, accidState, fifths)).join('');
                 if (spec.fingering) {
-                    (beats ?? []).forEach(b => b.items.forEach(it => it.fings.forEach((f, i) => {
+                    // Only the first chunk of a tied note carries the finger —
+                    // a tie continuation must not repeat it.
+                    (beats ?? []).forEach(b => b.items.forEach(it => it.first && it.data.forEach((f, i) => {
                         if (f == null) return;
                         const target = it.pitches.length > 1 ? `${it.id}-${i}` : it.id;
                         fings.push(`<fing staff="${n}" startid="#${target}">${f}</fing>`);
