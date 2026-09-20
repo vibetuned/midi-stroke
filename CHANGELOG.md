@@ -8,6 +8,72 @@ the way. Install channels and downloads:
 
 ## Unreleased
 
+### Drums finally sound like drums
+
+- **Pads play a synthesized kit instead of the piano sampler.** A pad hit used to
+  come out as a piano note at whatever pitch the pad mapped to; it now plays its
+  own voice — twelve of them, covering kick, snare, rim, closed and open hi-hat,
+  ride, crash, three toms, clap, cowbell and tambourine
+  ([src/utils/drumKit.ts](src/utils/drumKit.ts)).
+- **Synthesis, not samples, and deliberately**: the app notates twelve voices and
+  the drum kits on the Tone.js CDN carry six (kick, snare, hi-hat, three toms), so
+  half the kit would have been silent or wrong. The kit also needs no download and
+  works offline in the desktop app — the Drums app now fetches **none** of the
+  ~10 MB of piano samples it used to pull in.
+- Membrane synths for kick and toms, filtered noise for the snare wash, hats, rim,
+  clap and tambourine, an inharmonic oscillator bank for ride and crash, two
+  squares through a band-pass for the cowbell. Velocity-sensitive throughout, a
+  closed hi-hat chokes the open one, and the bus runs through a limiter because
+  four full-velocity hits landing together summed past full scale.
+- Tone's `MetalSynth` is avoided for the cymbals: in this version a bare
+  `MetalSynth` stays silent for about a second after being triggered and then
+  bursts, in every configuration including the default.
+- **A way to check it without ears**: [dev/drum-kit-lab.html](dev/drum-kit-lab.html)
+  auditions each voice and renders them offline to measure level, onset, ring time
+  and spectral centroid against the range that makes each one that instrument,
+  plus the no-clipping, choke and velocity checks. Every voice is in range; four
+  at once peak at 0.82.
+
+### The drums pattern generator
+
+- **A 16-step sequencer that writes its own patterns.** Drums have no scales,
+  so the song picker's **🎛 Pattern generator** entry asks for a kit and a
+  density instead: pick the voices, say how many times each hits in the bar,
+  and one of the classical rhythm algorithms places them. Every cell stays
+  editable, 🎲 Propose rolls playable numbers for the kit, and the result
+  starts like any other piece through a synthetic `drums:` URL. Design record
+  in [docs/drums-patterns.md](docs/drums-patterns.md).
+- **Five placement engines**, each answering the same question — given k hits,
+  which of the 16 steps:
+  - **Euclidean (Bjorklund)** — the even distribution behind most world
+    ostinatos, with per-voice rotation so a snare lands on 2 and 4;
+  - **Metric-weighted Bernoulli** — k steps sampled without replacement
+    against the metric hierarchy of the bar;
+  - **Shift register** — the Turing-machine write head: a locked loop that
+    mutates as the variation rises;
+  - **Time-dependent Markov** — a transition row per step, so the chain cannot
+    drift off the downbeat;
+  - **Cellular automata** — Wolfram rules 30, 90 and 110, one generation per
+    bar, so patterns evolve instead of looping.
+- **Two engines on top**: Bernoulli pulse jitter makes later bars drop or nudge
+  the odd hit, so a repeat is a variation rather than a copy; and 1/f pink
+  noise (Voss-McCartney) drives accents and velocities, which groups dynamics
+  across a phrase the way a player's do.
+- **Real percussion engraving**, in the dialect of the bundled charts: one
+  perc-clef staff, two layers with the kick stems down, beat-local durations
+  with `<space>` fills, chords for simultaneous voices, per-beat beaming,
+  `<artic artic="acc"/>` accents and `@vel` dynamics. The app's own
+  step-sequencer grid reads the generated score back with no special casing.
+- **Seeded and self-contained**: the bar lives in the URL as a 16-bit mask per
+  voice, so hand-edited cells survive exactly, and the seed regenerates later
+  bars, accents and velocities identically every time.
+- `npm run check:drums` sweeps every engine over every voice and hit count:
+  the Euclidean reference rhythms, that **every engine places exactly the
+  number of hits asked for**, that Verovio renders each score, that each note
+  sounds the pitch the pad map targets and is identifiable by the drum map,
+  that every layer adds up to four quarters, and that bar 1 of the score is
+  the bar the sequencer shows.
+
 ### The saxo jazz scale generator
 
 - **Jazz exercises engraved on demand**, the saxophone counterpart of the
@@ -54,6 +120,13 @@ the way. Install channels and downloads:
 
 ### Corrections to the source brief
 
+- Three of the drum engines were **adapted to honour a hit count**, which the
+  brief's formulations cannot express: Bernoulli masking samples k steps
+  without replacement instead of thresholding each step; the shift register
+  gets one register per voice and ranks steps by its value instead of mapping
+  single bits to single voices; and the Markov chain runs per voice, then
+  corrects to k. Each keeps the character of the original, and
+  [docs/drums-patterns.md](docs/drums-patterns.md) records why.
 - The **bebop dorian** was specified with the ♮3 passing tone *and* with all
   four m7 chord tones on the downbeats; those cannot both hold, since the
   passing tone pushes the 5 and ♭7 onto odd scale steps. The scale is kept as
@@ -77,8 +150,9 @@ the way. Install channels and downloads:
 
 ### Docs
 
-- New [docs/saxo-scales.md](docs/saxo-scales.md); the user guide's saxo page
-  gained a generator section with screenshots.
+- New [docs/saxo-scales.md](docs/saxo-scales.md) and
+  [docs/drums-patterns.md](docs/drums-patterns.md); the user guide's saxo and
+  drums pages gained generator sections with screenshots.
 - **The guide now leads with the native app**: install moves to the top of
   the sidebar, the landing page's first action installs the desktop build with
   per-platform commands, and getting-started treats the browser as the

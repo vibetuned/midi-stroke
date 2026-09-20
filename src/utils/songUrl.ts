@@ -1,5 +1,6 @@
 import { parseScaleUrl, scaleDataUrl } from './scaleGen';
 import { jazzDataUrl, parseJazzUrl } from './jazzScaleGen';
+import { drumDataUrl, parseDrumUrl } from './drumPatternGen';
 import { OPFS_PREFIX, readOpfsSong } from './opfs';
 
 /**
@@ -40,9 +41,10 @@ export function buildSongUrl(
  * Resolve a selectedSong value to a fetchable URL.
  * Absolute URLs (score-server files, blob: object URLs) pass through
  * unchanged; the synthetic generator URLs — scale: for the piano scale
- * exercises, sax: for the saxo jazz exercises — are generated on the fly into
- * a data: URL (so the scale:/sax: string stays a stable stats/cache key);
- * bundled catalog paths get a leading slash.
+ * exercises, sax: for the saxo jazz exercises, drums: for the generated drum
+ * patterns — are generated on the fly into a data: URL (so the generator
+ * string stays a stable stats/cache key); bundled catalog paths get a
+ * leading slash.
  */
 export function resolveSongUrl(selectedSong: string): string {
     if (selectedSong.startsWith('scale:')) {
@@ -52,6 +54,10 @@ export function resolveSongUrl(selectedSong: string): string {
     if (selectedSong.startsWith('sax:')) {
         const spec = parseJazzUrl(selectedSong);
         if (spec) return jazzDataUrl(spec);
+    }
+    if (selectedSong.startsWith('drums:')) {
+        const spec = parseDrumUrl(selectedSong);
+        if (spec) return drumDataUrl(spec);
     }
     if (
         selectedSong.startsWith('/') ||

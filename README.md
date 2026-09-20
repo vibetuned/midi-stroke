@@ -109,9 +109,21 @@ Generated exercises play like any piece — same modes, tempo control and per-ex
 
 ### 🥁 Drums — [docs/drums-app.md](docs/drums-app.md)
 
-Finger-drumming training built for the **Yamaha FGDP-50**. Looping rhythm patterns on a percussion staff, with MEI-to-pad MIDI mapping and a step-sequencer grid that tracks the playhead column by column.
+Finger-drumming training built for the **Yamaha FGDP-50**. Looping rhythm patterns on a percussion staff, with MEI-to-pad MIDI mapping and a step-sequencer grid that tracks the playhead column by column. Pads play a **synthesized drum kit** — twelve one-shot voices, velocity-sensitive, with a hi-hat that chokes and a limiter on the bus — rather than the piano sampler.
 
 ![Drums app](docs/screenshots/drums.png)
+
+#### Pattern generator — [docs/drums-patterns.md](docs/drums-patterns.md)
+
+Drums have no scales, so what you choose here is a **kit and a density**: a **16-step sequencer** where you pick the voices and how many times each one should hit in the bar, and one of the classical rhythm algorithms decides where those hits land. Every cell is editable by hand, and 🎲 **Propose** rolls playable numbers for the kit you assembled.
+
+![Pattern generator](docs/screenshots/drum-generator.png)
+
+The engines are the standard ones, each answering *given k hits, which of the 16 steps*: **Euclidean** rhythms via Bjorklund's algorithm (the distribution behind most world ostinatos — E(5,8) is the Cuban cinquillo, E(4,16) four-on-the-floor), **metric-weighted Bernoulli** sampling against the hierarchy of the bar, a **shift-register Turing machine** that loops until you raise the variation, a **time-dependent Markov chain** that cannot lose the downbeat, and **cellular automata** (Wolfram rules 30, 90 and 110) that evolve one generation per bar. On top of those, later bars take **Bernoulli pulse jitter** so a repeat is a variation rather than a copy, and accents and velocities come from **1/f pink noise**, which makes dynamics group across a phrase the way a player's do.
+
+The result is engraved as a real percussion score — two layers, kick stems down, beamed per beat, accents marked — and plays like any other piece, with the app's own step grid reading it back:
+
+![A generated pattern in the score view](docs/screenshots/drum-pattern-play.png)
 
 ### 🎷 Saxo — [docs/saxo-app.md](docs/saxo-app.md)
 
@@ -147,6 +159,7 @@ A **train & practice course player**: each course module pairs lesson videos wit
 | [docs/architecture.md](docs/architecture.md) | The shared engine: routing, `GameContext`, hooks, the Verovio→Pixi score pipeline, tick model, assets, stats, theming — plus the checklist for adding a new instrument. |
 | [docs/piano-app.md](docs/piano-app.md) | The Piano app (reference implementation). |
 | [docs/drums-app.md](docs/drums-app.md) | The Drums app and how it differs from Piano. |
+| [docs/drums-patterns.md](docs/drums-patterns.md) | The Drums pattern generator: the 16-step sequencer, the Euclidean/Bernoulli/LFSR/Markov/automata engines, pink-noise dynamics, and the percussion engraving. |
 | [docs/saxo-app.md](docs/saxo-app.md) | The Saxo app: design, offline score pipeline, transposition, fingering chart, TravelSax input. |
 | [docs/saxo-scales.md](docs/saxo-scales.md) | The Saxo jazz scale generator: transposition/tessitura, the bebop and modern-jazz scales, patterns and enclosures, engraving and enharmonics. |
 | [docs/theory-app.md](docs/theory-app.md) | The Theory app: course/module content model, worksheet exercise engine, video player, input instruments. |
@@ -177,8 +190,10 @@ The application is built on a web stack trying to be optimized for low-latency a
 
 ![Song picker with ZIP import](docs/screenshots/song-selector.png)
 * **Scale Generator (Piano):** technique exercises in all 24 keys engraved on demand — scales, intervals, triads, arpeggios and cadences with conservatory fingering — plus key-aware graying of the virtual keyboard.
+* **Pattern Generator (Drums):** a 16-step sequencer where you set how many hits each voice plays, and Euclidean, Bernoulli, shift-register, Markov or cellular-automaton engines place them — with pink-noise accents and bar-to-bar variation.
 * **Jazz Scale Generator (Saxo):** bebop scales, melodic-minor modes, symmetrical and blues scales in any concert key, engraved in written pitch for your horn across its full keyed range — with digital patterns, triad pairs, chromatic enclosures and jazz articulation.
 * **Theory Courses:** video lessons paired with fill-in-the-blank score exercises, answered from piano, circle of fifths, or MIDI input.
+* **Instrument-appropriate sound:** the piano sampler for piano and theory, a reed synth for saxo, and a synthesized twelve-voice kit for drums — the drums app downloads nothing and works offline.
 * **Precision Tempo Control:** A high-resolution transport system for granular practice, from slow-motion technical drills to full-speed performance.
 * **Session Stats:** Per-song accuracy, combos, and history persisted locally.
 
@@ -230,6 +245,7 @@ npm run build:saxo-manifest      # regenerate public/saxo_files.json by scanning
 npm run build:course-manifest    # regenerate the theory course manifest from public/courses/
 node scripts/build-keysig-assets.mjs  # re-engrave the circle-of-fifths key-signature assets (src/assets/keySignatures.ts)
 npm run check:jazz               # validate the saxo jazz generator (range, engraving vs MIDI, bebop downbeats)
+npm run check:drums              # validate the drums pattern generator (hit counts, Euclidean references, engraving)
 ```
 
 ### Local Network Access

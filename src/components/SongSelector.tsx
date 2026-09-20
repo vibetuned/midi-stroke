@@ -5,6 +5,7 @@ import { buildSongUrl, catalogUrl, resolveSongUrl } from '../utils/songUrl';
 import { OPFS_PREFIX, isOpfsSupported, listOpfsSongs, importZipToOpfs, deleteOpfsCollection } from '../utils/opfs';
 import { ScaleBuilder } from './ScaleBuilder';
 import { JazzScaleBuilder } from './saxo/JazzScaleBuilder';
+import { DrumPatternBuilder } from './drums/DrumPatternBuilder';
 
 // Must match the server's slug rule for instruments/categories (server/src/app.ts).
 const CATEGORY_RE = /^[a-z0-9][a-z0-9_-]*$/i;
@@ -17,6 +18,7 @@ const SCALES_PATH = '__scales__';
 const GENERATORS: Record<string, { title: string; label: string; sub: string }> = {
     piano: { title: 'Scale Generator', label: '🎼 Scale generator', sub: 'scales · arpeggios · cadences' },
     saxo: { title: 'Jazz Scale Generator', label: '🎼 Jazz generator', sub: 'bebop · patterns · enclosures' },
+    drums: { title: 'Pattern Generator', label: '🎛 Pattern generator', sub: 'euclidean · automata · 16 steps' },
 };
 
 interface SongFile {
@@ -402,9 +404,9 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                         {selectedPath === SCALES_PATH && generator ? (
                             <div style={detailStyle}>
                                 <h3 style={sectionTitleStyle}>{generator.title}</h3>
-                                {instrument === 'saxo'
-                                    ? <JazzScaleBuilder onStart={setSelectedSong} />
-                                    : <ScaleBuilder onStart={setSelectedSong} />}
+                                {instrument === 'saxo' ? <JazzScaleBuilder onStart={setSelectedSong} />
+                                    : instrument === 'drums' ? <DrumPatternBuilder onStart={setSelectedSong} />
+                                        : <ScaleBuilder onStart={setSelectedSong} />}
                             </div>
                         ) : (
                         <div style={detailStyle}>

@@ -141,9 +141,18 @@ hittable *right now*, used to glow the virtual instrument. It:
 > not). Default behaviour = piano-without-hands works for a melodic instrument.
 
 ### `useAudio()` — [useAudio.ts](../src/hooks/useAudio.ts)
-Tone.js playback of *the player's own input*. Currently a single `Tone.Sampler` loaded with the
-Salamander grand-piano samples, plus a `MembraneSynth` metronome (muted in practice mode). It is
-**not yet instrument-aware** — adding sax timbre means switching the sample set on `instrument`.
+Tone.js playback of *the player's own input*, plus a `MembraneSynth` metronome (muted in practice
+mode). It is **instrument-aware**, and the three voices are different in kind:
+
+| Instrument | Voice | Note |
+|---|---|---|
+| piano, theory | `Tone.Sampler` with the Salamander grand samples | ~10 MB, fetched on first use |
+| saxo | reed-ish `PolySynth` (sawtooth → lowpass → vibrato) | synthesized, nothing to fetch |
+| drums | the synthesized kit in [drumKit.ts](../src/utils/drumKit.ts) | one-shot voices keyed by **pad number**, not pitch |
+
+Piano and saxo are pitched, so they share the `triggerAttack(freq)` / `triggerRelease(freq)` path.
+Drums are not: a pad is a one-shot voice, so the note-on handler calls `kit.trigger(padNote, velocity)`
+and there is nothing to release.
 
 ---
 
@@ -234,7 +243,7 @@ of these.**
 | [SplashScreen.tsx](../src/components/SplashScreen.tsx) | Add card + widen `onSelectApp` prop union. |
 | [GameContext.tsx](../src/context/GameContext.tsx) | Widen `instrument` in `GameState` and the `GameProvider` props union. Possibly add a playback hook. |
 | [useGameLogic.ts](../src/hooks/useGameLogic.ts) | Decide hand-filter (no) and note-remap (no) behaviour for the new instrument. |
-| [useAudio.ts](../src/hooks/useAudio.ts) | (Optional) select a different sample set / synth for timbre. |
+| [useAudio.ts](../src/hooks/useAudio.ts) | Pick the voice for the instrument: a sample set, a synth, or a one-shot kit. |
 | [PlayControls.tsx](../src/components/PlayControls.tsx) | Hand-selection UI is gated on `instrument === 'piano'`; ensure the new instrument is handled. |
 | [SongSelector.tsx](../src/components/SongSelector.tsx) | Gating `if (instrument === 'piano' && !pianoRange) return null;` — confirm new instrument's gating. |
 | `public/<instrument>_files.json` + `public/<instrument>/…` | New manifest + score assets. |

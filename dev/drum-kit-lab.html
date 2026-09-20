@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Drum kit lab — Midi Stroke</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; padding: 1.5rem 2rem; background: #121214; color: #e8e8ef;
+           font: 14px/1.5 ui-sans-serif, system-ui, sans-serif; }
+    h1 { font-size: 1.15rem; margin: 0 0 .3rem; }
+    p.lead { color: #9a9aa8; margin: 0 0 1.2rem; max-width: 62ch; }
+    button { font: inherit; cursor: pointer; }
+    .pads { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1.4rem; }
+    .pads button { padding: .55rem .9rem; border-radius: 8px; background: #22222a;
+                   color: #e8e8ef; border: 1px solid rgba(255,255,255,.18); }
+    .pads button:active { background: #2ade2a; color: #121214; }
+    table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { padding: .3rem .7rem; text-align: right; border-bottom: 1px solid rgba(255,255,255,.08); }
+    th:first-child, td:first-child { text-align: left; }
+    th { color: #9a9aa8; font-weight: 600; }
+    .ok { color: #4ade80; } .bad { color: #f87171; }
+    #status { color: #9a9aa8; margin: 1rem 0; }
+  </style>
+</head>
+<body>
+  <h1>Drum kit lab</h1>
+  <p class="lead">
+    The synthesized kit from <code>src/utils/drumKit.ts</code>, which the Drums app
+    plays when you hit a pad. Click a voice to hear it. The table below renders each
+    voice offline and measures it, so the kit can be checked without ears: level,
+    how long it rings, and where its energy sits in the spectrum.
+    Run it with <code>npm run dev</code> and open <code>/dev/drum-kit-lab.html</code>.
+  </p>
+  <div class="pads" id="pads"></div>
+  <div id="status">measuring…</div>
+  <table id="table" hidden>
+    <thead><tr>
+      <th>voice</th><th>pad</th><th>peak</th><th>onset ms</th>
+      <th>ring to −40 dB</th><th>centroid Hz</th><th>expected</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+
+<script type="module">
+import * as Tone from 'tone';
+import { createDrumKit, PAD_TO_VOICE } from '/src/utils/drumKit.ts';
+
+const PADS = {
+  kick: 36, snare: 38, rim: 37, hatClosed: 42, hatOpen: 46, ride: 51, crash: 49,
+  tomLow: 41, tomMid: 45, tomHigh: 48, clap: 39, cowbell: 56, tambourine: 54,
+};
+
+// What each voice has to be to count as that instrument: where its energy
+// sits, and how long it rings. Wide enough to allow taste, tight enough to
+// catch a voice that has stopped being a hi-hat.
+const EXPECTED = {
+  kick:       { centroid: [30, 250],    ring: [0.12, 0.8] },
+  snare:      { centroid: [700, 3000],  ring: [0.04, 0.35] },
+  rim:        { centroid: [1500, 6000], ring: [0.005, 0.1] },
+  hatClosed:  { centroid: [5000, 16000], ring: [0.005, 0.12] },
+  hatOpen:    { centroid: [4000, 16000], ring: [0.12, 0.9] },
+  ride:       { centroid: [2500, 9000], ring: [0.4, 2.5] },
+  crash:      { centroid: [1800, 8000], ring: [0.6, 3.2] },
+  tomLow:     { centroid: [35, 220],    ring: [0.12, 0.8] },
+  tomMid:     { centroid: [45, 260],    ring: [0.12, 0.8] },
+  tomHigh:    { centroid: [60, 320],    ring: [0.1, 0.8] },
+  clap:       { centroid: [700, 3500],  ring: [0.03, 0.4] },
+  cowbell:    { centroid: [600, 3500],  ring: [0.04, 0.5] },
+  tambourine: { centroid: [3500, 14000], ring: [0.04, 0.5] },
+};
+
+// ---- live audition ---------------------------------------------------------
+let liveKit = null;
+const padRow = document.getElementById('pads');
+for (const [name, pad] of Object.entries(PADS)) {
+  const b = document.createElement('button');
+  b.textContent = `${name} (${pad})`;
+  b.onclick = async () => {
+    await Tone.start();
+    liveKit ??= createDrumKit();
+    liveKit.trigger(pad, 0.95);
+  };
+  padRow.append(b);
+}
+
+// ---- offline measurement ---------------------------------------------------
+const SR = 44100;
+const ONSET = Math.round(SR * 0.05);
+
+async function render(pads, dur = 4) {
+  const buf = await Tone.Offline(() => {
+    const kit = createDrumKit();
+    for (const [pad, at, vel] of pads) kit.trigger(pad, vel ?? 1, at);
+  }, dur);
+  return buf.getChannelData(0);
+}
+
+const peak = x => { let m = 0; for (const v of x) { const a = Math.abs(v); if (a > m) m = a; } return m; };
+const rms = (x, from = 0, to = x.length) => {
+  let s = 0; for (let i = from; i < to; i++) s += x[i] * x[i];
+  return Math.sqrt(s / Math.max(1, to - from));
+};
+const peakIndex = x => { let i0 = 0, v = 0; for (let i = 0; i < x.length; i++) { const a = Math.abs(x[i]); if (a > v) { v = a; i0 = i; } } return i0; };
+
+/** Time from the peak until a 10 ms window stays 40 dB down. */
+function ring(x) {
+  const win = Math.round(SR * 0.01);
+  const p = peakIndex(x);
+  const ref = rms(x, p, Math.min(x.length, p + win));
+  for (let i = p; i + win < x.length; i += win) {
+    if (rms(x, i, i + win) < ref * 0.01) return (i - p) / SR;
+  }
+  return (x.length - p) / SR;
+}
+
+/** Spectral centroid from the onset, evaluated on log-spaced bins. */
+function centroid(x, from = 0) {
+  const N = Math.min(8192, x.length - from);
+  const seg = x.subarray(from, from + N);
+  let num = 0, den = 0;
+  for (let f = 40; f < 16000; f *= 1.25) {
+    let re = 0, im = 0;
+    const w = 2 * Math.PI * f / SR;
+    for (let n = 0; n < N; n++) {
+      const win = 0.5 - 0.5 * Math.cos(2 * Math.PI * n / N);
+      re += seg[n] * win * Math.cos(w * n);
+      im += seg[n] * win * Math.sin(w * n);
+    }
+    const mag = Math.hypot(re, im);
+    num += f * mag; den += mag;
+  }
+  return den > 0 ? num / den : 0;
+}
+
+const rows = [];
+const results = {};
+for (const [name, pad] of Object.entries(PADS)) {
+  const x = await render([[pad, 0.05, 1]]);
+  const m = {
+    pad,
+    peak: +peak(x).toFixed(3),
+    onsetMs: +(((peakIndex(x) - ONSET) / SR) * 1000).toFixed(1),
+    ring: +ring(x).toFixed(3),
+    centroid: Math.round(centroid(x, ONSET)),
+  };
+  const want = EXPECTED[name];
+  const okCentroid = m.centroid >= want.centroid[0] && m.centroid <= want.centroid[1];
+  const okRing = m.ring >= want.ring[0] && m.ring <= want.ring[1];
+  const okLevel = m.peak > 0.05 && m.peak <= 1;
+  const okOnset = m.onsetMs >= 0 && m.onsetMs < 40; // must speak when struck
+  m.ok = okCentroid && okRing && okLevel && okOnset;
+  results[name] = m;
+  rows.push([name, m, want, m.ok]);
+}
+
+// A dense hit must stay inside full scale, and the closed hat must choke the open one.
+const together = peak(await render([[36, .05, 1], [38, .05, 1], [46, .05, 1], [49, .05, 1]]));
+const openOnly = await render([[46, 0.05, 1]]);
+const choked = await render([[46, 0.05, 1], [42, 0.17, 1]]);
+const tail = Math.round(SR * 0.3);
+const chokeWorks = rms(choked, tail, tail + SR * 0.2) < rms(openOnly, tail, tail + SR * 0.2) + 1e-6;
+const soft = peak(await render([[38, 0.05, 0.25]]));
+const hard = peak(await render([[38, 0.05, 1]]));
+
+const tbody = document.querySelector('#table tbody');
+for (const [name, m, want, ok] of rows) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${name}</td><td>${m.pad}</td><td>${m.peak}</td><td>${m.onsetMs}</td>`
+    + `<td>${m.ring}s</td><td>${m.centroid}</td>`
+    + `<td class="${ok ? 'ok' : 'bad'}">${ok ? 'ok' : `want ${want.centroid.join('–')} Hz, ${want.ring.join('–')}s`}</td>`;
+  tbody.append(tr);
+}
+const failures = rows.filter(r => !r[3]).map(r => r[0]);
+document.getElementById('table').hidden = false;
+document.getElementById('status').innerHTML =
+  `<span class="${failures.length ? 'bad' : 'ok'}">${failures.length ? 'out of range: ' + failures.join(', ') : 'every voice in range'}</span>`
+  + ` · four voices at once peak at ${together.toFixed(3)} <span class="${together <= 1 ? 'ok' : 'bad'}">(${together <= 1 ? 'no clipping' : 'CLIPS'})</span>`
+  + ` · closed hat chokes the open one: <span class="${chokeWorks ? 'ok' : 'bad'}">${chokeWorks ? 'yes' : 'no'}</span>`
+  + ` · velocity 0.25 vs 1.0 peaks ${soft.toFixed(3)} / ${hard.toFixed(3)}`
+  + ` · ${Object.keys(PAD_TO_VOICE).length} pads mapped`;
+
+window.__probe = { results, together, chokeWorks, soft, hard, failures };
+</script>
+</body>
+</html>

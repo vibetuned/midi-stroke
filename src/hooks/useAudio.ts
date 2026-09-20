@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import * as Tone from 'tone';
 import { useMidi } from './useMidi';
 import { useGame } from '../context/GameContext';
+import { createDrumKit, type DrumKit } from '../utils/drumKit';
 
 export function useAudio() {
-    // Sampler for piano/drums; a reed-ish PolySynth for saxo. Both expose
-    // triggerAttack(freq, time, vel) / triggerRelease(freq), so the note-handling
-    // code below is instrument-agnostic.
+    // Piano sampler for piano/theory, a reed-ish PolySynth for saxo — both
+    // pitched, both exposing triggerAttack(freq, time, vel) / triggerRelease().
+    // Drums are different in kind: a pad is a one-shot voice, not a pitch, so
+    // they get a synthesized kit (see utils/drumKit.ts) triggered by pad number.
     const samplerRef = useRef<Tone.Sampler | Tone.PolySynth | null>(null);
+    const drumKitRef = useRef<DrumKit | null>(null);
     const extraNodesRef = useRef<Tone.ToneAudioNode[]>([]);
     const metronomeRef = useRef<Tone.MembraneSynth | null>(null);
     const { activeNotes } = useMidi();
@@ -27,7 +30,13 @@ export function useAudio() {
         if (!isAudioStarted) return;
 
         // 1. Create the player-input instrument.
-        if (instrument === 'saxo') {
+        if (instrument === 'drums') {
+            // Nothing to download: the kit is ready on the first hit.
+            const kit = createDrumKit();
+            kit.volume.value = mutedRef.current ? -100 : 0;
+            drumKitRef.current = kit;
+            setIsLoaded(true);
+        } else if (instrument === 'saxo') {
             // Reed-ish tone: sawtooth through a lowpass + gentle vibrato.
             const filter = new Tone.Filter({ type: 'lowpass', frequency: 2600, Q: 0.7 }).toDestination();
             const vibrato = new Tone.Vibrato({ frequency: 5, depth: 0.08 }).connect(filter);
@@ -108,11 +117,13 @@ export function useAudio() {
 
         return () => {
             samplerRef.current?.dispose();
+            drumKitRef.current?.dispose();
             extraNodesRef.current.forEach(n => n.dispose());
             extraNodesRef.current = [];
             metro.dispose();
             Tone.getTransport().clear(loopId);
             samplerRef.current = null;
+            drumKitRef.current = null;
             metronomeRef.current = null;
         };
     }, [isAudioStarted, gameMode, instrument]);
@@ -124,6 +135,9 @@ export function useAudio() {
         }
         if (samplerRef.current) {
             samplerRef.current.volume.value = isMetronomeMuted ? -100 : instrumentBaseVolume;
+        }
+        if (drumKitRef.current) {
+            drumKitRef.current.volume.value = isMetronomeMuted ? -100 : instrumentBaseVolume;
         }
     }, [isMetronomeMuted, instrumentBaseVolume]);
 
@@ -137,7 +151,8 @@ export function useAudio() {
     const prevNotesRef = useRef<Map<number, { velocity: number, timestamp: number }>>(new Map());
 
     useEffect(() => {
-        if (!samplerRef.current || !isLoaded) return;
+        if (!isLoaded) return;
+        if (!samplerRef.current && !drumKitRef.current) return;
 
         const prev = prevNotesRef.current;
 
@@ -147,22 +162,30 @@ export function useAudio() {
             if (!prev.has(note)) {
                 // Note On
                 if (Tone.getContext().state === 'running') {
-                    const freq = Tone.Frequency(note, "midi").toFrequency();
                     // Normalize velocity (0-127) to (0-1)
                     const vel = velocity / 127;
-                    samplerRef.current?.triggerAttack(freq, Tone.now(), vel);
+                    if (drumKitRef.current) {
+                        // Drums are one-shots keyed by pad number, so there is
+                        // no frequency and nothing to release.
+                        drumKitRef.current.trigger(note, vel);
+                    } else {
+                        const freq = Tone.Frequency(note, "midi").toFrequency();
+                        samplerRef.current?.triggerAttack(freq, Tone.now(), vel);
+                    }
                 }
             }
         });
 
         // Find removed notes
-        prev.forEach((_, note) => {
-            if (!activeNotes.has(note)) {
-                // Note Off
-                const freq = Tone.Frequency(note, "midi").toFrequency();
-                samplerRef.current?.triggerRelease(freq);
-            }
-        });
+        if (!drumKitRef.current) {
+            prev.forEach((_, note) => {
+                if (!activeNotes.has(note)) {
+                    // Note Off
+                    const freq = Tone.Frequency(note, "midi").toFrequency();
+                    samplerRef.current?.triggerRelease(freq);
+                }
+            });
+        }
 
         prevNotesRef.current = new Map(activeNotes);
     }, [activeNotes, isLoaded]);
