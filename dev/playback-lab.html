@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Playback lab — Midi Stroke</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; padding: 1.5rem 2rem; background: #121214; color: #e8e8ef;
+           font: 14px/1.5 ui-sans-serif, system-ui, sans-serif; }
+    h1 { font-size: 1.15rem; margin: 0 0 .3rem; }
+    p.lead { color: #9a9aa8; margin: 0 0 1.2rem; max-width: 66ch; }
+    table { border-collapse: collapse; font-variant-numeric: tabular-nums; margin-bottom: 1.2rem; }
+    th, td { padding: .3rem .7rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,.08); }
+    th { color: #9a9aa8; font-weight: 600; }
+    code { color: #cfcfd8; }
+    .ok { color: #4ade80; } .bad { color: #f87171; }
+    #status { margin: 1rem 0; }
+  </style>
+</head>
+<body>
+  <h1>Playback lab</h1>
+  <p class="lead">
+    Checks <code>src/utils/playback.ts</code> without a MIDI device or a pair of ears:
+    a spy instrument records what the audio sink would play and when, and the MIDI
+    sink's bytes are built directly. Run it with <code>npm run dev</code> and open
+    <code>/dev/playback-lab.html</code>.
+  </p>
+  <div id="status">running…</div>
+  <table id="table" hidden><thead><tr><th>check</th><th>got</th><th>expected</th><th></th></tr></thead><tbody></tbody></table>
+
+<script type="module">
+import * as Tone from 'tone';
+import createVerovioModule from 'verovio/wasm';
+import { VerovioToolkit } from 'verovio/esm';
+import { registerPlaybackVoice, playTimemap, midiBytes } from '/src/utils/playback.ts';
+import { extractTimemap, TONE_PPQ } from '/src/utils/timemap.ts';
+import { generateDrumMei } from '/src/utils/drumPatternGen.ts';
+import { generateJazzMei } from '/src/utils/jazzScaleGen.ts';
+import { generateScaleMei } from '/src/utils/scaleGen.ts';
+
+const rows = [];
+const check = (name, got, expected) => {
+  const g = JSON.stringify(got), e = JSON.stringify(expected);
+  rows.push({ name, got: g, expected: e, ok: g === e });
+};
+
+// The audio sink talks to whatever instrument is registered; this one just
+// writes down what it was asked to play.
+const calls = [];
+registerPlaybackVoice({
+  note(midi, dur, time, vel, head) { calls.push({ midi, dur: +dur.toFixed(3), time, vel, head }); },
+  allOff() { calls.push({ allOff: true }); },
+});
+const played = () => calls.filter(c => !c.allOff);
+
+/** Play the whole thing and resolve when playback reports it is done. */
+function playToEnd(map, opts) {
+  calls.length = 0;
+  return new Promise(resolve => {
+    playTimemap(map, { ...opts, onDone: () => resolve(played()) });
+  });
+}
+
+const scale = n => ({
+  totalTicks: n * TONE_PPQ,
+  measureTicks: new Map(),
+  onsets: Array.from({ length: n }, (_, i) => ({
+    tick: i * TONE_PPQ,
+    notes: [{ midi: 60 + i, staff: 1, endTick: (i + 1) * TONE_PPQ }],
+  })),
+});
+
+// --- the schedule ----------------------------------------------------------
+let notes = await playToEnd(scale(4), { bpm: 240, target: 'audio' });
+check('every note is played', notes.length, 4);
+check('pitches in order', notes.map(c => c.midi), [60, 61, 62, 63]);
+check('spacing at 240 bpm (s)', notes.slice(1).map((c, i) => +(c.time - notes[i].time).toFixed(3)), [0.25, 0.25, 0.25]);
+check('durations (s)', notes.map(c => c.dur), [0.25, 0.25, 0.25, 0.25]);
+
+notes = await playToEnd(scale(3), { bpm: 120, target: 'audio' });
+check('half the tempo, twice the gap', +(notes[1].time - notes[0].time).toFixed(3), 0.5);
+
+// --- stop must actually stop ----------------------------------------------
+// Notes are handed to the sink a quarter second ahead of the clock, never all
+// at once: scheduling the whole exercise up front sounds identical right up
+// until you press Stop, when everything already queued keeps playing.
+calls.length = 0;
+const running = playTimemap(scale(16), { bpm: 120, target: 'audio' });
+await new Promise(r => setTimeout(r, 400));
+const atStop = played().length;
+running.stop();
+await new Promise(r => setTimeout(r, 900));
+check('stop plays nothing further', played().length, atStop);
+check('stop lands mid-exercise', atStop < 8, true);
+check('stop silences what is ringing', calls.some(c => c.allOff), true);
+
+// --- real generated exercises ---------------------------------------------
+const tk = new VerovioToolkit(await createVerovioModule());
+tk.setOptions({ breaks: 'auto', header: 'none', footer: 'none' });
+const mapOf = mei => {
+  tk.loadData(mei);
+  return extractTimemap(tk, new DOMParser().parseFromString(mei, 'text/xml'));
+};
+const countNotes = map => map.onsets.reduce((n, o) => n + o.notes.length, 0);
+
+const piano = mapOf(generateScaleMei({ tonic: 'C', mode: 'major', form: 'parallel',
+  octaves: 1, reps: 1, rhythm: 'quarters', fingering: true }));
+notes = await playToEnd(piano, { bpm: 600, target: 'audio' });
+check('piano exercise: every note played', notes.length, countNotes(piano));
+
+const jazz = mapOf(generateJazzMei({ root: 'Bb', domain: 'concert', scale: 'bebopdom',
+  pattern: 'scalar', range: 2, rhythm: 'eighths', reps: 1, horn: 'alto', artic: true, highFs: false }));
+notes = await playToEnd(jazz, { bpm: 600, target: 'audio' });
+check('saxo exercise: every note played', notes.length, countNotes(jazz));
+check('saxo exercise starts on written G', notes[0].midi, 67);
+
+const drums = mapOf(generateDrumMei({ algo: 'euclid', bars: 1, variation: 0, seed: 7, accents: true,
+  pattern: [
+    { id: 'bd', steps: Array.from({ length: 16 }, (_, i) => i % 4 === 0) },
+    { id: 'sd', steps: Array.from({ length: 16 }, (_, i) => i === 4 || i === 12) },
+    { id: 'oh', steps: Array.from({ length: 16 }, (_, i) => i === 2) },
+  ] }));
+notes = await playToEnd(drums, { bpm: 600, target: 'audio', drums: true });
+check('drum pattern: every hit played', notes.length, countNotes(drums));
+check('the open hi-hat keeps its notehead', notes.some(c => c.midi === 79 && c.head === '+'), true);
+
+// --- the MIDI sink ---------------------------------------------------------
+const NOTE_ON = 0x90, NOTE_OFF = 0x80;
+check('piano note-on', midiBytes(60, undefined, false, NOTE_ON, 100), [144, 60, 100]);
+check('piano note-off', midiBytes(60, undefined, false, NOTE_OFF, 0), [128, 60, 0]);
+check('transpose moves the send', midiBytes(72, undefined, false, NOTE_ON, 100), [144, 72, 100]);
+check('kick → GM 36, channel 10', midiBytes(65, undefined, true, NOTE_ON, 100), [153, 36, 100]);
+check('snare → GM 38', midiBytes(72, undefined, true, NOTE_ON, 100), [153, 38, 100]);
+check('slash notehead → rim shot 37', midiBytes(72, 'slash', true, NOTE_ON, 100), [153, 37, 100]);
+check('x notehead → closed hat 42', midiBytes(79, 'x', true, NOTE_ON, 100), [153, 42, 100]);
+check('+ notehead → open hat 46', midiBytes(79, '+', true, NOTE_ON, 100), [153, 46, 100]);
+check('a pitch with no pad is dropped', midiBytes(30, undefined, true, NOTE_ON, 100), null);
+
+// A port that is not there must report done rather than hang or throw.
+let done = false;
+playTimemap(scale(4), { bpm: 240, target: 'no-such-port', onDone: () => { done = true; } });
+await new Promise(r => setTimeout(r, 600));
+check('a missing MIDI port ends cleanly', done, true);
+
+const tbody = document.querySelector('#table tbody');
+for (const r of rows) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${r.name}</td><td><code>${r.got}</code></td><td><code>${r.expected}</code></td>`
+    + `<td class="${r.ok ? 'ok' : 'bad'}">${r.ok ? 'ok' : 'FAILED'}</td>`;
+  tbody.append(tr);
+}
+document.getElementById('table').hidden = false;
+const bad = rows.filter(r => !r.ok);
+document.getElementById('status').innerHTML = bad.length
+  ? `<span class="bad">${bad.length} of ${rows.length} checks failed</span>`
+  : `<span class="ok">all ${rows.length} checks passed</span>`;
+window.__pb = { failures: bad.map(r => r.name), total: rows.length };
+</script>
+</body>
+</html>

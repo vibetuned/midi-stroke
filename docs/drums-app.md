@@ -148,3 +148,7 @@ Measured with the current kit:
 | rim, clap, cowbell, tambourine | 0.18–0.25 | 0.02–0.08 s | 1.4–2.7 kHz |
 
 Four voices at full velocity peak at 0.82, so nothing clips.
+
+Its sibling [dev/playback-lab.html](../dev/playback-lab.html) checks the other half of the
+sound: that score **playback** schedules the right notes at the right times, and that a drum
+score going out as MIDI becomes the right General MIDI pads on channel 10.

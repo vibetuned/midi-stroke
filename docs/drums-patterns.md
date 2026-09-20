@@ -36,6 +36,25 @@ Because the bar is carried in the URL as an explicit bitmask, cells you toggle
 by hand survive exactly, and the seed regenerates everything else — later
 bars, accents, velocities — identically every time.
 
+### Working the panel
+
+Placement is **deterministic**: the algorithm, the voice, its hit count and the
+seed decide the bar, so the same settings always give the same pattern. That
+shapes what the controls can be.
+
+- **🎲 Propose** draws fresh hit counts for the kit *and* a new seed, so it is
+  the way to get somewhere genuinely different.
+- **↻ on a row** looks for another bar for that one voice, leaving the rest of
+  the kit alone. It is disabled, with a tooltip saying why, when the engine
+  cannot place that voice any other way — Euclidean puts an anchor or a
+  backbeat in exactly one place, because there is a single even spread of k
+  hits that starts on the downbeat.
+- **The variation slider** shapes the later bars for every engine, and for the
+  shift register it also moves the hits in the first one, so that engine is
+  re-run as the slider moves.
+- There is no "regenerate everything" button: with nothing changed it could
+  only hand back the bar already on the grid.
+
 ---
 
 ## Why not just random

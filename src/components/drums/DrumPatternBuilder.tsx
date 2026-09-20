@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { AuditionButton, PlaybackTargetSelect } from '../PlaybackControl';
 import { Stepper } from '../Stepper';
 import { chipStyle, labelStyle, previewBoxStyle, selectStyle, startButtonStyle } from '../builderStyles';
 import { useVerovio } from '../../hooks/useVerovio';
@@ -40,18 +41,69 @@ export const DrumPatternBuilder: React.FC<DrumPatternBuilderProps> = ({ onStart 
     const [grid, setGrid] = useState<Grid>(() =>
         Object.fromEntries(initial.pattern.map(p => [p.id, p.steps])));
 
+    /**
+     * A nudge per voice, so the row's ↻ gives you *another* pattern for that
+     * voice: placement is deterministic from the algorithm, the hit count and
+     * the seed, so without this a re-run would hand back the bar it just made.
+     */
+    const [nudge, setNudge] = useState<Record<string, number>>({});
+
     /** Run the current engine for one voice (or all of them). */
-    const regenerate = useCallback((ids: DrumVoiceId[], nextSeed = seed, nextAlgo = algo, counts = hits) => {
+    const regenerate = useCallback((
+        ids: DrumVoiceId[], nextSeed = seed, nextAlgo = algo, counts = hits,
+        nudges = nudge, varied = variation,
+    ) => {
         setGrid(prev => {
             const next = { ...prev };
             for (const id of ids) {
                 const voice = DRUM_VOICES.find(v => v.id === id);
                 if (!voice) continue;
-                next[id] = generateVoicePattern(nextAlgo, voice, counts[id] ?? 0, nextSeed, variation / 20);
+                next[id] = generateVoicePattern(
+                    nextAlgo, voice, counts[id] ?? 0, nextSeed + (nudges[id] ?? 0), varied / 20,
+                );
             }
             return next;
         });
-    }, [seed, algo, hits, variation]);
+    }, [seed, algo, hits, nudge, variation]);
+
+    /**
+     * Find a nudge that actually gives this voice a different bar. Placement is
+     * deterministic, and some of it does not depend on the seed at all —
+     * Euclidean puts an anchor or a backbeat in exactly one place, since there
+     * is a single even spread of k hits that starts on the downbeat. Several
+     * nudges are tried because two seeds can land on the same rotation.
+     */
+    const findNudge = (voice: typeof DRUM_VOICES[number]): number | null => {
+        const k = hits[voice.id] ?? 0;
+        if (k === 0 || k >= STEPS) return null;
+        const base = nudge[voice.id] ?? 0;
+        const current = generateVoicePattern(algo, voice, k, seed + base, variation / 20).join();
+        for (let i = 1; i <= 24; i++) {
+            const candidate = base + i * 1013;
+            if (generateVoicePattern(algo, voice, k, seed + candidate, variation / 20).join() !== current) {
+                return candidate;
+            }
+        }
+        return null;
+    };
+
+    /** Another take on one voice, leaving the rest of the kit alone. */
+    const reroll = (id: DrumVoiceId, to: number) => {
+        const nudges = { ...nudge, [id]: to };
+        setNudge(nudges);
+        regenerate([id], seed, algo, hits, nudges);
+    };
+
+    /**
+     * The variation slider is the one setting that changes where the shift
+     * register puts its hits, so that engine is re-run as it moves. For the
+     * others variation only shapes the later bars, which the preview already
+     * reflects without touching the bar on the grid.
+     */
+    const changeVariation = (v: number) => {
+        setVariation(v);
+        if (algo === 'lfsr') regenerate(kit, seed, algo, hits, nudge, v);
+    };
 
     const toggleVoice = (id: DrumVoiceId) => {
         setKit(prev => {
@@ -85,7 +137,8 @@ export const DrumPatternBuilder: React.FC<DrumPatternBuilderProps> = ({ onStart 
         const counts = { ...hits, ...proposeHits(kit, next) };
         setSeed(next);
         setHits(counts);
-        regenerate(kit, next, algo, counts);
+        setNudge({});
+        regenerate(kit, next, algo, counts, {});
     };
 
     const spec: DrumSpec = useMemo(() => ({
@@ -97,6 +150,9 @@ export const DrumPatternBuilder: React.FC<DrumPatternBuilderProps> = ({ onStart 
     const url = buildDrumUrl(spec);
     const isEmpty = resolved.totalHits === 0;
 
+    // One engraving per spec, shared by the preview and the audition.
+    const mei = useMemo(() => generateDrumMei(spec), [spec]);
+
     const preview = useMemo(() => {
         if (!toolkit || isEmpty) return null;
         try {
@@ -105,14 +161,14 @@ export const DrumPatternBuilder: React.FC<DrumPatternBuilderProps> = ({ onStart 
                 svgViewBox: true, header: 'none', footer: 'none', scale: 45,
                 pageMarginLeft: 15, pageMarginRight: 15, pageMarginTop: 10, pageMarginBottom: 10,
             });
-            toolkit.loadData(generateDrumMei(spec));
+            toolkit.loadData(mei);
             return toolkit.renderToSVG(1, {})
                 .replace('<svg ', '<svg style="height:92px;width:auto;" ');
         } catch (e) {
             console.error('Drum pattern preview render failed:', e);
             return null;
         }
-    }, [toolkit, spec, isEmpty]);
+    }, [toolkit, mei, isEmpty]);
 
     const algoHint = DRUM_ALGOS.find(a => a.value === algo)?.hint ?? '';
 
@@ -150,13 +206,26 @@ export const DrumPatternBuilder: React.FC<DrumPatternBuilderProps> = ({ onStart 
                                 title={`How many times ${voice.label} plays in the bar`}
                                 style={hitInputStyle}
                             />
-                            <button
-                                onClick={() => regenerate([voice.id])}
-                                title={`Re-place ${voice.label}'s hits with the current algorithm`}
-                                style={{ ...rowLabelStyle, width: '20px', padding: 0, marginRight: '2px' }}
-                            >
-                                ↻
-                            </button>
+                            {(() => {
+                                const next = findNudge(voice);
+                                const enabled = next !== null;
+                                return (
+                                    <button
+                                        onClick={() => next !== null && reroll(voice.id, next)}
+                                        disabled={!enabled}
+                                        title={enabled
+                                            ? `Another ${voice.label} pattern with the same number of hits`
+                                            : `${DRUM_ALGOS.find(a => a.value === algo)?.label ?? algo} places ${voice.label} `
+                                                + 'in only one way at this hit count — change the count or the algorithm'}
+                                        style={{
+                                            ...rowLabelStyle, width: '20px', padding: 0, marginRight: '2px',
+                                            opacity: enabled ? 1 : 0.3, cursor: enabled ? 'pointer' : 'default',
+                                        }}
+                                    >
+                                        ↻
+                                    </button>
+                                );
+                            })()}
                             {(grid[voice.id] ?? emptyRow()).map((on, s) => (
                                 <button
                                     key={s}
@@ -211,7 +280,7 @@ export const DrumPatternBuilder: React.FC<DrumPatternBuilderProps> = ({ onStart 
                             min={0}
                             max={9}
                             value={variation}
-                            onChange={e => setVariation(Number(e.target.value))}
+                            onChange={e => changeVariation(Number(e.target.value))}
                             style={{ accentColor: 'var(--color-accent)' }}
                         />
                         <span style={hintStyle}>
@@ -228,10 +297,12 @@ export const DrumPatternBuilder: React.FC<DrumPatternBuilderProps> = ({ onStart 
                         <button onClick={rollDice} style={{ ...chipStyle(false), padding: '0.45rem 0.8rem' }} title="Propose hit counts and re-place everything">
                             🎲 Propose
                         </button>
-                        <button onClick={() => regenerate(kit)} style={{ ...chipStyle(false), padding: '0.45rem 0.8rem' }} title="Re-place every voice with the current numbers">
-                            ↻ Regenerate
-                        </button>
 
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <AuditionButton mei={mei} drums />
+                        <PlaybackTargetSelect compact />
                     </div>
 
                     <button

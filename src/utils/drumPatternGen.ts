@@ -491,12 +491,19 @@ const DUR_OF: Record<number, { dur: number; dots: number }> = {
     4: { dur: 4, dots: 0 },
 };
 
-function noteXml(v: DrumVoice, vel: number, accent: boolean, inChord: boolean, attrs: string): string {
+/**
+ * Note ids matter beyond bookkeeping: the timemap keys a note's notehead by
+ * xml:id, and the notehead is what tells a snare from a rim shot or a closed
+ * hi-hat from an open one when the score is played back (see utils/playback.ts).
+ */
+function noteXml(
+    v: DrumVoice, vel: number, accent: boolean, inChord: boolean, attrs: string, id: string,
+): string {
     const head = v.head ? ` head.shape="${v.head}"` : '';
     const fill = v.headFill ? ` head.fill="${v.headFill}"` : '';
     const body = accent ? '<artic artic="acc" />' : '';
     const velAttr = ` vel="${vel}"`;
-    const open = `<note breaksec="1"${inChord ? '' : attrs} pname="${v.pname}" oct="${v.oct}"${head}${fill}${velAttr}`;
+    const open = `<note xml:id="${id}" breaksec="1"${inChord ? '' : attrs} pname="${v.pname}" oct="${v.oct}"${head}${fill}${velAttr}`;
     return body ? `${open}>${body}</note>` : `${open} />`;
 }
 
@@ -504,6 +511,7 @@ function noteXml(v: DrumVoice, vel: number, accent: boolean, inChord: boolean, a
 function layerXml(
     steps: Array<Hit[]>,
     stem: 'up' | 'down',
+    nextId: () => string,
 ): string {
     const out: string[] = [];
     for (let beat = 0; beat < 4; beat++) {
@@ -527,13 +535,13 @@ function layerXml(
             const vel = Math.max(...hits.map(h => h.vel));
             const durAttrs = ` dur="${dur}"${dots ? ' dots="1"' : ''} stem.dir="${stem}"`;
             if (hits.length === 1) {
-                items.push(noteXml(hits[0].voice, vel, accent, false, durAttrs));
+                items.push(noteXml(hits[0].voice, vel, accent, false, durAttrs, nextId()));
             } else {
                 const inner = hits
                     .slice()
                     .sort((a, b) => (a.voice.oct * 7 + 'cdefgab'.indexOf(a.voice.pname))
                         - (b.voice.oct * 7 + 'cdefgab'.indexOf(b.voice.pname)))
-                    .map(h => noteXml(h.voice, vel, false, true, ''))
+                    .map(h => noteXml(h.voice, vel, false, true, '', nextId()))
                     .join('');
                 const artic = accent ? '<artic artic="acc" />' : '';
                 items.push(`<chord${durAttrs}>${inner}${artic}</chord>`);
@@ -601,14 +609,17 @@ export function resolveDrumSpec(spec: DrumSpec): ResolvedDrumPattern {
 export function generateDrumMei(spec: DrumSpec): string {
     const { bars } = resolveDrumSpec(spec);
 
+    let counter = 0;
+    const nextId = () => `dk${++counter}`;
+
     const measures = bars.map((grid, i) => {
         const upper = grid.map(hits => hits.filter(h => h.voice.layer === 1));
         const lower = grid.map(hits => hits.filter(h => h.voice.layer === 2));
         const right = i === bars.length - 1 ? ' right="end"' : '';
         return `<measure n="${i + 1}"${right}>`
             + `<staff n="1">`
-            + `<layer n="1">${layerXml(upper, 'up')}</layer>`
-            + `<layer n="2">${layerXml(lower, 'down')}</layer>`
+            + `<layer n="1">${layerXml(upper, 'up', nextId)}</layer>`
+            + `<layer n="2">${layerXml(lower, 'down', nextId)}</layer>`
             + `</staff></measure>`;
     });
 

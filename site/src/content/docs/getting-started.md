@@ -69,6 +69,21 @@ the first note.
   on the device. The 📊 button in the header opens the history. The desktop
   app and your browser keep separate histories, since each stores its own.
 
+## Hearing the score
+
+Next to the transport is a **playback** selector with three kinds of setting:
+
+- **Playback off** — the score stays silent and only your own playing sounds, which is how the
+  trainer has always worked.
+- **Play in sound** — the score plays as it scrolls, on the same instrument you are practising:
+  the piano samples, the saxo reed tone, or the drum kit.
+- **MIDI → *your device*** — instead of sounding locally, playback sends note-on and note-off to
+  that output, so your own synth, module or DAW plays the part. Drums go out as General MIDI
+  pads on channel 10.
+
+The setting is remembered, and the exercise builders share it: each has a **▶ Listen** button that
+plays the exercise you just built before you commit to practising it.
+
 ## MIDI status
 
 The pill in the top-right shows whether MIDI is live and how many input

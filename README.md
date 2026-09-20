@@ -193,6 +193,7 @@ The application is built on a web stack trying to be optimized for low-latency a
 * **Pattern Generator (Drums):** a 16-step sequencer where you set how many hits each voice plays, and Euclidean, Bernoulli, shift-register, Markov or cellular-automaton engines place them — with pink-noise accents and bar-to-bar variation.
 * **Jazz Scale Generator (Saxo):** bebop scales, melodic-minor modes, symmetrical and blues scales in any concert key, engraved in written pitch for your horn across its full keyed range — with digital patterns, triad pairs, chromatic enclosures and jazz articulation.
 * **Theory Courses:** video lessons paired with fill-in-the-blank score exercises, answered from piano, circle of fifths, or MIDI input.
+* **Playback, in sound or in MIDI:** hear any piece or generated exercise — ▶ Listen in each builder auditions what you just built, and the transport can sound the score as it scrolls. Playback runs on the app's own instrument, or sends note-on/note-off to a MIDI output for your synth or DAW (drums go out as General MIDI pads on channel 10).
 * **Instrument-appropriate sound:** the piano sampler for piano and theory, a reed synth for saxo, and a synthesized twelve-voice kit for drums — the drums app downloads nothing and works offline.
 * **Precision Tempo Control:** A high-resolution transport system for granular practice, from slow-motion technical drills to full-speed performance.
 * **Session Stats:** Per-song accuracy, combos, and history persisted locally.

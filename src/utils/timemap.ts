@@ -8,8 +8,11 @@ export interface TimemapOnset {
     tick: number;
     /** Sounding MIDI pitches starting at this tick, with their MEI staff number
      *  (piano: staff 1 = right hand, staff 2 = left hand) and the tick where
-     *  the note ends — ties merged, so a held note spans its full written length. */
-    notes: Array<{ midi: number; staff: number; endTick: number }>;
+     *  the note ends — ties merged, so a held note spans its full written length.
+     *  `head` carries @head.shape when the source MEI was supplied: drum voices
+     *  share staff positions (snare and rim shot are both c5), so the notehead
+     *  is the only thing that tells them apart. */
+    notes: Array<{ midi: number; staff: number; endTick: number; head?: string }>;
 }
 
 export interface TimemapData {
@@ -23,7 +26,7 @@ export interface TimemapData {
     onsets: TimemapOnset[];
 }
 
-interface RawNote { id: string; midi: number; staff: number; }
+interface RawNote { id: string; midi: number; staff: number; head?: string }
 
 /**
  * Extract the synchronization timeline from the currently loaded Verovio
@@ -38,12 +41,16 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
     // note xml:id → staff @n, read from the source MEI. Notes without an
     // enclosing staff (or when parsing failed) default to staff 1.
     const staffOfNote = new Map<string, number>();
+    const headOfNote = new Map<string, string>();
     if (meiDoc) {
         meiDoc.querySelectorAll('staff').forEach(staffEl => {
             const n = parseInt(staffEl.getAttribute('n') ?? '1', 10) || 1;
             staffEl.querySelectorAll('note').forEach(noteEl => {
                 const id = noteEl.getAttribute('xml:id');
-                if (id) staffOfNote.set(id, n);
+                if (!id) return;
+                staffOfNote.set(id, n);
+                const head = noteEl.getAttribute('head.shape');
+                if (head) headOfNote.set(id, head);
             });
         });
     }
@@ -78,7 +85,10 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
                 // their own `on` event (probed on Verovio 6.2).
                 const v = toolkit.getMIDIValuesForElement(id);
                 if (v && v.pitch > 0) {
-                    notes.push({ id, midi: v.pitch, staff: staffOfNote.get(id) ?? 1 });
+                    notes.push({
+                        id, midi: v.pitch, staff: staffOfNote.get(id) ?? 1,
+                        head: headOfNote.get(id),
+                    });
                 }
             }
             if (notes.length > 0) {
@@ -160,6 +170,7 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
                 midi: n.midi,
                 staff: n.staff,
                 endTick: Math.max(endTickOf(n.id), raw.tick + 1),
+                head: n.head,
             }));
         // An onset that only contained tie continuations disappears entirely —
         // nothing new is struck there.

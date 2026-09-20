@@ -6,7 +6,44 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
-## Unreleased
+## 0.0.2 — 2026-09-20
+
+Generators for every instrument, and a way to hear them. The saxophone gained a
+jazz scale generator and the drums a pattern generator, both built on the same
+engraving engine as the piano's; drums stopped sounding like a piano; and any
+piece or generated exercise can now be played back, as sound or out to a MIDI
+device.
+
+### Playback — in sound or in MIDI
+
+- **Every generator can be auditioned.** Each exercise builder gained a **▶ Listen** button that
+  plays what you just built, so a scale, a bebop pattern or a drum groove can be heard before you
+  commit to practising it.
+- **The transport can sound the score too**, on the instrument you are practising, following the
+  tempo slider, seeking and the practice-mode pauses because it is scheduled on the same Tone
+  transport as the scroll.
+- **Or send it out as MIDI**: pick an output port and playback sends note-on/note-off there and
+  sounds nothing locally — your synth, module or DAW plays the part. Drums go out as General MIDI
+  pads on channel 10, everything else on channel 1.
+- One remembered setting (off / sound / a port) shared by the transport and all three builders
+  ([src/utils/playback.ts](src/utils/playback.ts), [src/utils/midiOut.ts](src/utils/midiOut.ts)).
+- Notes are handed to the sink a quarter of a second ahead of the clock rather than all at once,
+  which is what makes **Stop** stop: queue a whole exercise up front and everything already inside
+  Web Audio or the MIDI port keeps playing after the button is pressed. MIDI ports are cleared as
+  well as panicked, so nothing queued lands after the silence.
+- Playback is driven from the **same timemap as the scrolling score**, so what you hear and what
+  the page shows cannot drift apart, and it borrows the instrument `useAudio()` already built
+  rather than loading a second copy of it.
+- The timemap now carries each note's **notehead**, because drum voices share staff positions: a
+  c5 with a slash head is a rim shot, a g5 with a "+" an open hi-hat. Generated drum scores carry
+  note ids so that mapping survives into playback, and practice mode gained the same precision.
+- The Tauri MIDI shim caches **one connection per port** instead of one overall, so the ROLI key
+  lights and playback can be aimed at different devices without tearing a connection down on
+  every note.
+- [dev/playback-lab.html](dev/playback-lab.html) checks all of it without a MIDI device or a pair
+  of ears: a spy instrument records what the audio sink would play and when, and the MIDI sink's
+  bytes are built directly. 21 checks, including the scheduling, tempo scaling, every generator's
+  output, the drum pad translation and a missing port.
 
 ### Drums finally sound like drums
 
@@ -40,8 +77,12 @@ the way. Install channels and downloads:
   so the song picker's **🎛 Pattern generator** entry asks for a kit and a
   density instead: pick the voices, say how many times each hits in the bar,
   and one of the classical rhythm algorithms places them. Every cell stays
-  editable, 🎲 Propose rolls playable numbers for the kit, and the result
-  starts like any other piece through a synthetic `drums:` URL. Design record
+  editable, 🎲 Propose rolls playable numbers *and* a new seed, and the result
+  starts like any other piece through a synthetic `drums:` URL. Placement is
+  deterministic, so the panel offers no "regenerate everything" button — with
+  nothing changed it could only hand back the bar already on the grid; the per
+  voice ↻ looks for a genuinely different bar and is disabled, with a reason,
+  where the engine has only one way to place that voice. Design record
   in [docs/drums-patterns.md](docs/drums-patterns.md).
 - **Five placement engines**, each answering the same question — given k hits,
   which of the 16 steps:

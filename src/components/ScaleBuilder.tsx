@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { AuditionButton, PlaybackTargetSelect } from './PlaybackControl';
 import { CircleOfFifths, type Ring } from './theory/CircleOfFifths';
 import { Stepper } from './Stepper';
 import { chipStyle, labelStyle, previewBoxStyle, selectStyle, startButtonStyle } from './builderStyles';
@@ -54,6 +55,9 @@ export const ScaleBuilder: React.FC<ScaleBuilderProps> = ({ onStart }) => {
         return isMinor ? ascii.toLowerCase() : ascii;
     }, [spec.tonic, isMinor]);
 
+    // One engraving per spec, shared by the preview and the audition.
+    const mei = useMemo(() => generateScaleMei(spec), [spec]);
+
     const preview = useMemo(() => {
         if (!toolkit) return null;
         try {
@@ -62,14 +66,14 @@ export const ScaleBuilder: React.FC<ScaleBuilderProps> = ({ onStart }) => {
                 svgViewBox: true, header: 'none', footer: 'none', scale: 45,
                 pageMarginLeft: 15, pageMarginRight: 15, pageMarginTop: 10, pageMarginBottom: 10,
             });
-            toolkit.loadData(generateScaleMei(spec));
+            toolkit.loadData(mei);
             return toolkit.renderToSVG(1, {})
                 .replace('<svg ', '<svg style="height:150px;width:auto;" ');
         } catch (e) {
             console.error('Scale preview render failed:', e);
             return null;
         }
-    }, [toolkit, spec]);
+    }, [toolkit, mei]);
 
     const url = buildScaleUrl(spec);
 
@@ -132,6 +136,11 @@ export const ScaleBuilder: React.FC<ScaleBuilderProps> = ({ onStart }) => {
                         <input type="checkbox" checked={fingering} onChange={e => setFingering(e.target.checked)} />
                         Show fingering
                     </label>
+
+                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <AuditionButton mei={mei} />
+                        <PlaybackTargetSelect compact />
+                    </div>
 
                     <button
                         // prewarm inside the click: the ROLI scale-paint sysex

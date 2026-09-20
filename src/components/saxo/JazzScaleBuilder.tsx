@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { AuditionButton, PlaybackTargetSelect } from '../PlaybackControl';
 import { CircleOfFifths } from '../theory/CircleOfFifths';
 import { Stepper } from '../Stepper';
 import { chipStyle, labelStyle, previewBoxStyle, selectStyle, startButtonStyle } from '../builderStyles';
@@ -55,6 +56,9 @@ export const JazzScaleBuilder: React.FC<JazzScaleBuilderProps> = ({ onStart }) =
     // Highlight the chosen root on the wheel (music21 style: "C", "E-").
     const highlightKey = useMemo(() => ROOTS[rootIndex].replace('b', '-'), [rootIndex]);
 
+    // One engraving per spec, shared by the preview and the audition.
+    const mei = useMemo(() => generateJazzMei(spec), [spec]);
+
     const preview = useMemo(() => {
         if (!toolkit) return null;
         try {
@@ -63,14 +67,14 @@ export const JazzScaleBuilder: React.FC<JazzScaleBuilderProps> = ({ onStart }) =
                 svgViewBox: true, header: 'none', footer: 'none', scale: 45,
                 pageMarginLeft: 15, pageMarginRight: 15, pageMarginTop: 10, pageMarginBottom: 10,
             });
-            toolkit.loadData(generateJazzMei(spec));
+            toolkit.loadData(mei);
             return toolkit.renderToSVG(1, {})
                 .replace('<svg ', '<svg style="height:102px;width:auto;" ');
         } catch (e) {
             console.error('Jazz exercise preview render failed:', e);
             return null;
         }
-    }, [toolkit, spec]);
+    }, [toolkit, mei]);
 
     const url = buildJazzUrl(spec);
     const groups = useMemo(() => [...new Set(JAZZ_SCALES.map(s => s.group))], []);
@@ -173,6 +177,11 @@ export const JazzScaleBuilder: React.FC<JazzScaleBuilderProps> = ({ onStart }) =
                         <input type="checkbox" checked={highFs} onChange={e => setHighFs(e.target.checked)} />
                         Use the high F♯ key
                     </label>
+
+                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <AuditionButton mei={mei} />
+                        <PlaybackTargetSelect compact />
+                    </div>
 
                     <button onClick={() => onStart(url)} style={startButtonStyle} title={url}>
                         ▶ Start — {resolved.def.label} on {spelling[0]?.name} written

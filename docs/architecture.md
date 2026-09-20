@@ -154,6 +154,27 @@ Piano and saxo are pitched, so they share the `triggerAttack(freq)` / `triggerRe
 Drums are not: a pad is a one-shot voice, so the note-on handler calls `kit.trigger(padNote, velocity)`
 and there is nothing to release.
 
+### Playback — [playback.ts](../src/utils/playback.ts), [midiOut.ts](../src/utils/midiOut.ts)
+Hearing what is on the page, **as sound or as MIDI**. Both sinks are driven from the same
+[timemap](../src/utils/timemap.ts) the scrolling score uses, so notation and playback cannot
+disagree.
+
+- **Audio** plays the app's own instrument. `useAudio()` registers whatever it built
+  (`registerPlaybackVoice`), so a played score sounds on the piano sampler, the saxo synth or the
+  drum kit — never a second copy of them.
+- **MIDI** sends note-on/note-off to a chosen output port instead, and sounds nothing locally.
+  Web MIDI in browsers, the Rust `midi_send` shim in the Tauri shell (which now caches one
+  connection **per port**, so the key lights and playback can aim at different devices).
+- Two entry points: `playTimemap()` schedules a one-off audition on the audio clock (the exercise
+  builders' ▶ Listen), and `schedulePlayback()` attaches the performance to the Tone transport, so
+  a piece sounds as it scrolls and follows the tempo slider, seeking and the practice pauses.
+- Drums are the special case: the score notates voices as pitches, so both sinks translate through
+  `padForScoreNote()` — the notehead is what separates a snare from a rim shot, which is why the
+  timemap carries `head`.
+
+The target (`off` / `audio` / a port name) lives in `GameContext` and is remembered, so the
+transport and every builder share one setting.
+
 ---
 
 ## 6. Score rendering pipeline (the ScoreView family)

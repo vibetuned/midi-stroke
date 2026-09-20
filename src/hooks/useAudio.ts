@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import * as Tone from 'tone';
 import { useMidi } from './useMidi';
 import { useGame } from '../context/GameContext';
-import { createDrumKit, type DrumKit } from '../utils/drumKit';
+import { createDrumKit, padForScoreNote, type DrumKit } from '../utils/drumKit';
+import { registerPlaybackVoice, schedulePlayback } from '../utils/playback';
 
 export function useAudio() {
     // Piano sampler for piano/theory, a reed-ish PolySynth for saxo — both
@@ -14,7 +15,7 @@ export function useAudio() {
     const extraNodesRef = useRef<Tone.ToneAudioNode[]>([]);
     const metronomeRef = useRef<Tone.MembraneSynth | null>(null);
     const { activeNotes } = useMidi();
-    const { isAudioStarted, tempo, isMetronomeMuted, gameMode, instrument } = useGame();
+    const { isAudioStarted, tempo, isMetronomeMuted, gameMode, instrument, timemap, playbackTarget } = useGame();
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Master mute: silences the metronome AND the player-input instrument.
@@ -94,7 +95,31 @@ export function useAudio() {
         samplerRef.current = sampler;
         }
 
-        // 2. Create Metronome Synth
+        // 2. Hand the instrument to playback (utils/playback.ts), so a played
+        //    score sounds on the very voice the player hears themselves on
+        //    rather than loading a second copy of it.
+        registerPlaybackVoice({
+            note(midi, durationSec, time, velocity, head) {
+                const kit = drumKitRef.current;
+                if (kit) {
+                    const pad = padForScoreNote(midi, head);
+                    if (pad !== undefined) kit.trigger(pad, velocity, time);
+                    return;
+                }
+                const instrumentVoice = samplerRef.current;
+                if (!instrumentVoice) return;
+                const freq = Tone.Frequency(midi, 'midi').toFrequency();
+                instrumentVoice.triggerAttackRelease(freq, durationSec, time, velocity);
+            },
+            allOff() {
+                drumKitRef.current?.allOff();
+                const instrumentVoice = samplerRef.current;
+                if (instrumentVoice instanceof Tone.PolySynth) instrumentVoice.releaseAll();
+                else if (instrumentVoice instanceof Tone.Sampler) instrumentVoice.releaseAll();
+            },
+        });
+
+        // 3. Create Metronome Synth
         const metro = new Tone.MembraneSynth({
             envelope: {
                 attack: 0.001,
@@ -106,7 +131,7 @@ export function useAudio() {
         }).toDestination();
         metronomeRef.current = metro;
 
-        // 3. Setup Transport Loop
+        // 4. Setup Transport Loop
         const loopId = Tone.getTransport().scheduleRepeat((time) => {
             if (gameMode !== 'practice') {
                 metro.triggerAttackRelease("C1", "8n", time);
@@ -116,6 +141,7 @@ export function useAudio() {
         console.log("Audio Engine Initialized");
 
         return () => {
+            registerPlaybackVoice(null);
             samplerRef.current?.dispose();
             drumKitRef.current?.dispose();
             extraNodesRef.current.forEach(n => n.dispose());
@@ -140,6 +166,17 @@ export function useAudio() {
             drumKitRef.current.volume.value = isMetronomeMuted ? -100 : instrumentBaseVolume;
         }
     }, [isMetronomeMuted, instrumentBaseVolume]);
+
+    // Sound the score itself as the playhead reaches it — on the app's own
+    // instrument, or out to a MIDI port. Scheduling on the transport means it
+    // follows the tempo slider, seeking and the practice-mode pauses for free.
+    useEffect(() => {
+        if (!isAudioStarted || !timemap || playbackTarget === 'off') return;
+        return schedulePlayback(timemap, {
+            target: playbackTarget,
+            drums: instrument === 'drums',
+        });
+    }, [isAudioStarted, timemap, playbackTarget, instrument]);
 
     // Handle Transport Play/Pause & Tempo
     useEffect(() => {

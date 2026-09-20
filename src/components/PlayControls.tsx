@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
+import { TransportPlayback } from './PlaybackControl';
 import { useGame } from '../context/GameContext';
 import { useStats } from '../context/StatsContext';
 import * as Tone from 'tone';
@@ -256,6 +257,8 @@ export const PlayControls: React.FC = () => {
             >
                 {isMetronomeMuted ? '🔇' : '🔊'}
             </button>
+
+            <TransportPlayback />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '200px' }}>
                 <span style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', fontWeight: 'bold' }}>

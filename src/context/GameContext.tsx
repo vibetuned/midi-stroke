@@ -1,7 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useRef, type ReactNode, useCallback } from 'react';
+import { padForScoreNote } from '../utils/drumKit';
 import * as Tone from 'tone';
 
 import type { TimemapData } from '../utils/timemap';
+import type { PlaybackTarget } from '../utils/playback';
+
+/** Where playback sends notes; remembered across sessions. */
+const PLAYBACK_TARGET_KEY = 'midi-stroke-playback-target';
 
 export type HandSelection = 'right' | 'left' | 'both';
 
@@ -23,6 +28,10 @@ interface GameState {
     setAudioStarted: (started: boolean) => void;
     isMetronomeMuted: boolean;
     setMetronomeMuted: (muted: boolean) => void;
+    /** Where a played score goes: 'off', 'audio', or a MIDI output port name.
+     *  Shared by the transport and the exercise builders' audition button. */
+    playbackTarget: PlaybackTarget;
+    setPlaybackTarget: (target: PlaybackTarget) => void;
     pianoRange: { min: number; max: number } | null;
     setPianoRange: (range: { min: number; max: number } | null) => void;
     playSizeTicks: number;
@@ -61,6 +70,14 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
     const [currentMeasure, setCurrentMeasure] = useState(1);
     const [isAudioStarted, setAudioStarted] = useState(false);
     const [isMetronomeMuted, setMetronomeMuted] = useState(false);
+    // Remembered across sessions: picking your synth again every time is a chore.
+    const [playbackTarget, setPlaybackTargetState] = useState<PlaybackTarget>(
+        () => localStorage.getItem(PLAYBACK_TARGET_KEY) ?? 'off',
+    );
+    const setPlaybackTarget = useCallback((target: PlaybackTarget) => {
+        setPlaybackTargetState(target);
+        try { localStorage.setItem(PLAYBACK_TARGET_KEY, target); } catch { /* private mode */ }
+    }, []);
     const [pianoRange, setPianoRange] = useState<{ min: number; max: number } | null>(null);
     const [playSizeTicks, setPlaySizeTicks] = useState(0);
     const [playPosition, setPlayPosition] = useState(0);
@@ -127,6 +144,8 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
             isAudioStarted,
             setAudioStarted,
             isMetronomeMuted,
+            playbackTarget,
+            setPlaybackTarget,
             setMetronomeMuted,
             pianoRange,
             setPianoRange,
@@ -265,18 +284,6 @@ export const useMidiFile = () => {
     }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, setWaitingForNotes, setSongCompleted, waitingForNotesRef]);
 };
 
-// MEI pitch-based MIDI note → primary pad MIDI note
-// Verovio renders drum notes as pitched MIDI (f4=65, c5=72, etc.)
-const MEI_TO_PAD: Record<number, number> = {
-    65: 36, // BassDrum    (f4)
-    72: 38, // SnareDrum   (c5)
-    79: 42, // ClosedHiHat (g5)
-    81: 49, // Cymbal      (a5)
-    69: 43, // LowTom      (a4)
-    74: 47, // MediumTom   (d5)
-    76: 48, // HighTom     (e5)
-};
-
 // Hook to manage Drum Loop Duration and Limits
 export const useDrumsMidiFile = () => {
     const { playSizeTicks, isPlaying, setPlayPosition, gameMode, seek, setSongCompleted } = useGame();
@@ -288,7 +295,9 @@ export const useDrumsMidiFile = () => {
     usePracticePauseSchedule(
         useCallback(
             notes => notes
-                .map(n => MEI_TO_PAD[n.midi])
+                // Verovio renders drum notes as pitches; the notehead separates
+                // the voices that share a staff position (see drumKit.ts).
+                .map(n => padForScoreNote(n.midi, n.head))
                 .filter((pad): pad is number => pad !== undefined),
             [],
         ),

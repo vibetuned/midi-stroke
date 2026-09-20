@@ -7,10 +7,14 @@ fn js_log(msg: String) {
 }
 
 /// MIDI OUTPUT shim — the webview has no Web MIDI, so hardware key lights
-/// (ROLI LUMI SysEx, see src/utils/keyLights.ts) go through these commands.
-/// The connection is cached per port name; a vanished device just errors the
-/// send and reconnects on the next call.
-struct MidiOut(std::sync::Mutex<Option<(String, midir::MidiOutputConnection)>>);
+/// (ROLI LUMI SysEx, see src/utils/keyLights.ts) and score playback
+/// (src/utils/midiOut.ts) go through these commands.
+///
+/// One cached connection PER PORT, not one overall: the key-light guide and
+/// playback can be aimed at different devices, and a single slot would have
+/// torn down and rebuilt a connection on every note between them. A vanished
+/// device just errors its send and is dropped, reconnecting on the next call.
+struct MidiOut(std::sync::Mutex<std::collections::HashMap<String, midir::MidiOutputConnection>>);
 
 /// True for MIDI ports created by this process itself. midir gives every
 /// connection a client-visible app port (ALSA: an output connection port is
@@ -54,8 +58,9 @@ fn midi_send(
 
     let mut cached = state.0.lock().map_err(|e| e.to_string())?;
 
-    // Reuse the cached connection when it still matches; otherwise (re)connect.
-    if !matches!(&*cached, Some((name, _)) if matches(name)) {
+    // Reuse this request's own connection when it is already open; otherwise
+    // connect and keep it beside the others.
+    if !cached.contains_key(&port_match) {
         let out = midir::MidiOutput::new("midi-stroke-out").map_err(|e| e.to_string())?;
         let port = out
             .ports()
@@ -63,14 +68,14 @@ fn midi_send(
             .find(|p| out.port_name(p).map(|n| matches(&n) && !own_port(&n)).unwrap_or(false))
             .ok_or_else(|| format!("no MIDI output matching '{port_match}'"))?;
         let name = out.port_name(&port).unwrap_or_default();
-        let conn = out.connect(&port, "midi-stroke-lights").map_err(|e| e.to_string())?;
+        let conn = out.connect(&port, "midi-stroke-out").map_err(|e| e.to_string())?;
         eprintln!("[shell] midi out connected: {name}");
-        *cached = Some((name, conn));
+        cached.insert(port_match.clone(), conn);
     }
 
-    if let Some((_, conn)) = cached.as_mut() {
+    if let Some(conn) = cached.get_mut(&port_match) {
         if let Err(e) = conn.send(&data) {
-            *cached = None; // stale connection (device unplugged) — drop it
+            cached.remove(&port_match); // stale connection (device unplugged)
             return Err(e.to_string());
         }
     }
@@ -185,7 +190,7 @@ fn main() {
         eprintln!("[shell] mode: embedded assets (self-contained build) v{}", env!("CARGO_PKG_VERSION"));
     }
     tauri::Builder::default()
-        .manage(MidiOut(std::sync::Mutex::new(None)))
+        .manage(MidiOut(std::sync::Mutex::new(std::collections::HashMap::new())))
         .setup(|app| {
             use tauri::Manager;
             spawn_midi(app.app_handle().clone());
