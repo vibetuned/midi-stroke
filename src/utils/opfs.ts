@@ -137,3 +137,29 @@ export async function deleteOpfsCollection(collectionPath: string): Promise<void
     if (!instDir) return;
     await instDir.removeEntry(collection, { recursive: true });
 }
+
+/**
+ * Store one score in an uploaded collection (made if needed), as the games'
+ * "My pieces" do. Returns its song key ("opfs:<instrument>/<collection>/<name>"),
+ * which every app can open. An existing file of the same name is replaced.
+ */
+export async function saveOpfsSong(instrument: string, collection: string, fileName: string, text: string): Promise<string> {
+    const base = fileName.split(/[\\/]/).pop() || 'piece.mei';
+    const name = /\.mei$/i.test(base) ? base : `${base}.mei`;
+    navigator.storage.persist?.().catch(() => { /* best effort */ });
+    const dir = await dirHandle([instrument, collection], true);
+    if (!dir) throw new Error('Origin Private File System is not available');
+    const fh = await dir.getFileHandle(name, { create: true });
+    const writable = await fh.createWritable();
+    await writable.write(text);
+    await writable.close();
+    return `${OPFS_PREFIX}${instrument}/${collection}/${name}`;
+}
+
+/** Delete one uploaded song. songKey: "opfs:<instrument>/<collection>/<name>". */
+export async function deleteOpfsSong(songKey: string): Promise<void> {
+    const [instrument, collection, ...rest] = songKey.slice(OPFS_PREFIX.length).split('/');
+    const dir = instrument && collection ? await dirHandle([instrument, collection], false) : null;
+    if (!dir) return;
+    try { await dir.removeEntry(rest.join('/')); } catch { /* already gone */ }
+}

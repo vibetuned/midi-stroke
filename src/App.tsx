@@ -4,17 +4,30 @@ import { DrumsApp } from './components/drums/DrumsApp';
 import { PianoApp } from './components/piano/PianoApp';
 import { SaxoApp } from './components/saxo/SaxoApp';
 import { TheoryApp } from './components/theory/TheoryApp';
+import { GamesApp } from './components/games/GamesApp';
 import { GameProvider } from './context/GameContext';
 import { StatsProvider } from './context/StatsContext';
 
 function App() {
-  const [currentApp, setCurrentApp] = useState<'splash' | 'piano' | 'drums' | 'saxo' | 'theory'>('splash');
+  const [currentApp, setCurrentApp] = useState<'splash' | 'piano' | 'drums' | 'saxo' | 'theory' | 'games'>('splash');
+  // A piece to open straight away — a game's "play it on the saxophone".
+  const [initialSong, setInitialSong] = useState<string | null>(null);
+  const back = () => { setInitialSong(null); setCurrentApp('splash'); };
 
   if (currentApp === 'splash') {
     return <SplashScreen onSelectApp={setCurrentApp} />;
   }
 
   // StatsProvider wraps every instrument so stats persist across switches
+  if (currentApp === 'games') {
+    return (
+      <GamesApp
+        onBack={back}
+        onOpenInstrument={(instrument, songKey) => { setInitialSong(songKey); setCurrentApp(instrument); }}
+      />
+    );
+  }
+
   if (currentApp === 'drums') {
     return (
       <StatsProvider>
@@ -28,8 +41,8 @@ function App() {
   if (currentApp === 'saxo') {
     return (
       <StatsProvider>
-        <GameProvider instrument="saxo">
-          <SaxoApp onBack={() => setCurrentApp('splash')} />
+        <GameProvider instrument="saxo" initialSong={initialSong}>
+          <SaxoApp onBack={back} />
         </GameProvider>
       </StatsProvider>
     );
@@ -47,8 +60,8 @@ function App() {
 
   return (
     <StatsProvider>
-      <GameProvider instrument="piano">
-        <PianoApp onBack={() => setCurrentApp('splash')} />
+      <GameProvider instrument="piano" initialSong={initialSong}>
+        <PianoApp onBack={back} />
       </GameProvider>
     </StatsProvider>
   );

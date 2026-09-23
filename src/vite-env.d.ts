@@ -30,6 +30,9 @@ declare module 'verovio/esm' {
         renderToSVG(page: number, options?: VerovioOptions): string;
         renderToTimemap(options?: { includeMeasures?: boolean; includeRests?: boolean }): TimemapEvent[];
         getMIDIValuesForElement(xmlId: string): { time: number; pitch: number; duration: number };
+        /** Limit rendering to part of the score, e.g. { measureRange: '2-9' } (positions, 1-based). */
+        select(selection: { measureRange?: string } | Record<string, never>): boolean;
+        redoLayout(options?: VerovioOptions): void;
         // add other methods as needed
     }
 }

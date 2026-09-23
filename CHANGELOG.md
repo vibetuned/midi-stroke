@@ -6,6 +6,50 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
+## Unreleased
+
+### Games
+
+- **A Games tab**, beside Theory: short rhythm games that need no instrument — a key, a tap or a
+  drum pad. Meant as a way in for people who don't play yet, and as timing practice away from the
+  instrument for those who do. Design record: [docs/games.md](docs/games.md).
+- **The Slingshot** ([src/components/games/SlingshotGame.tsx](src/components/games/SlingshotGame.tsx)):
+  hold while a note sounds and the probe orbits its anchor, a quarter turn a beat; let go at the
+  mark and it is flung to the next. What is judged is the strike and, above all, the let-go — the
+  length of each note, which also sounds for exactly as long as it is held. The course is the
+  rhythm drawn as geometry: a half note half a circle, a rest the flight between
+  ([src/games/slingshot/course.ts](src/games/slingshot/course.ts)).
+- **Levels**: six lessons, one note value each (halves, quarters, wholes, a waltz, eighths, dotted
+  rhythms), and songs — the melodies of well-known tunes from the library, taken from their scores
+  ([src/games/rhythm.ts](src/games/rhythm.ts)). Relaxed or as-written tempo; best stars kept per
+  level.
+- **Fair timing**: everything runs on the audio clock as heard, and a ten-second calibration
+  (tap along to eight clicks) takes the device's delay off before judging
+  ([src/games/latency.ts](src/games/latency.ts), [src/games/clock.ts](src/games/clock.ts)).
+- **Results in notation**: the level written out by Verovio — a song's own bars — with every note
+  coloured by how it was played, a tip when there is a tendency (letting go early, rushing…), and
+  for a song, **Play it on the saxophone →**, which opens the piece in the saxo app.
+- **My pieces**: add any MEI score with 📁 *Add a piece*. Its top line becomes a level, and it is
+  kept on the device as the piano library's *My pieces* collection, so it opens in the piano app
+  too, where *Play it on the piano →* leads. It can be removed from either app.
+- **Every anchor shows its note, written out**: an open whole, an open half with its stem, a filled
+  quarter, flags for eighths and sixteenths, a dot for dotted values; tuplets show as the plain
+  value they are written with.
+- **The way to go glows**: the arc still to travel on the next orbit, up to the release mark, which
+  glows too. It shrinks while the note is held, so it shows where to stop, not just which anchor.
+  The three orbits after it stay visible, and the rest of the course, played or far ahead, fades
+  back, so the way on reads even where the course crosses itself.
+- **Lessons sound at C3** instead of C5.
+- **Smoother in the desktop app.** Pop-up texts are no longer rebuilt every frame, React is only
+  told when the count-in changes, and the trail draws in five strokes instead of forty. Script time
+  while playing dropped from 66 to 52 ms a second in Chrome; the WebKit webview on macOS felt the
+  old churn more.
+- `npm run check:games` (118 checks) covers the lessons and their notation, every song level and
+  its note ids, judging, the course's geometry (continuity, a quarter turn a beat, no overlaps)
+  and calibration. In the browser, a bot on the game's own clock scored 100 % on a lesson and on
+  Ode to Joy (30 notes, all coloured in the notation), and letting go 150 ms early brought the
+  tip about holding on.
+
 ## 0.0.3 — 2026-09-23
 
 Play along, and learn by ear. A piece can now have a recording that plays along

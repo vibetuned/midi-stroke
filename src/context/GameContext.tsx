@@ -11,7 +11,12 @@ import { useAccompanimentFor } from '../hooks/useAccompaniment';
 /** Where playback sends notes; remembered across sessions. */
 const PLAYBACK_TARGET_KEY = 'midi-stroke-playback-target';
 
-export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' | 'drums' | 'saxo' | 'theory' }> = ({ children, instrument = 'piano' }) => {
+export const GameProvider: React.FC<{
+    children: ReactNode;
+    instrument?: 'piano' | 'drums' | 'saxo' | 'theory';
+    /** A piece to open at once (a game sending the player to the instrument). */
+    initialSong?: string | null;
+}> = ({ children, instrument = 'piano', initialSong = null }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [tempo, setTempoState] = useState(120);
     // The tempo the user picked for pieces that state none, so a score's own
@@ -42,7 +47,7 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
     const [gameMode, setGameMode] = useState<GameMode>('standard');
     const [waitingForNotes, setWaitingForNotesState] = useState<number[]>([]);
     const waitingForNotesRef = React.useRef<number[]>([]);
-    const [selectedSong, setSelectedSong] = useState<string | null>(null);
+    const [selectedSong, setSelectedSong] = useState<string | null>(initialSong);
     const [serverBase, setServerBase] = useState<string | null>(null);
     const [songCompleted, setSongCompleted] = useState(false);
     const [handSelection, setHandSelection] = useState<HandSelection>('both');

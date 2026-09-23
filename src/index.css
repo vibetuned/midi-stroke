@@ -25,6 +25,12 @@
   --color-accent-glow: rgba(212, 160, 23, 0.5);
 }
 
+.theme-games {
+  --color-text-secondary: #8be9f8;
+  --color-accent: #22d3ee;
+  --color-accent-glow: rgba(34, 211, 238, 0.5);
+}
+
 .theme-theory {
   --color-text-secondary: #9a9aa8;
   --color-accent: #2fae76;
@@ -37,6 +43,14 @@
   height: 100%;
   width: auto;
   display: block;
+}
+
+/* The rhythm games' results: the level written out, as wide as its card. */
+.games-notation svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
 }
 
 .cursor-glow {

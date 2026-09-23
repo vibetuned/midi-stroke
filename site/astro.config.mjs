@@ -48,6 +48,12 @@ export default defineConfig({
           ],
         },
         {
+          label: "Games",
+          items: [
+            { slug: "games" },
+          ],
+        },
+        {
           label: "More",
           items: [
             { slug: "development" },
