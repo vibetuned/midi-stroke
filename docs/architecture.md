@@ -154,6 +154,28 @@ Piano and saxo are pitched, so they share the `triggerAttack(freq)` / `triggerRe
 Drums are not: a pad is a one-shot voice, so the note-on handler calls `kit.trigger(padNote, velocity)`
 and there is nothing to release.
 
+### Tempo — [tempo.ts](../src/utils/tempo.ts)
+The viewers keep time from the timemap's quarter-note positions and the Tone transport's BPM, never
+from Verovio's milliseconds — so a score's own tempo has to be read and handed to the transport, or
+every piece plays at whatever the slider says. `extractTimemap()` attaches it as `timemap.tempo`.
+
+- **Where it comes from**, in order of precedence: `@midi.bpm` (quarter notes per minute),
+  `@midi.mspb` (microseconds per quarter — the literal MIDI set-tempo value), `@mm` with
+  `@mm.unit` / `@mm.dots`, and finally tempo text that spells a metronome mark ("♩ = 132", SMuFL
+  glyphs included). On `<scoreDef>` it is the opening tempo; on a `<tempo>` element it is a change
+  at that point (`@startid`, else `@tstamp`, else the measure start).
+- **Why not Verovio's value**: Verovio ignores `@midi.mspb` altogether, reads a dotted `@mm.unit`
+  as 4/3 of the unit instead of 3/2 (dotted quarter = 60 plays at 80), and ignores tempo text. It
+  still supplies *where* marks fall — measure starts and note onsets for the loaded document.
+- **The slider**: loading a score that states a tempo moves the slider to it; a score that states
+  none opens at the tempo the user last chose for such pieces, so one piece's marking never leaks
+  into the next. The slider sets the *opening* tempo and later changes keep their proportion to it,
+  so half speed halves every section.
+- **Following changes**: `GameProvider` owns the transport BPM and, when a score changes tempo,
+  polls the playhead every 40 ms rather than scheduling transport events — so seeking back across a
+  change restores the earlier tempo too. Auditions (`playTimemap`) integrate time across the same
+  tempo map.
+
 ### Playback — [playback.ts](../src/utils/playback.ts), [midiOut.ts](../src/utils/midiOut.ts)
 Hearing what is on the page, **as sound or as MIDI**. Both sinks are driven from the same
 [timemap](../src/utils/timemap.ts) the scrolling score uses, so notation and playback cannot

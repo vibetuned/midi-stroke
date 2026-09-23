@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useRef } from 'react';
+import { TEMPO_MAX, TEMPO_MIN } from '../context/GameContext';
+import type { TempoMap } from '../utils/tempo';
 import { TransportPlayback } from './PlaybackControl';
 import { useGame } from '../context/GameContext';
 import { useStats } from '../context/StatsContext';
 import * as Tone from 'tone';
 
 export const PlayControls: React.FC = () => {
-    const { isPlaying, setIsPlaying, tempo, setTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection } = useGame();
+    const { isPlaying, setIsPlaying, tempo, setTempo, scoreTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection } = useGame();
     const { resetSession } = useStats();
 
     // Fix 10: stable refs so the keydown closure never captures stale values
@@ -50,11 +52,11 @@ export const PlayControls: React.FC = () => {
                     break;
                 case 'ArrowUp':
                     e.preventDefault();
-                    setTempo(Math.min(120, tempoRef.current + 5));
+                    setTempo(Math.min(TEMPO_MAX, tempoRef.current + 5));
                     break;
                 case 'ArrowDown':
                     e.preventDefault();
-                    setTempo(Math.max(30, tempoRef.current - 5));
+                    setTempo(Math.max(TEMPO_MIN, tempoRef.current - 5));
                     break;
             }
         };
@@ -260,17 +262,21 @@ export const PlayControls: React.FC = () => {
 
             <TransportPlayback />
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '200px' }}>
-                <span style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', fontWeight: 'bold' }}>
-                    Tempo: {tempo} BPM
-                </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '240px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', fontWeight: 'bold' }}>
+                        Tempo: {tempo} BPM
+                    </span>
+                    <ScoreTempoBadge scoreTempo={scoreTempo} tempo={tempo} onReset={setTempo} />
+                </div>
                 <input
                     type="range"
-                    min="30"
-                    max="120"
-                    step="30"
+                    min={TEMPO_MIN}
+                    max={TEMPO_MAX}
+                    step="1"
                     value={tempo}
                     onChange={(e) => setTempo(Number(e.target.value))}
+                    title="Quarter notes per minute — for a score that states its tempo, this is its opening tempo, and later changes keep their proportion"
                     style={{
                         flex: 1,
                         cursor: 'pointer',
@@ -279,5 +285,51 @@ export const PlayControls: React.FC = () => {
                 />
             </div>
         </div>
+    );
+};
+
+/**
+ * What the score says about its tempo: its marking, whether it changes tempo
+ * along the way, and — when the slider has moved off the marking — how far off
+ * it is and a way back.
+ */
+const ScoreTempoBadge: React.FC<{
+    scoreTempo: TempoMap | null;
+    tempo: number;
+    onReset: (bpm: number) => void;
+}> = ({ scoreTempo, tempo, onReset }) => {
+    const initial = scoreTempo?.initial;
+    if (!initial) return null;
+    const marked = Math.round(initial.bpm);
+    const changes = scoreTempo.marks.length - 1;
+    const off = tempo !== marked;
+    const percent = Math.round((tempo / initial.bpm) * 100);
+    const label = initial.text && !/\d/.test(initial.text) ? `${initial.text} · ` : '';
+    return (
+        <span
+            title={`The score marks ♩ = ${marked} (from @${initial.source === 'text' ? 'its tempo text' : initial.source})`
+                + (changes ? `, and changes tempo ${changes} time${changes > 1 ? 's' : ''} — each change keeps its proportion to the slider` : '')}
+            style={{ fontSize: '0.68rem', color: 'var(--color-text-secondary, #8a8a98)', display: 'flex', gap: '0.35rem', alignItems: 'center' }}
+        >
+            {label}score ♩ = {marked}{changes ? ` · ${changes} change${changes > 1 ? 's' : ''}` : ''}
+            {off && (
+                <>
+                    <span>· {percent}%</span>
+                    {/* Words, not a glyph: the transport already has a ↺ that means
+                        "restart", and two of them side by side read as one. */}
+                    <button
+                        onClick={() => onReset(initial.bpm)}
+                        title="Back to the score's tempo"
+                        style={{
+                            fontSize: '0.66rem', padding: '0 0.4rem', borderRadius: '8px', cursor: 'pointer',
+                            background: 'transparent', color: 'var(--color-accent)',
+                            border: '1px solid var(--color-accent)',
+                        }}
+                    >
+                        use {marked}
+                    </button>
+                </>
+            )}
+        </span>
     );
 };

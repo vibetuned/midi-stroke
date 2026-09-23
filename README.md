@@ -195,6 +195,7 @@ The application is built on a web stack trying to be optimized for low-latency a
 * **Theory Courses:** video lessons paired with fill-in-the-blank score exercises, answered from piano, circle of fifths, or MIDI input.
 * **Playback, in sound or in MIDI:** hear any piece or generated exercise — ▶ Listen in each builder auditions what you just built, and the transport can sound the score as it scrolls. Playback runs on the app's own instrument, or sends note-on/note-off to a MIDI output for your synth or DAW (drums go out as General MIDI pads on channel 10).
 * **Instrument-appropriate sound:** the piano sampler for piano and theory, a reed synth for saxo, and a synthesized twelve-voice kit for drums — the drums app downloads nothing and works offline.
+* **The score's own tempo:** a piece that states its tempo — `@midi.bpm`, the MIDI `@midi.mspb`, a metronome mark, or "♩ = 132" in the text — opens at it, follows its tempo changes as it plays, and keeps every section in proportion when you slow it down.
 * **Precision Tempo Control:** A high-resolution transport system for granular practice, from slow-motion technical drills to full-speed performance.
 * **Session Stats:** Per-song accuracy, combos, and history persisted locally.
 
@@ -247,6 +248,7 @@ npm run build:course-manifest    # regenerate the theory course manifest from pu
 node scripts/build-keysig-assets.mjs  # re-engrave the circle-of-fifths key-signature assets (src/assets/keySignatures.ts)
 npm run check:jazz               # validate the saxo jazz generator (range, engraving vs MIDI, bebop downbeats)
 npm run check:drums              # validate the drums pattern generator (hit counts, Euclidean references, engraving)
+npm run check:tempo              # validate reading a score's tempo (every MEI encoding, change positions, the slider maths)
 ```
 
 ### Local Network Access

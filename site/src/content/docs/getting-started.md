@@ -59,8 +59,12 @@ the first note.
 
 ## Transport & controls
 
-- **Tempo** — slider from 30 to 120 BPM; everything (score scroll, practice
-  pauses, hit windows) scales musically with it.
+- **Tempo** — a slider from 20 to 240 BPM (quarter notes per minute), with
+  ↑ / ↓ for steps of 5; everything (score scroll, practice pauses, hit windows)
+  scales musically with it. If the score **states its own tempo** it opens at
+  it, and the slider shows the marking — *score ♩ = 160* — with a way back to it
+  once you have moved away. A score that changes tempo along the way is
+  followed as it plays, and slowing it down keeps every section in proportion.
 - **Seek** — drag the score itself, click/drag the minimap strip at the top
   (piano & saxo), or use the arrow keys.
 - **Hand selection (piano)** — L / R / both; the inactive staff dims and its

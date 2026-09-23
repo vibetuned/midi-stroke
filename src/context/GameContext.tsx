@@ -3,10 +3,15 @@ import { padForScoreNote } from '../utils/drumKit';
 import * as Tone from 'tone';
 
 import type { TimemapData } from '../utils/timemap';
+import { effectiveBpm, type TempoMap } from '../utils/tempo';
 import type { PlaybackTarget } from '../utils/playback';
 
 /** Where playback sends notes; remembered across sessions. */
 const PLAYBACK_TARGET_KEY = 'midi-stroke-playback-target';
+
+/** Slider limits, wide enough for real scores (Bartók's Mikrokosmos marks 160). */
+export const TEMPO_MIN = 20;
+export const TEMPO_MAX = 240;
 
 export type HandSelection = 'right' | 'left' | 'both';
 
@@ -21,7 +26,11 @@ interface GameState {
     isPlaying: boolean;
     setIsPlaying: (playing: boolean) => void;
     tempo: number;
+    /** The slider: the piece's opening tempo in quarter notes per minute.
+     *  Set by the user; loading a score that states a tempo moves it there. */
     setTempo: (tempo: number) => void;
+    /** What the loaded score says about its own tempo (null when nothing). */
+    scoreTempo: TempoMap | null;
     currentMeasure: number;
     setCurrentMeasure: (measure: number) => void;
     isAudioStarted: boolean;
@@ -66,7 +75,17 @@ const GameContext = createContext<GameState | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' | 'drums' | 'saxo' | 'theory' }> = ({ children, instrument = 'piano' }) => {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [tempo, setTempo] = useState(120);
+    const [tempo, setTempoState] = useState(120);
+    // The tempo the user picked for pieces that state none, so a score's own
+    // tempo never leaks into the next unmarked piece: marked pieces open at
+    // their marking, unmarked ones at your last choice.
+    const manualTempoRef = useRef(120);
+    const scoreTempoRef = useRef<TempoMap | null>(null);
+    const setTempo = useCallback((bpm: number) => {
+        const clamped = Math.max(TEMPO_MIN, Math.min(TEMPO_MAX, Math.round(bpm)));
+        setTempoState(clamped);
+        if (!scoreTempoRef.current?.initial) manualTempoRef.current = clamped;
+    }, []);
     const [currentMeasure, setCurrentMeasure] = useState(1);
     const [isAudioStarted, setAudioStarted] = useState(false);
     const [isMetronomeMuted, setMetronomeMuted] = useState(false);
@@ -131,7 +150,31 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
         setTimemap(data);
         // Song length: end of the last measure.
         setPlaySizeTicks(data.totalTicks);
+        // A score that states its tempo opens at it; one that does not opens
+        // at whatever the user last chose for such pieces.
+        const map = data.tempo?.initial ? data.tempo : null;
+        scoreTempoRef.current = map;
+        setTempoState(map
+            ? Math.max(TEMPO_MIN, Math.min(TEMPO_MAX, Math.round(map.initial!.bpm)))
+            : manualTempoRef.current);
     }, []);
+
+    // The transport's BPM is owned here, because it depends on the slider, the
+    // score's tempo map and where the playhead is. A score with tempo changes
+    // is followed as it plays — polling, not scheduled events, so seeking back
+    // across a change restores the earlier tempo too.
+    const scoreTempo = timemap?.tempo?.initial ? timemap.tempo : null;
+    useEffect(() => {
+        const transport = Tone.getTransport();
+        const apply = () => {
+            const bpm = effectiveBpm(scoreTempo, transport.ticks, tempo);
+            if (Math.abs(transport.bpm.value - bpm) > 1e-3) transport.bpm.value = bpm;
+        };
+        apply();
+        if (!scoreTempo || scoreTempo.marks.length < 2) return;
+        const id = setInterval(apply, 40);
+        return () => clearInterval(id);
+    }, [tempo, scoreTempo]);
 
     return (
         <GameContext.Provider value={{
@@ -139,6 +182,7 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
             setIsPlaying,
             tempo,
             setTempo,
+            scoreTempo,
             currentMeasure,
             setCurrentMeasure,
             isAudioStarted,

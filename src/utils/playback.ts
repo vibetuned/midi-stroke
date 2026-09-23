@@ -27,6 +27,7 @@ import * as Tone from 'tone';
 import { TONE_PPQ, type TimemapData } from './timemap';
 import { DRUM_CHANNEL, NOTE_OFF, NOTE_ON, openMidiOutput, panic, type MidiPort } from './midiOut';
 import { padForScoreNote } from './drumKit';
+import { ticksToSeconds } from './tempo';
 
 /** Where a played note goes. */
 export type PlaybackTarget = 'off' | 'audio' | string; // a string is a MIDI port name
@@ -133,13 +134,15 @@ export function playTimemap(data: TimemapData, opts: PlayOptions): PlaybackHandl
         return { stop() { /* no instrument registered */ } };
     }
 
-    const secPerTick = 60 / bpm / TONE_PPQ;
+    // Positions → seconds through the score's own tempo map, with `bpm` (the
+    // slider) scaling it; a score that states no tempo just runs at `bpm`.
+    const seconds = (tick: number) => ticksToSeconds(data.tempo, tick, bpm);
     const events: ScheduledEvent[] = [];
 
     for (const onset of data.onsets) {
         for (const n of onset.notes) {
-            const at = onset.tick * secPerTick;
-            const dur = Math.max(0.05, (n.endTick - onset.tick) * secPerTick);
+            const at = seconds(onset.tick);
+            const dur = Math.max(0.05, seconds(n.endTick) - at);
             if (target === 'audio') {
                 events.push({ at, fire: audioTime => voice?.note(n.midi, dur, audioTime, PLAYBACK_VELOCITY, n.head) });
             } else {

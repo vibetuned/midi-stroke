@@ -6,6 +6,38 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
+## Unreleased
+
+### The score's own tempo
+
+- **A score that states its tempo now opens at it.** Every piece used to play at whatever the
+  slider said, because the viewers keep time from the transport rather than from Verovio. The
+  tempo is read from the MEI and handed to the transport; the slider moves to the marking and
+  shows where it came from — *score ♩ = 160* — with a way back once you have moved off it
+  ([src/utils/tempo.ts](src/utils/tempo.ts)).
+- **Every MEI encoding**, in order of precedence: `@midi.bpm`, `@midi.mspb` (the literal MIDI
+  set-tempo value, microseconds per quarter), `@mm` with `@mm.unit` and `@mm.dots`, and tempo
+  text that spells a metronome mark ("♩ = 132", "♩. = 60", SMuFL glyphs in a `<rend>`). On
+  `<scoreDef>` it is the opening tempo; a `<tempo>` element is a change at its note, its beat, or
+  its measure.
+- **Tempo changes are followed** as the piece plays, and seeking back across one restores the
+  earlier tempo. The slider sets the opening tempo and every later section keeps its proportion,
+  so half speed halves a faster middle section too. Auditions honour the same map.
+- **One piece's marking never leaks into the next**: an unmarked score opens at the tempo you last
+  chose for unmarked scores, not at whatever the previous piece was marked.
+- **The slider now runs 20–240 in single steps**, instead of four positions from 30 to 120 —
+  Bartók's Mikrokosmos marks ♩ = 160, which the old slider could not show at all.
+- Verovio is not trusted for the values: it ignores `@midi.mspb`, reads a dotted metronome unit
+  as 4/3 of the unit rather than 3/2 (dotted quarter = 60 plays at 80), and ignores tempo text.
+  `npm run check:tempo` asserts both the right answers and those two Verovio behaviours, so a fix
+  upstream is noticed. It still supplies where each mark falls.
+- The timemap's DOM access is now DOM Level 2 only, so it also runs on xmldom in the node checks;
+  verified byte-identical to the previous version on all 716 bundled scores.
+
+Checked end to end with the Mikrokosmos files: the six that mark a tempo open at exactly their
+`@midi.bpm` (96, 160, 104, 144, 160, 88), the playhead advances at 512 ticks a second at ♩ = 160
+— which is 160 BPM — and the other 41 keep the tempo you chose.
+
 ## 0.0.2 — 2026-09-20
 
 Generators for every instrument, and a way to hear them. The saxophone gained a

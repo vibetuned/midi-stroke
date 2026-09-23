@@ -1,4 +1,5 @@
 import type { VerovioToolkit } from 'verovio/esm';
+import { readTempoMap, type TempoMap } from './tempo';
 
 // Tone.js transport PPQ — all app tick math lives in this domain.
 export const TONE_PPQ = 192;
@@ -24,6 +25,9 @@ export interface TimemapData {
      *  removed — a held note appears once, at the tick where it is struck,
      *  lasting through the full tied span. */
     onsets: TimemapOnset[];
+    /** The tempo the score itself states (utils/tempo.ts), read when the
+     *  source MEI is supplied. `initial` is null when it states none. */
+    tempo?: TempoMap;
 }
 
 interface RawNote { id: string; midi: number; staff: number; head?: string }
@@ -43,16 +47,22 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
     const staffOfNote = new Map<string, number>();
     const headOfNote = new Map<string, string>();
     if (meiDoc) {
-        meiDoc.querySelectorAll('staff').forEach(staffEl => {
+        // DOM Level 2 only (as in utils/mei.ts), so this also runs on xmldom
+        // in the node checks, not just the browser's DOMParser.
+        const staffs = meiDoc.getElementsByTagName('staff');
+        for (let i = 0; i < staffs.length; i++) {
+            const staffEl = staffs.item(i)!;
             const n = parseInt(staffEl.getAttribute('n') ?? '1', 10) || 1;
-            staffEl.querySelectorAll('note').forEach(noteEl => {
+            const notes = staffEl.getElementsByTagName('note');
+            for (let j = 0; j < notes.length; j++) {
+                const noteEl = notes.item(j)!;
                 const id = noteEl.getAttribute('xml:id');
-                if (!id) return;
+                if (!id) continue;
                 staffOfNote.set(id, n);
                 const head = noteEl.getAttribute('head.shape');
                 if (head) headOfNote.set(id, head);
-            });
-        });
+            }
+        }
     }
 
     const events = toolkit.renderToTimemap({ includeMeasures: true });
@@ -120,23 +130,28 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
     const tieNext = new Map<string, string>();
     const tieContinuations = new Set<string>();
     if (meiDoc) {
-        meiDoc.querySelectorAll('tie').forEach(tieEl => {
+        const tieEls = meiDoc.getElementsByTagName('tie');
+        for (let i = 0; i < tieEls.length; i++) {
+            const tieEl = tieEls.item(i)!;
             // Missing attributes read as null in browsers but "" in some DOM
             // implementations — treat both as absent.
             const startId = (tieEl.getAttribute('startid') || '').replace(/^#/, '');
             const rawEndId = (tieEl.getAttribute('endid') || '').replace(/^#/, '');
             const endId = rawEndId || (startId ? resolveContinuation(startId) : null);
-            if (!endId) return;
+            if (!endId) continue;
             tieContinuations.add(endId);
             if (startId) tieNext.set(startId, endId);
-        });
+        }
 
         // Attribute-encoded ties: @tie "i" (initial) and "m" (medial) start a
         // tie; "m" and "t" (terminal) are themselves continuations.
-        meiDoc.querySelectorAll('note[tie]').forEach(noteEl => {
+        const noteEls = meiDoc.getElementsByTagName('note');
+        for (let i = 0; i < noteEls.length; i++) {
+            const noteEl = noteEls.item(i)!;
+            if (!noteEl.hasAttribute('tie')) continue; // what 'note[tie]' selected
             const tie = noteEl.getAttribute('tie') ?? '';
             const id = noteEl.getAttribute('xml:id');
-            if (!id) return;
+            if (!id) continue;
             if (tie.includes('m') || tie.includes('t')) tieContinuations.add(id);
             if (tie.includes('i') || tie.includes('m')) {
                 const contId = resolveContinuation(id);
@@ -145,7 +160,7 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
                     tieNext.set(id, contId);
                 }
             }
-        });
+        }
     }
 
     // A note's end is the off-tick of the LAST link in its tie chain.
@@ -177,5 +192,14 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
         if (notes.length > 0) onsets.push({ tick: raw.tick, notes });
     }
 
-    return { totalTicks, measureTicks, onsets };
+    // Where the score's tempo marks fall: Verovio has resolved every measure
+    // start and note onset for this exact document, so use its positions.
+    let tempo: TempoMap | undefined;
+    if (meiDoc) {
+        const noteTicks = new Map<string, number>();
+        for (const raw of rawOnsets) for (const n of raw.notes) noteTicks.set(n.id, raw.tick);
+        tempo = readTempoMap(meiDoc, measureTicks, noteTicks);
+    }
+
+    return { totalTicks, measureTicks, onsets, tempo };
 }

@@ -15,7 +15,7 @@ export function useAudio() {
     const extraNodesRef = useRef<Tone.ToneAudioNode[]>([]);
     const metronomeRef = useRef<Tone.MembraneSynth | null>(null);
     const { activeNotes } = useMidi();
-    const { isAudioStarted, tempo, isMetronomeMuted, gameMode, instrument, timemap, playbackTarget } = useGame();
+    const { isAudioStarted, isMetronomeMuted, gameMode, instrument, timemap, playbackTarget } = useGame();
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Master mute: silences the metronome AND the player-input instrument.
@@ -178,11 +178,8 @@ export function useAudio() {
         });
     }, [isAudioStarted, timemap, playbackTarget, instrument]);
 
-    // Handle Transport Play/Pause & Tempo
-    useEffect(() => {
-        if (!isAudioStarted) return;
-        Tone.getTransport().bpm.value = tempo;
-    }, [tempo, isAudioStarted]);
+    // The transport's BPM is set by GameProvider, which knows the score's own
+    // tempo map as well as the slider (see utils/tempo.ts).
 
     // Handle Incoming MIDI Notes (Active Notes)
     const prevNotesRef = useRef<Map<number, { velocity: number, timestamp: number }>>(new Map());
