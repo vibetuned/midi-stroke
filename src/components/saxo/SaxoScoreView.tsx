@@ -7,6 +7,10 @@ import { loadSongText } from '../../utils/songUrl';
 import { extractTimemap, type TimemapData } from '../../utils/timemap';
 import { ensureCountInMeasure, ensureNoteIds } from '../../utils/mei';
 import * as PIXI from 'pixi.js';
+import { LoopRangeSelector } from '../LoopRangeSelector';
+import { useEarVeil } from '../../hooks/useEarVeil';
+import { useLoopMarks } from '../../hooks/useLoopMarks';
+import { loadSvgImage, measureNoteLefts, measureStaffLines, sliceToSprites } from '../../utils/scoreRaster';
 
 interface MeasureData {
     id: string;
@@ -21,6 +25,10 @@ const SCORE_BG_COLOR = '#888888';
 const SCORE_BG_HEX = 0x888888;
 // Saxo accent (gold) for the playhead cursor — PIXI can't read the CSS var.
 const CURSOR_HEX = 0xd4a017;
+
+/** By ear, how quickly the page glides to a new place: the time constant of
+ *  an exponential ease, so ~95 % of the way there in three of these. */
+const EAR_SCROLL_EASE_MS = 140;
 
 const LOADING_STEPS = ['Loading Score...', 'Rendering SVG...', 'Slicing Textures...'];
 
@@ -48,7 +56,8 @@ function findMeasureAtX(mData: MeasureData[], x: number): number {
 /**
  * Single-staff score view for the Saxo app. Forked from PianoScoreView, with two
  * deliberate differences:
- *   1. No grand-staff hand overlays (saxo is one voice).
+ *   1. No grand-staff hand overlays (saxo is one voice). Learn by ear's
+ *      veil is the same (hooks/useEarVeil.ts), with no other staff to hide.
  *   2. All horizontal layout math uses the Pixi *canvas* width
  *      (`app.screen.width`) instead of `window.innerWidth`, because the score
  *      lives in the right ~3/4 column of the SaxoApp split — not the full page.
@@ -56,7 +65,7 @@ function findMeasureAtX(mData: MeasureData[], x: number): number {
  */
 export const SaxoScoreView: React.FC = () => {
     const { toolkit } = useVerovio();
-    const { isPlaying, setIsPlaying, loadTimemap, seek, selectedSong, setSelectedSong, playPosition } = useGame();
+    const { isPlaying, setIsPlaying, loadTimemap, seek, selectedSong, setSelectedSong, playPosition, gameMode } = useGame();
     const { sessionStats } = useStats();
 
     const [loadingMsg, setLoadingMsg] = useState<string>('Initializing Engine...');
@@ -86,6 +95,14 @@ export const SaxoScoreView: React.FC = () => {
     const minimapRef = useRef<HTMLDivElement>(null);
     const playheadRef = useRef<HTMLDivElement>(null);
     const isMinimapDragging = useRef<boolean>(false);
+
+    // Learn by ear: only what has been played is on the page.
+    const veil = useEarVeil(scrollContainerRef, SCORE_BG_COLOR);
+    // The minimap's bar range, as repeat signs on the page, in the saxo gold.
+    const loopMarks = useLoopMarks(scrollContainerRef, CURSOR_HEX);
+    // Read by the Pixi ticker, which is registered once.
+    const easeScrollRef = useRef(gameMode === 'ear');
+    useEffect(() => { easeScrollRef.current = gameMode === 'ear'; }, [gameMode]);
 
     // Error markers: capture the score-tick whenever sessionStats.wrongs goes up;
     // clear when it decreases (session reset on song change / restart / completion).
@@ -249,10 +266,21 @@ export const SaxoScoreView: React.FC = () => {
                         }
 
                         const targetScrollX = hitLineScreenX - globalX * scale;
-                        if (Math.abs(scrollContainerRef.current.x - targetScrollX) > 0.5) {
-                            scrollContainerRef.current.x = targetScrollX;
+                        const currentX = scrollContainerRef.current.x;
+                        if (Math.abs(currentX - targetScrollX) > 0.5) {
+                            // By ear the page glides to each new place instead
+                            // of jumping, always towards the latest target — a
+                            // quick player skips ahead, nothing queues up.
+                            // Everywhere else it is locked to the transport.
+                            scrollContainerRef.current.x = easeScrollRef.current
+                                ? currentX + (targetScrollX - currentX) * (1 - Math.exp(-app.ticker.deltaMS / EAR_SCROLL_EASE_MS))
+                                : targetScrollX;
                         }
                     }
+
+                    // The loop's start sign waits at the cursor once the music
+                    // has scrolled past it — while dragging too.
+                    loopMarks.follow(scrollContainerRef.current.x, hitLineScreenX);
 
                     // Drive the minimap playhead in lockstep with the score scroll
                     const playheadEl = playheadRef.current;
@@ -366,6 +394,10 @@ export const SaxoScoreView: React.FC = () => {
 
         const svgOuterBBox = hiddenDiv.querySelector('svg')?.getBoundingClientRect() || { left: 0, top: 0, width: 0 };
         const measureBBoxes = measures.map(m => m.getBoundingClientRect());
+        // Each note's left edge, for Learn by ear's veil; the staff lines, for
+        // the loop's repeat signs.
+        const noteLeft = measureNoteLefts(hiddenDiv, svgOuterBBox.left);
+        const staves = measureStaffLines(hiddenDiv, svgOuterBBox.top);
 
         // Measure start ticks come from the Verovio timemap — exact values that
         // handle the n="0" count-in measure, pickups, meter changes and
@@ -422,6 +454,8 @@ export const SaxoScoreView: React.FC = () => {
             setTickPositions([]);
         }
 
+        veil.reset();
+        loopMarks.reset();
         if (scrollContainerRef.current) {
             scrollContainerRef.current.removeChildren().forEach(child => child.destroy({ texture: true }));
         }
@@ -434,16 +468,8 @@ export const SaxoScoreView: React.FC = () => {
             stickyContainerRef.current = null;
         }
 
-        const img = new Image();
-        const svgBase64 = btoa(unescape(encodeURIComponent(svgString)));
-        img.src = `data:image/svg+xml;base64,${svgBase64}`;
+        const img = await loadSvgImage(svgString);
 
-        await new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve;
-        });
-
-        const TEXTURE_WIDTH = 2048;
         const TEXTURE_HEIGHT = Math.max(200, img.height || 1000);
         const totalW = Math.max(1, img.width || totalWidthRef.current);
 
@@ -457,27 +483,10 @@ export const SaxoScoreView: React.FC = () => {
 
         const targetY = (appRef.current.screen.height / scaleFactor - TEXTURE_HEIGHT) / 2;
 
-        // Rasterise at device resolution: SVG images draw vector-sharp at any
-        // destination size, so slicing at dpr keeps the staff crisp on retina
-        // instead of GPU-upscaling 1× textures.
         const res = Math.min(window.devicePixelRatio || 1, 2);
-
-        for (let x = 0; x < totalW; x += TEXTURE_WIDTH) {
-            const sliceW = Math.min(TEXTURE_WIDTH, totalW - x);
-            const canvas = document.createElement('canvas');
-            canvas.width = Math.ceil(sliceW * res);
-            canvas.height = Math.ceil(TEXTURE_HEIGHT * res);
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-                ctx.drawImage(img, x, 0, sliceW, TEXTURE_HEIGHT, 0, 0, sliceW * res, TEXTURE_HEIGHT * res);
-            }
-            const texture = PIXI.Texture.from(canvas);
-            const sprite = new PIXI.Sprite(texture);
-            sprite.scale.set(1 / res);
-            sprite.x = x;
-            sprite.y = targetY;
-            scrollContainerRef.current?.addChild(sprite);
-        }
+        const page = { top: targetY, height: TEXTURE_HEIGHT, width: totalW, res, staffMidY: null };
+        for (const sprite of sliceToSprites(img, page)) scrollContainerRef.current?.addChild(sprite);
+        veil.attach({ page, svg: svgString, noteLeft });
 
         // Sticky Overlay Sprite — pins the clef/key-sig strip at the left edge
         // (device-resolution raster, like the slices).
@@ -519,6 +528,17 @@ export const SaxoScoreView: React.FC = () => {
 
         appRef.current.stage.addChild(stickyContainer);
         stickyContainerRef.current = stickyContainer;
+
+        // The loop's repeat signs, the start one over the clef strip.
+        const lastMeasure = mData[mData.length - 1];
+        loopMarks.attach({
+            top: targetY,
+            scale: scaleFactor,
+            measures: mData.map(m => ({ startTick: m.startTick, x: m.x })),
+            end: { tick: lastMeasure.endTick, x: lastMeasure.x + lastMeasure.width },
+            staves,
+            overlay: appRef.current.stage,
+        });
 
         if (cursorRef.current) {
             appRef.current.stage.setChildIndex(cursorRef.current, appRef.current.stage.children.length - 1);
@@ -644,6 +664,7 @@ export const SaxoScoreView: React.FC = () => {
                             }}
                         />
                     ))}
+                    <LoopRangeSelector />
                     {errorTicks.map((tick, i) => {
                         const total = totalScoreTicksRef.current;
                         const pct = total > 0 ? Math.max(0, Math.min(100, (tick / total) * 100)) : 0;

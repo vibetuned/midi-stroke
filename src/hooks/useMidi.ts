@@ -7,28 +7,6 @@ export interface MidiNote {
     timestamp: number;
 }
 
-// Maps pad MIDI note → MEI-derived MIDI note (from pname+oct in DRUM_MAP)
-// Formula: (oct + 1) * 12 + semitone, where C=0 D=2 E=4 F=5 G=7 A=9 B=11
-export const MIDI_PAD_MAP: Record<number, number> = {
-    36: 65, // BassDrum    f4
-    38: 72, // SnareDrum   c5
-    37: 72, // RimShot     c5
-    40: 72, // SnareDrum   c5
-    42: 79, // ClosedHiHat g5
-    46: 79, // OpenHiHat   g5
-    49: 81, // Cymbal      a5
-    57: 81, // Cymbal      a5
-    53: 81, // Cymbal      a5
-    51: 81, // Cymbal      a5
-    55: 81, // Cymbal      a5
-    41: 69, // LowTom      a4
-    43: 69, // LowTom      a4
-    45: 74, // MediumTom   d5
-    47: 74, // MediumTom   d5
-    48: 76, // HighTom     e5
-    50: 76, // HighTom     e5
-};
-
 // Tauri desktop shell: the webview (WKWebView/WebKitGTK) has no Web MIDI API,
 // so the Rust side bridges midir → Tauri events (see src-tauri/src/main.rs):
 //   "midi-message": [status, data1, data2] raw bytes per channel-voice message

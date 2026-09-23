@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PlaybackButton } from '../PlaybackPanel';
+import { DrumMapButton } from './DrumMapEditor';
 import { DrumsScoreView } from './DrumsScoreView';
 import { VirtualDrums } from './VirtualDrums';
 import { MidiStatus } from '../MidiStatus';
@@ -105,6 +106,7 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
                         </>
                     )}
                     {/* Stats history button — to the right of Change Song */}
+                    <DrumMapButton />
                     <PlaybackButton />
                     <button
                         onClick={() => setShowStats(true)}

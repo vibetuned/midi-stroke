@@ -8,6 +8,8 @@ import { useGameLogic, SAXO_INPUT_TRANSPOSE_SEMITONES } from '../../hooks/useGam
 
 import { getSaxoFingering, type AuxKey, type SaxoFingering } from './saxoFingering';
 
+import { useEarTraining } from '../../context/earTraining';
+
 
 
 // How a drawn key derives its pressed state from a fingering:
@@ -281,13 +283,26 @@ export const VirtualSaxo: React.FC = memo(() => {
 
     const { activeNotes, breath, saxKeys } = useMidi();
 
+    // Learn by ear: the chart would give the answer away, so it never shows the
+    // note to come — only the one just played right, like the piano's key
+    // lighting up green, or that the last one was wrong.
+    const ear = useEarTraining();
+    const earOn = !!ear?.active;
+    const earPhase = ear?.state.phase;
+    const judged = earOn && (earPhase === 'response' || earPhase === 'breath' || earPhase === 'error' || earPhase === 'complete')
+        ? ear!.state.last : null;
+    const earRight = !!judged?.ok;
+    const earWrong = !!judged && !judged.ok;
+
 
 
     // Monophonic: a single note is expected at a time — take the highest if the
 
     // score ever yields more than one.
 
-    const target = expectedNotes.length
+    const target = earOn
+        ? (earRight ? judged!.midi : null)
+        : expectedNotes.length
 
         ? Math.max(...expectedNotes.map(e => e.note))
 
@@ -300,7 +315,7 @@ export const VirtualSaxo: React.FC = memo(() => {
     // shows the held keys even before any note sounds.
     const pressed = new Set(saxKeys);
 
-    const noteName = target != null ? Tone.Frequency(target, 'midi').toNote() : '—';
+    const noteName = earWrong ? '✗' : target != null ? Tone.Frequency(target, 'midi').toNote() : '—';
 
     const outOfRange = target != null && fingering == null;
 
@@ -308,7 +323,7 @@ export const VirtualSaxo: React.FC = memo(() => {
 
     // Visual "you're holding it" cue (assumes SAXO_INPUT_TRANSPOSE = 0).
 
-    const held = target != null && activeNotes.has(target - SAXO_INPUT_TRANSPOSE_SEMITONES);
+    const held = earRight || (target != null && activeNotes.has(target - SAXO_INPUT_TRANSPOSE_SEMITONES));
 
     // Mirrored view (default): shows the sax as the player sees their own
     // hands, which beginners find easier to follow than a front-facing chart.
@@ -357,7 +372,7 @@ export const VirtualSaxo: React.FC = memo(() => {
 
                     lineHeight: 1,
 
-                    color: held ? 'var(--color-success)' : 'var(--color-accent)',
+                    color: earWrong ? WRONG_STROKE : held ? 'var(--color-success)' : 'var(--color-accent)',
 
                     fontFamily: 'monospace',
 
@@ -371,9 +386,12 @@ export const VirtualSaxo: React.FC = memo(() => {
 
                 <div style={{ fontSize: '0.7rem', color: '#777', marginTop: '0.25rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
 
-                    {target == null
+                    {earOn && earPhase === 'call' ? 'listen…'
+                        : earWrong ? 'not that one'
+                        : earOn && target == null ? (earPhase === 'response' ? 'your turn' : 'by ear')
+                        : target == null
                         ? 'waiting'
-                        : outOfRange ? 'out of range' : isOpen ? 'all open' : 'fingering'}
+                        : outOfRange ? 'out of range' : isOpen ? 'all open' : earOn ? 'right — its fingering' : 'fingering'}
 
                 </div>
 
@@ -421,7 +439,7 @@ export const VirtualSaxo: React.FC = memo(() => {
                         fill="none" stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round"
                     />
                     {keys.map((k, i) => (
-                        <Key key={i} k={k} expected={isPressed(k.ref, fingering)} active={pressed.has(k.code)} markWrong={fingering != null} />
+                        <Key key={i} k={k} expected={isPressed(k.ref, fingering)} active={pressed.has(k.code)} markWrong={fingering != null && !earOn} />
                     ))}
                 </svg>
                 <BreathMeter value={breath} />

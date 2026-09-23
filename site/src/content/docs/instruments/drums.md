@@ -14,9 +14,9 @@ a **percussion staff**, built for the **Yamaha FGDP-50** finger-drum pad
 - **No hand selection, no calibration** — pads are pads.
 - **Pads map to notation**: drum notation encodes each instrument as a pitch
   and notehead shape (bass drum, snare, hi-hat, toms, cymbal). Incoming pad
-  hits are matched back to the notated instrument automatically, and
-  alternate pads for the same instrument (rimshot → snare, open → closed
-  hi-hat) count as hits.
+  hits are matched back to the notated instrument through the pad map (below),
+  and alternate pads for the same instrument (rimshot → snare, open → closed
+  hi-hat) count as hits, in rhythm and practice mode alike.
 - **Patterns loop**: at the end of the pattern, playback wraps around with a
   short lead-in — keep grooving.
 
@@ -30,6 +30,25 @@ pedal does, and alternate pads for the same instrument make the same sound.
 The kit is synthesized rather than sampled, so there is nothing to download and it
 works offline — including in the [desktop app](../../desktop/), where sampled
 instruments need the network on first use.
+
+## Your kit's pad map
+
+Every drum module sends its own MIDI notes. General MIDI fixes the common ones: 38 for the snare,
+42 for the closed hi-hat, and so on. Many modules add their own, such as edge zones, rims and
+extra toms, and many let you re-assign any pad. The **🥁** button in the header opens the pad map:
+every kit voice, with the notes that play it.
+
+- **It starts as General MIDI**, alternates included, so a GM kit works with no setup.
+- **Teach it your kit**: press **Learn** on a voice and hit every pad or zone that should play it.
+  Hit a hi-hat's bow and its edge, and both count as the hi-hat. You can also type a note number.
+- **Test as you go**: the panel shows the note each hit sends and what it plays, and the kit sounds
+  through the new map straight away. A note that is not assigned makes no sound and scores nothing.
+- Each note plays one voice, so learning it for another voice moves it. The ×
+  on a note unassigns it, and **Reset to General MIDI** starts over.
+
+The map is saved on this device. The header button is highlighted while a custom map is in use.
+Clap, cowbell and tambourine score like the rest of the kit now; before the map, those three
+pads were missing from the scoring table.
 
 ## The step-sequencer grid
 

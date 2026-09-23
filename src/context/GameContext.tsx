@@ -5,6 +5,7 @@ import * as Tone from 'tone';
 import type { TimemapData } from '../utils/timemap';
 import { effectiveBpm, type TempoMap } from '../utils/tempo';
 import type { PlaybackTarget } from '../utils/playback';
+import type { LoopRange } from '../utils/loopRange';
 
 /** Where playback sends notes; remembered across sessions. */
 const PLAYBACK_TARGET_KEY = 'midi-stroke-playback-target';
@@ -53,7 +54,7 @@ interface GameState {
      *  note onsets, durations, measure ticks and song length. */
     timemap: TimemapData | null;
     loadTimemap: (data: TimemapData) => void;
-    /** Rhythm (`standard`), Practice, or Learn by ear (`ear`, piano). */
+    /** Rhythm (`standard`), Practice, or Learn by ear (`ear`, piano and saxo). */
     gameMode: GameMode;
     setGameMode: (mode: GameMode) => void;
     waitingForNotes: number[];
@@ -72,6 +73,10 @@ interface GameState {
     setSongCompleted: (v: boolean) => void;
     handSelection: HandSelection;
     setHandSelection: (h: HandSelection) => void;
+    /** Bars chosen on the minimap (null = the whole piece): looped in rhythm
+     *  and practice, the melody to learn by ear. Cleared by a new score. */
+    loopRange: LoopRange | null;
+    setLoopRange: (range: LoopRange | null) => void;
 }
 
 const GameContext = createContext<GameState | undefined>(undefined);
@@ -111,6 +116,7 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
     const [serverBase, setServerBase] = useState<string | null>(null);
     const [songCompleted, setSongCompleted] = useState(false);
     const [handSelection, setHandSelection] = useState<HandSelection>('both');
+    const [loopRange, setLoopRangeState] = useState<LoopRange | null>(null);
 
     const setWaitingForNotes = useCallback((notes: number[]) => {
         waitingForNotesRef.current = notes;
@@ -130,6 +136,14 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
         Tone.getTransport().ticks = ticks;
         setPlayPosition(ticks);
     }, [setWaitingForNotes]);
+
+    // Choosing a range puts the playhead inside it, rather than leaving it
+    // wherever it was — possibly bars away from what is about to loop.
+    const setLoopRange = useCallback((range: LoopRange | null) => {
+        setLoopRangeState(range);
+        const ticks = Tone.getTransport().ticks;
+        if (range && (ticks < range.start || ticks >= range.end)) seek(range.start);
+    }, [seek]);
 
     const removeWaitingNote = useCallback((note: number) => {
         setWaitingForNotesState(prev => {
@@ -151,6 +165,7 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
     const loadTimemap = useCallback((data: TimemapData) => {
         console.log(`Timemap loaded. Onsets: ${data.onsets.length}, totalTicks: ${data.totalTicks}`);
         setTimemap(data);
+        setLoopRangeState(null);
         // Song length: end of the last measure.
         setPlaySizeTicks(data.totalTicks);
         // A score that states its tempo opens at it; one that does not opens
@@ -178,6 +193,22 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
         const id = setInterval(apply, 40);
         return () => clearInterval(id);
     }, [tempo, scoreTempo]);
+
+    // The loop is the transport's own: Tone wraps from the end of the range
+    // back to its start on the audio clock, and events at the start tick fire
+    // again on each pass — so the practice pauses and score playback, both
+    // scheduled on the transport, simply happen again. By ear the transport
+    // is not used; the range picks the melody instead (EarTrainingProvider).
+    useEffect(() => {
+        const transport = Tone.getTransport();
+        if (!loopRange || gameMode === 'ear') {
+            transport.loop = false;
+            return;
+        }
+        transport.setLoopPoints(`${loopRange.start}i`, `${loopRange.end}i`);
+        transport.loop = true;
+        return () => { transport.loop = false; };
+    }, [loopRange, gameMode]);
 
     return (
         <GameContext.Provider value={{
@@ -219,6 +250,8 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
             setSongCompleted,
             handSelection,
             setHandSelection,
+            loopRange,
+            setLoopRange,
         }}>
             {children}
         </GameContext.Provider>

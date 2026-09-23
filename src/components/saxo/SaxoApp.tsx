@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PlaybackButton } from '../PlaybackPanel';
+import { EarTrainingProvider } from '../EarTrainingProvider';
+import { EarTrainingPanel } from '../EarTrainingPanel';
 import { SaxoScoreView } from './SaxoScoreView';
 import { VirtualSaxo } from './VirtualSaxo';
 import { MidiStatus } from '../MidiStatus';
@@ -60,6 +62,7 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
     }, [songCompleted]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
+        <EarTrainingProvider>
         <div className="app-container theme-saxo">
             <StartOverlay />
             <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
@@ -101,7 +104,7 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     {selectedSong && (
                         <>
-                            <LiveStats />
+                            {gameMode !== 'ear' && <LiveStats />}
                             <SongNavigator onChangeRequest={handleChangeSong} />
                         </>
                     )}
@@ -145,7 +148,9 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
                     <SaxoScoreView />
                 </div>
             </main>
+            <EarTrainingPanel />
             <PlayControls />
         </div>
+        </EarTrainingProvider>
     );
 };

@@ -1,5 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useEarTraining } from '../context/earTraining';
+import { useGame } from '../context/GameContext';
+import { barBoundaries, barSpanLabel } from '../utils/loopRange';
 import { pitchAccuracy, type EarStats } from '../utils/earTraining';
 
 /**
@@ -37,16 +39,19 @@ export const EarTrainingPanel: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '1.1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                    <Toggle
-                        label="Staff"
-                        value={staff}
-                        options={[
-                            { value: 1, label: 'Treble', disabled: !staves.includes(1) },
-                            { value: 2, label: 'Bass', disabled: !staves.includes(2) },
-                        ]}
-                        onChange={ear.setStaff}
-                        title="Which staff to learn — changing it starts a new session"
-                    />
+                    {/* A single staff (the saxo) has nothing to choose. */}
+                    {staves.length > 1 && (
+                        <Toggle
+                            label="Staff"
+                            value={staff}
+                            options={[
+                                { value: 1, label: 'Treble', disabled: !staves.includes(1) },
+                                { value: 2, label: 'Bass', disabled: !staves.includes(2) },
+                            ]}
+                            onChange={ear.setStaff}
+                            title="Which staff to learn — changing it starts a new session"
+                        />
+                    )}
                     <Toggle
                         label="Rhythm"
                         value={rhythm}
@@ -69,17 +74,34 @@ export const EarTrainingPanel: React.FC = () => {
     );
 };
 
+/** "bars 5–8", when a passage is chosen on the minimap; null for the whole piece. */
+function usePassage(): string | null {
+    const { timemap, loopRange } = useGame();
+    return useMemo(
+        () => (timemap && loopRange ? barSpanLabel(barBoundaries(timemap), loopRange) : null),
+        [timemap, loopRange],
+    );
+}
+
 /** What is happening now, in a few words. */
 const Status: React.FC = () => {
     const ear = useEarTraining()!;
-    const { state, melody } = ear;
+    const passage = usePassage();
+    const { state, melody, staves } = ear;
     const n = melody.length;
     if (n === 0) {
-        return <StatusText title="Nothing to learn on this staff" detail="Pick the other staff, or another piece." />;
+        return passage
+            ? <StatusText title={`Nothing to learn in ${passage}`} detail="Widen the bars on the minimap, or pick the other staff." />
+            : <StatusText title="Nothing to learn on this staff" detail={staves.length > 1 ? 'Pick the other staff, or another piece.' : 'Pick another piece.'} />;
     }
     switch (state.phase) {
         case 'idle':
-            return <StatusText title="Learn by ear" detail={`Hear a phrase, play it back from memory — one more note each time. ${n} notes.`} />;
+            return (
+                <StatusText
+                    title={passage ? `Learn ${passage} by ear` : 'Learn by ear'}
+                    detail={`Hear a phrase, play it back from memory — one more note each time. ${n} notes${passage ? '' : ' · drag the handles on the minimap to learn a passage'}.`}
+                />
+            );
         case 'call':
             return <StatusText title="🎧 Listen…" detail={`${state.k === 1 ? 'The first note' : `Notes 1–${state.k}`} · round ${state.k} of ${n}`} pulse />;
         case 'response':
@@ -94,7 +116,7 @@ const Status: React.FC = () => {
         case 'error':
             return <StatusText title="Stopped" detail={`At note ${state.stumbleAt} of ${state.k}`} />;
         case 'complete':
-            return <StatusText title="🎉 The whole melody, by ear" detail={`All ${n} notes`} />;
+            return <StatusText title={passage ? `🎉 ${passage}, by ear` : '🎉 The whole melody, by ear'} detail={`All ${n} notes`} />;
     }
 };
 
@@ -217,11 +239,12 @@ const Assessment: React.FC<{ kind: 'error' }> = () => {
 
 const CompleteSummary: React.FC = () => {
     const ear = useEarTraining()!;
+    const passage = usePassage();
     const [open, setOpen] = React.useState(true);
     if (!open) return null;
     return (
         <Modal onClose={() => setOpen(false)}>
-            <h2 style={modalTitle}>🎉 The whole melody, by ear</h2>
+            <h2 style={modalTitle}>{passage ? `🎉 ${passage[0].toUpperCase()}${passage.slice(1)}, by ear` : '🎉 The whole melody, by ear'}</h2>
             <p style={modalLead}>All {ear.melody.length} notes in one go. The score is unveiled.</p>
             <Figures stats={ear.state.stats} />
             <div style={{ display: 'flex', gap: '0.7rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>

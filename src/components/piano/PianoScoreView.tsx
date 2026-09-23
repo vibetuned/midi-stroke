@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useEarTraining } from '../../context/earTraining';
+import { useEarVeil } from '../../hooks/useEarVeil';
+import { useLoopMarks } from '../../hooks/useLoopMarks';
+import { loadSvgImage, measureNoteLefts, measureStaffLines, sliceToSprites } from '../../utils/scoreRaster';
 import * as Tone from 'tone';
 import { useVerovio } from '../../hooks/useVerovio';
 import { useGame } from '../../context/GameContext';
@@ -8,6 +10,7 @@ import { loadSongText } from '../../utils/songUrl';
 import { extractTimemap, type TimemapData } from '../../utils/timemap';
 import { ensureCountInMeasure, ensureNoteIds } from '../../utils/mei';
 import * as PIXI from 'pixi.js';
+import { LoopRangeSelector } from '../LoopRangeSelector';
 
 interface MeasureData {
     id: string;
@@ -26,74 +29,12 @@ const LOADING_STEPS = ['Loading Score...', 'Rendering SVG...', 'Slicing Textures
 
 /** How much the other hand's staff is dimmed in normal practice. */
 const HAND_DIM_ALPHA = 0.8;
+/** The piano's accent: the cursor, and the loop's repeat signs. */
+const ACCENT_HEX = 0x646cff;
 
-/** Width of each rasterised slice of the score, in SVG pixels. */
-const TEXTURE_WIDTH = 2048;
-
-/**
- * Learn by ear's empty bars: the same page with the music taken out. Staff
- * lines, barlines, the brace, clefs, key and time signatures and bar numbers
- * stay, so the bars still to come sit exactly where the real ones are. Hidden:
- * everything in a layer (notes, rests, beams — but not a clef change), ledger
- * lines, and every measure- or system-level event (slurs, ties, fingering,
- * dynamics, hairpins...). `visibility` is inherited but can be turned back on
- * by a descendant, which is what lets a layer's clef survive.
- */
-const EMPTY_BARS_CSS = `
-.layer, .staff > .ledgerLines,
-.measure > :not(.staff):not(.barLine):not(.mNum),
-.system > g:not(.measure):not(.section):not(.ending):not(.label):not(.labelAbbr):not(.systemMilestone):not(.systemMilestoneEnd) { visibility: hidden; }
-.layer .clef, .layer .keySig, .layer .meterSig { visibility: visible; }`;
-
-function emptyBarsSvg(svg: string): string {
-    const open = svg.indexOf('<svg');
-    const end = open < 0 ? -1 : svg.indexOf('>', open);
-    if (end < 0) return svg;
-    return `${svg.slice(0, end + 1)}<style>${EMPTY_BARS_CSS}</style>${svg.slice(end + 1)}`;
-}
-
-async function loadSvgImage(svg: string): Promise<HTMLImageElement> {
-    const img = new Image();
-    await new Promise((resolve) => {
-        img.onload = resolve;
-        img.onerror = resolve;
-        img.src = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
-    });
-    return img;
-}
-
-/** Rasterise the page into TEXTURE_WIDTH-wide sprites at device resolution
- *  (SVG images draw vector-sharp at any destination size, so slicing at dpr
- *  keeps the staff crisp on retina instead of GPU-upscaling 1× textures).
- *  `background` makes the slices opaque. */
-function sliceToSprites(
-    img: HTMLImageElement,
-    page: { top: number; height: number; width: number; res: number },
-    background?: string,
-): PIXI.Sprite[] {
-    const { top, height, width, res } = page;
-    const sprites: PIXI.Sprite[] = [];
-    for (let x = 0; x < width; x += TEXTURE_WIDTH) {
-        const sliceW = Math.min(TEXTURE_WIDTH, width - x);
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.ceil(sliceW * res);
-        canvas.height = Math.ceil(height * res);
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-            if (background) {
-                ctx.fillStyle = background;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-            ctx.drawImage(img, x, 0, sliceW, height, 0, 0, sliceW * res, height * res);
-        }
-        const sprite = new PIXI.Sprite(PIXI.Texture.from(canvas));
-        sprite.scale.set(1 / res);
-        sprite.x = x;
-        sprite.y = top;
-        sprites.push(sprite);
-    }
-    return sprites;
-}
+/** By ear, how quickly the page glides to a new place: the time constant of
+ *  an exponential ease, so ~95 % of the way there in three of these. */
+const EAR_SCROLL_EASE_MS = 140;
 
 // Fix 1: binary search helpers — O(log n) instead of O(n) findIndex
 function findMeasureAtTick(mData: MeasureData[], tick: number): number {
@@ -167,115 +108,24 @@ export const PianoScoreView: React.FC = () => {
     // without depending on a stale closure.
     const handSelectionRef = useRef(handSelection);
     useEffect(() => { handSelectionRef.current = handSelection; }, [handSelection]);
-
-    // Learn by ear: what is on the page is only what has been played.
-    const ear = useEarTraining();
-    // A finished melody unveils the entire score, the other staff included.
-    const earVeiled = !!ear?.active && ear.state.phase !== 'complete';
-
-    // What is on the page, by ear, is only what has been played. Notes are
-    // revealed strictly in order, so what is visible is always a prefix of the
-    // melody: from the first unplayed note to the end, the page shows empty
-    // bars instead — no pitch, no rhythm, no beam slope to give the contour
-    // away — and so does the other staff, which is not being trained and whose
-    // notes would hint at the harmony. Normal practice only dims the other
-    // hand's staff.
-    //
-    // The empty bars are a second raster of the page, built on entering the
-    // mode and masked in. Until it is ready, a plain curtain and opaque hand
-    // overlays hide the same things, so nothing shows for even a frame.
+    // Bumped when a new page is on screen, for effects that style its overlays.
     const [layoutId, setLayoutId] = useState(0);
-    const noteLeftRef = useRef<Map<string, number>>(new Map());
-    const curtainRef = useRef<PIXI.Graphics | null>(null);
-    const pageRef = useRef<{ top: number; height: number; width: number; res: number; staffMidY: number | null } | null>(null);
-    const svgRef = useRef('');
-    const emptyBarsRef = useRef<PIXI.Container | null>(null);
-    const emptyMaskRef = useRef<PIXI.Graphics | null>(null);
-    const [emptyBarsBuilt, setEmptyBarsBuilt] = useState(0);
-    const earActive = !!ear?.active;
 
-    const disposeEmptyBars = () => {
-        const layer = emptyBarsRef.current;
-        const mask = emptyMaskRef.current;
-        emptyBarsRef.current = null;
-        emptyMaskRef.current = null;
-        if (layer && !layer.destroyed) {
-            layer.mask = null;
-            layer.destroy({ children: true, texture: true, textureSource: true });
-        }
-        if (mask && !mask.destroyed) mask.destroy();
-    };
-
+    // Learn by ear hides what has not been played yet (hooks/useEarVeil.ts),
+    // the other staff included — so the hand overlays, which only dim it,
+    // stand aside while the mode is on.
+    const { gameMode } = useGame();
+    const earMode = gameMode === 'ear';
+    const veil = useEarVeil(scrollContainerRef, SCORE_BG_COLOR);
+    // The minimap's bar range, as repeat signs on the page.
+    const loopMarks = useLoopMarks(scrollContainerRef, ACCENT_HEX);
+    // Read by the Pixi ticker, which is registered once.
+    const easeScrollRef = useRef(earMode);
+    useEffect(() => { easeScrollRef.current = earMode; }, [earMode]);
     useEffect(() => {
-        const page = pageRef.current;
-        if (!earActive || !page || !svgRef.current) return;
-        let cancelled = false;
-        loadSvgImage(emptyBarsSvg(svgRef.current)).then(img => {
-            const container = scrollContainerRef.current;
-            if (cancelled || !container) return;
-            const layer = new PIXI.Container();
-            for (const sprite of sliceToSprites(img, page, SCORE_BG_COLOR)) layer.addChild(sprite);
-            layer.visible = false;
-            const mask = new PIXI.Graphics();
-            layer.mask = mask;
-            container.addChild(layer, mask);
-            emptyBarsRef.current = layer;
-            emptyMaskRef.current = mask;
-            setEmptyBarsBuilt(n => n + 1);
-        });
-        return () => {
-            cancelled = true;
-            disposeEmptyBars();
-        };
-    }, [earActive, layoutId]);
-
-    useEffect(() => {
-        const page = pageRef.current;
-        const empty = emptyBarsRef.current;
-        const mask = emptyMaskRef.current;
-        const curtain = curtainRef.current;
-        const ready = !!empty && !!mask;
-
-        // Hand overlays: dimming in normal practice; by ear, a stand-in for the
-        // empty bars until they are ready.
-        const covering = !earActive || (earVeiled && !ready);
-        if (handTopOverlayRef.current) {
-            handTopOverlayRef.current.visible = handSelection === 'left' && covering;
-            handTopOverlayRef.current.alpha = earActive ? 1 : HAND_DIM_ALPHA;
-        }
-        if (handBottomOverlayRef.current) {
-            handBottomOverlayRef.current.visible = handSelection === 'right' && covering;
-            handBottomOverlayRef.current.alpha = earActive ? 1 : HAND_DIM_ALPHA;
-        }
-
-        curtain?.clear();
-        if (curtain) curtain.visible = false;
-        mask?.clear();
-        if (empty) empty.visible = false;
-        if (!earVeiled || !page) return;
-
-        // From a little before the first unplayed note, so no sliver of its
-        // accidental shows. A note the page cannot place veils everything.
-        const frontier = ear!.melody[ear!.state.revealed];
-        const veilX = frontier
-            ? Math.max(0, ((frontier.id !== undefined ? noteLeftRef.current.get(frontier.id) : undefined) ?? 6) - 6)
-            : undefined;
-
-        if (ready) {
-            if (veilX !== undefined) mask.rect(veilX, page.top, page.width - veilX, page.height).fill(0xffffff);
-            if (page.staffMidY !== null) {
-                // The staff not being trained, the whole way along.
-                const [top, bottom] = ear!.staff === 1
-                    ? [page.staffMidY, page.height]
-                    : [0, page.staffMidY];
-                mask.rect(0, page.top + top, page.width, bottom - top).fill(0xffffff);
-            }
-            empty.visible = true;
-        } else if (curtain && veilX !== undefined) {
-            curtain.rect(veilX, page.top, page.width + 4000 - veilX, page.height).fill({ color: SCORE_BG_HEX });
-            curtain.visible = true;
-        }
-    }, [handSelection, earActive, earVeiled, ear?.melody, ear?.staff, ear?.state.revealed, layoutId, emptyBarsBuilt]); // eslint-disable-line react-hooks/exhaustive-deps
+        if (handTopOverlayRef.current) handTopOverlayRef.current.visible = handSelection === 'left' && !earMode;
+        if (handBottomOverlayRef.current) handBottomOverlayRef.current.visible = handSelection === 'right' && !earMode;
+    }, [handSelection, earMode, layoutId]);
 
     // Error markers: capture the score-tick whenever sessionStats.wrongs goes up;
     // clear when it decreases (session reset on song change / restart / completion).
@@ -418,7 +268,7 @@ export const PianoScoreView: React.FC = () => {
                     if (Math.abs(hitLineScreenX - lastHitLineX) > 0.5) {
                         cursor.clear();
                         cursor.rect(hitLineScreenX, 0, 4, app.screen.height);
-                        cursor.fill(0x646cff);
+                        cursor.fill(ACCENT_HEX);
                         lastHitLineX = hitLineScreenX;
                     }
 
@@ -445,10 +295,21 @@ export const PianoScoreView: React.FC = () => {
                         }
 
                         const targetScrollX = hitLineScreenX - globalX * scale;
-                        if (Math.abs(scrollContainerRef.current.x - targetScrollX) > 0.5) {
-                            scrollContainerRef.current.x = targetScrollX;
+                        const currentX = scrollContainerRef.current.x;
+                        if (Math.abs(currentX - targetScrollX) > 0.5) {
+                            // By ear the page glides to each new place instead
+                            // of jumping, always towards the latest target — a
+                            // quick player skips ahead, nothing queues up.
+                            // Everywhere else it is locked to the transport.
+                            scrollContainerRef.current.x = easeScrollRef.current
+                                ? currentX + (targetScrollX - currentX) * (1 - Math.exp(-app.ticker.deltaMS / EAR_SCROLL_EASE_MS))
+                                : targetScrollX;
                         }
                     }
+
+                    // The loop's start sign waits at the cursor once the music
+                    // has scrolled past it — while dragging too.
+                    loopMarks.follow(scrollContainerRef.current.x, hitLineScreenX);
 
                     // Drive the minimap playhead in lockstep with the score scroll
                     const playheadEl = playheadRef.current;
@@ -572,14 +433,10 @@ export const PianoScoreView: React.FC = () => {
         const svgOuterBBox = hiddenDiv.querySelector('svg')?.getBoundingClientRect() || { left: 0, top: 0, width: 0 };
         const measureBBoxes = measures.map(m => m.getBoundingClientRect());
 
-        // Each note's left edge, for Learn by ear's curtain. A chord is measured
-        // as a whole, so its accidentals are behind the curtain too.
-        const noteLeft = new Map<string, number>();
-        hiddenDiv.querySelectorAll('.note').forEach(el => {
-            const box = (el.closest('.chord') ?? el).getBoundingClientRect();
-            if (el.id) noteLeft.set(el.id, box.left - svgOuterBBox.left);
-        });
-        noteLeftRef.current = noteLeft;
+        // Each note's left edge, for Learn by ear's veil; the staff lines, for
+        // the loop's repeat signs.
+        const noteLeft = measureNoteLefts(hiddenDiv, svgOuterBBox.left);
+        const staves = measureStaffLines(hiddenDiv, svgOuterBBox.top);
 
         // Detect grand-staff midpoint for hand-selection overlays.
         // Cluster .staff elements by top-Y: smaller-Y cluster = treble (right
@@ -686,12 +543,12 @@ export const PianoScoreView: React.FC = () => {
             setTickPositions([]);
         }
 
-        disposeEmptyBars();
+        veil.reset();
+        loopMarks.reset();
         if (scrollContainerRef.current) {
             scrollContainerRef.current.removeChildren().forEach(child => child.destroy({ texture: true }));
         }
 
-        svgRef.current = svgString;
         const img = await loadSvgImage(svgString);
 
         const TEXTURE_HEIGHT = Math.max(200, img.height || 1000);
@@ -710,13 +567,7 @@ export const PianoScoreView: React.FC = () => {
         const page = { top: targetY, height: TEXTURE_HEIGHT, width: totalW, res, staffMidY };
         for (const sprite of sliceToSprites(img, page)) scrollContainerRef.current?.addChild(sprite);
 
-        // Learn by ear's curtain (the stand-in while the empty bars are
-        // built): in the scrolling layer, above every slice.
-        const curtain = new PIXI.Graphics();
-        curtain.visible = false;
-        scrollContainerRef.current?.addChild(curtain);
-        curtainRef.current = curtain;
-        pageRef.current = page;
+        veil.attach({ page, svg: svgString, noteLeft });
 
         // Sticky Overlay Sprite (device-resolution raster, like the slices)
         const stickyW = stickyWidthRef.current;
@@ -772,7 +623,7 @@ export const PianoScoreView: React.FC = () => {
             topOv.rect(0, topScreenY, overlayWidth, midScreenY - topScreenY);
             topOv.fill({ color: SCORE_BG_HEX });
             topOv.alpha = HAND_DIM_ALPHA;
-            topOv.visible = handSelectionRef.current === 'left';
+            topOv.visible = false;
             app.stage.addChild(topOv);
             handTopOverlayRef.current = topOv;
 
@@ -780,10 +631,21 @@ export const PianoScoreView: React.FC = () => {
             botOv.rect(0, midScreenY, overlayWidth, bottomScreenY - midScreenY);
             botOv.fill({ color: SCORE_BG_HEX });
             botOv.alpha = HAND_DIM_ALPHA;
-            botOv.visible = handSelectionRef.current === 'right';
+            botOv.visible = false;
             app.stage.addChild(botOv);
             handBottomOverlayRef.current = botOv;
         }
+
+        // The loop's repeat signs, the start one over the clef strip.
+        const lastMeasure = mData[mData.length - 1];
+        loopMarks.attach({
+            top: targetY,
+            scale: scaleFactor,
+            measures: mData.map(m => ({ startTick: m.startTick, x: m.x })),
+            end: { tick: lastMeasure.endTick, x: lastMeasure.x + lastMeasure.width },
+            staves,
+            overlay: appRef.current.stage,
+        });
 
         if (cursorRef.current) {
             appRef.current.stage.setChildIndex(cursorRef.current, appRef.current.stage.children.length - 1);
@@ -914,6 +776,7 @@ export const PianoScoreView: React.FC = () => {
                             }}
                         />
                     ))}
+                    <LoopRangeSelector />
                     {/* Wrong-note markers — matches LiveStats red (#f87171) */}
                     {errorTicks.map((tick, i) => {
                         const total = totalScoreTicksRef.current;

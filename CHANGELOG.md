@@ -10,7 +10,7 @@ the way. Install channels and downloads:
 
 ### Learn by ear
 
-- **A third piano mode, By ear**: additive melodic dictation. The instrument plays a phrase, the
+- **A third mode, By ear**, on the piano and the saxophone: additive melodic dictation. The instrument plays a phrase, the
   student plays it back from memory, and each correct response adds a note, until the whole melody
   comes back in one go. Built from a functional and pedagogical specification; the design record is
   [docs/learn-by-ear.md](docs/learn-by-ear.md).
@@ -33,8 +33,54 @@ the way. Install channels and downloads:
 - **Drums practice mode** accepts either pad of an instrument (rim or snare, open or closed hi-hat),
   as rhythm mode already did. Id-less charts now reveal which pad is written, and without this they
   would have started refusing the alternate.
+- **On the saxophone** the fingering chart never gives the next note away. It shows the fingering
+  of the note just played right and a red "not that one" after a wrong note, and the controller's
+  octave is handled as in the other modes. The saxo viewer shows the same empty bars
+  ([src/hooks/useEarVeil.ts](src/hooks/useEarVeil.ts), shared by both viewers).
+- **The page glides** from place to place instead of jumping: to each new note during a response,
+  and back to the start for each call. It always heads for the latest place, so a quick player
+  never waits for the scroll to catch up.
+- **A passage instead of the whole piece**, chosen with the minimap's handles (below). The call
+  starts from the passage's first note, so a long piece no longer means a 52-round session.
 - `npm run check:ear` states the specification's acceptance criteria as 49 checks, and the mode was
   driven end to end in the browser with a simulated MIDI keyboard.
+
+### Loop a passage
+
+- **Two handles on the minimap** (piano and saxo) choose a stretch of bars. They snap to bar lines,
+  keep at least one bar between them, and darken the rest of the minimap
+  ([src/components/LoopRangeSelector.tsx](src/components/LoopRangeSelector.tsx)).
+- **Rhythm and Practice loop it.** It is Tone's own transport loop, so the wrap happens on the
+  audio clock, and the practice pauses and score playback (both scheduled on the transport) come
+  round again on every pass. Choosing the bars moves the playhead into them, ↺ goes back to their
+  start, and the transport shows *⟲ bars 5–8* with a ✕ for the whole piece again.
+- **Repeat signs on the score** mark the range in the instrument's colour, blue on the piano and
+  gold on the saxo: ‖: at its first bar line and :‖ at its last
+  ([src/hooks/useLoopMarks.ts](src/hooks/useLoopMarks.ts)). Both sit in the space before their
+  bar line, where they cover no note. Once the music scrolls past the start sign, it waits at the
+  cursor over the clef strip, so a running loop always shows where it began.
+- **By ear it is the passage to learn**, with the same chip and ✕ in the transport to go back to
+  the whole piece. A new score clears it.
+- `npm run check:loop` (21 checks) covers snapping, labels and passages. In the browser, a
+  one-bar loop wrapped twice in five seconds without leaving the bar, and practice mode waited at
+  the bar's notes, then wrapped and waited at the first again.
+
+### Your drum kit's pad map
+
+- **Every note from a drum controller now goes through one editable map** to the kit voice it
+  plays ([src/utils/drumMap.ts](src/utils/drumMap.ts)). The kit sound, rhythm scoring and
+  practice-mode waiting all use it. It starts as General MIDI, so a GM kit behaves exactly as
+  before: all 17 pads of the old fixed table are checked one by one.
+- **The 🥁 button** in the drums header opens the editor
+  ([src/components/drums/DrumMapEditor.tsx](src/components/drums/DrumMapEditor.tsx)). Press
+  **Learn** on a voice and hit the pads and zones that should play it, or type a note number. The
+  panel shows what each hit sends and plays, and the kit sounds through the new map at once. A note
+  plays one voice, so re-learning moves it. The map is saved on this device.
+- **Clap, cowbell and tambourine now score.** The old table had no entry for them, so those
+  generator voices could never be hit in rhythm mode.
+- The pad tables moved to [src/utils/drumPads.ts](src/utils/drumPads.ts), free of Tone, so the
+  checks can load them. `npm run check:pads` (43 checks) covers the default, a remapped kit,
+  storage, and every drum in the 518 bundled charts (8,613 notes), all playable on a GM kit.
 
 ### Playback moves to the header
 

@@ -42,6 +42,19 @@ in — including on Safari- and Firefox-only machines, where Web MIDI does not
 exist. Nothing else changes: same scores, same fingering chart.
 :::
 
+## Learn by ear
+
+The **By ear** mode trains you to hear a melody and play it back without reading it, exactly as on
+the [piano](../piano/#learn-by-ear). The app plays a phrase, you play it back from memory, and each
+time you get it right the phrase grows by one note. The score shows empty bars until each note has
+been played. You can also pick a passage with the handles on the minimap.
+
+The fingering chart never gives the next note away. It shows the fingering of the note you just
+played right, and "not that one" after a wrong note. It still shows the keys you are holding,
+since that is your own hand. Your controller's octave is handled as in the other modes.
+
+The same minimap handles loop a passage in Rhythm and Practice.
+
 ## Jazz scale generator
 
 The song picker's **🎼 Jazz generator** entry engraves jazz practice material

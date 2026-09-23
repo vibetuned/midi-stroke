@@ -6,14 +6,16 @@
 > Code: [src/utils/earTraining.ts](../src/utils/earTraining.ts) (the rules, pure),
 > [src/components/EarTrainingProvider.tsx](../src/components/EarTrainingProvider.tsx) (the session),
 > [src/components/EarTrainingPanel.tsx](../src/components/EarTrainingPanel.tsx) (controls and assessment),
+> [src/hooks/useEarVeil.ts](../src/hooks/useEarVeil.ts) (the veil over a score viewer),
 > [scripts/check-ear-training.mjs](../scripts/check-ear-training.mjs) (the acceptance criteria as checks).
 
 The mode trains **audiation** — hearing and internalising pitch without notation to lean on — by
 call and response. The instrument plays a phrase; the student plays it back from memory; every
 successful response lengthens the phrase by one note. Nothing on the page gives the next note away.
 
-It is the third mode beside Rhythm and Practice, piano only, on any piece in the library:
-bundled, imported, or generated.
+It is the third mode beside Rhythm and Practice, on the piano and the saxophone, on any piece in
+the library: bundled, imported, or generated. It trains the whole melody, or a passage chosen with
+the handles on the minimap (§3).
 
 ---
 
@@ -44,7 +46,10 @@ Before and during a session, nothing ahead of the student is visible:
 
 A note is revealed — in its real engraving, key signature and accidentals included — the moment
 it is played correctly, and stays visible. The page shows the phrase from its first note, so what
-has been learned is always in view; during a response it follows the student note by note.
+has been learned is always in view; during a response it follows the student note by note. By ear
+the page glides there instead of jumping. It uses an exponential ease with a 140 ms time constant,
+always toward the latest target, so a fast player skips straight to the latest note and nothing
+queues. The other modes stay locked to the transport.
 
 The empty bars are a second raster of the same Verovio SVG, drawn with the music hidden by a
 stylesheet. Staff lines, barlines, the brace, clefs, key and time signatures and bar numbers stay.
@@ -56,10 +61,24 @@ left edge onwards. That edge is measured in the rendered SVG, and a chord is mea
 its accidentals stay covered. The same mask also covers the other staff along its whole length.
 
 The raster is built when the mode is entered and freed when it is left, so the other modes pay no
-memory for it. While it is being built, a plain curtain in the page colour and opaque hand overlays
-hide the same things, so nothing shows through even for a frame.
+memory for it. While it is being built, a plain curtain in the page colour covers the same places,
+so nothing shows through even for a frame. Both viewers use the same hook
+([src/hooks/useEarVeil.ts](../src/hooks/useEarVeil.ts)); the saxophone has one staff, so there is
+no other staff to hide.
+
+**The saxophone's fingering chart** would show the answer, so by ear it never shows the note to
+come. It shows the fingering of the note just played right, the way a piano key lights up green,
+and a red "not that one" after a wrong note. The chart still shows the keys the player is holding,
+which is their own hand, not a hint. A wind controller's notes are shifted into the written
+register before they are judged, exactly as in the other modes.
 
 ## 3. The loop
+
+**A passage, not only the whole piece.** The two handles on the minimap choose a stretch of bars
+(the same range that loops in rhythm and practice). By ear, the melody is that passage's notes,
+and the call starts from its first note at the tempo in force there. Changing the range starts a
+new session. Everything after the passage stays veiled until it is complete. Everything before
+it is not being trained, so it stays on the page.
 
 | Phase | What happens |
 |---|---|
@@ -108,7 +127,7 @@ any-octave matching; and six rounds on a real Mikrokosmos piece.
 
 ## 6. Decisions the specification left open
 
-- **Where it lives**: a third mode in the piano transport, rather than a separate app.
+- **Where it lives**: a third mode in the piano and saxophone transports, rather than a separate app.
 - **Masking style**: empty bars rather than neutral placeholder noteheads. Placeholders would still
   show how many notes are coming and their rhythm, while empty bars keep only the page's layout.
 - **The other staff**: empty bars while training, unveiled with everything else at the end.
@@ -118,10 +137,8 @@ any-octave matching; and six rounds on a real Mikrokosmos piece.
 
 ## 7. Known limits
 
-- **Long pieces make long sessions.** The loop is additive over the whole melody, as specified, so a
-  piece of *N* notes takes *N* rounds and around N²/2 notes of listening: Mikrokosmos No. 32 is 52
-  rounds, the last of them a 52-note call. Working phrase by phrase, or capping the call at a window
-  of recent notes, would keep sessions short.
-- **Piano only.** The engine is instrument-agnostic, but the saxophone's fingering chart shows the
-  expected note and would need the same treatment as the keyboard.
+- **Whole pieces make long sessions.** The loop is additive, as specified, so *N* notes take *N*
+  rounds and around N²/2 notes of listening: all of Mikrokosmos No. 32 is 52 rounds. Choosing a
+  passage on the minimap is the way to keep a session short.
+- **No drums.** Pitch dictation has nothing to train on a drum kit.
 - **No persistence** of ear-training results in the statistics panel yet.

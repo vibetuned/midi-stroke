@@ -8,6 +8,8 @@ import {
     type EarAction, type EarRhythm, type EarStaff, type EarState, type MelodyNote,
 } from '../utils/earTraining';
 import { playTimemap } from '../utils/playback';
+import { inRange } from '../utils/loopRange';
+import { SAXO_INPUT_TRANSPOSE_SEMITONES } from '../hooks/useGameLogic';
 
 /** The pause between a completed response and the longer call. */
 const BREATH_MS = 500;
@@ -20,16 +22,24 @@ const BREATH_MS = 500;
 export const EarTrainingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const {
         gameMode, setGameMode, timemap, handSelection, setHandSelection, tempo,
-        playbackTarget, seek, isPlaying, setIsPlaying, isMetronomeMuted,
+        playbackTarget, seek, isPlaying, setIsPlaying, isMetronomeMuted, instrument, loopRange,
     } = useGame();
+    // A saxo controller sends one octave below the written staff the score is
+    // in, exactly as in the other modes (hooks/useGameLogic.ts).
+    const inputOffset = instrument === 'saxo' ? SAXO_INPUT_TRANSPOSE_SEMITONES : 0;
     const { lastNote } = useMidi();
 
     const active = gameMode === 'ear' && !!timemap;
     const staff: EarStaff = handSelection === 'left' ? 2 : 1;
     const staves = useMemo(() => (timemap ? stavesWithNotes(timemap) : []), [timemap]);
+    // The bars chosen on the minimap, when there are some: a passage to learn
+    // rather than the whole piece. The call starts from the passage's first
+    // note, at the tempo in force there (callTimemap).
     const melody: MelodyNote[] = useMemo(
-        () => (active && timemap ? extractMelody(timemap, staff) : []),
-        [active, timemap, staff],
+        () => (active && timemap
+            ? extractMelody(timemap, staff).filter(n => inRange(n.tick, loopRange)).map((n, index) => ({ ...n, index }))
+            : []),
+        [active, timemap, staff, loopRange],
     );
     const targets = useMemo(() => melody.map(m => m.midi), [melody]);
 
@@ -103,8 +113,8 @@ export const EarTrainingProvider: React.FC<{ children: React.ReactNode }> = ({ c
         // useMidi hands key presses over as state rather than as an event to
         // subscribe to, so reacting to one has to happen in an effect.
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        send({ type: 'note', midi: lastNote.note });
-    }, [lastNote, state.phase, send]);
+        send({ type: 'note', midi: lastNote.note + inputOffset });
+    }, [lastNote, state.phase, send, inputOffset]);
 
     // A wrong note: a short, clearly unmusical buzz, distinct from the piece.
     const cueRef = useRef<Tone.PolySynth | null>(null);

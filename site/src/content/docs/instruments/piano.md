@@ -52,6 +52,17 @@ exercise's key (root + scale). Two device notes:
   shows the device and the sends, but nothing reaches it). If the lights stay
   dark on a work machine, use an unmanaged browser or the desktop app.
 
+## Looping a passage
+
+The minimap along the top of the score has a handle at each end. Drag them in to choose the bars
+you want to work on. They snap to bar lines, and the rest of the minimap darkens. In **Rhythm** and
+**Practice** those bars loop: at the end of the last bar the playhead jumps back to the start of the
+first, and practice mode waits for its notes again on every pass. Repeat signs in the piano's
+blue mark the loop on the score. The start sign waits at the cursor while the loop runs, so you
+can always see where it began. The transport shows what is looping, *⟲ bars 5–8*. Its ✕ (or a
+double-click on a handle) goes back to the whole piece. By ear, the same handles and the same ✕
+choose the passage to learn.
+
 ## Learn by ear
 
 The **By ear** mode, beside Rhythm and Practice, trains you to hear a melody and play it without
@@ -62,6 +73,8 @@ and every time you get it right it grows by one note.
   other staff and everything ahead of you show as empty bars, laid out like the real ones. A
   note appears, properly engraved, only once you have played it.
 - **Pick the staff** you are learning: Treble keeps the top line of each chord, Bass the bottom one.
+- **Pick the passage**: drag the handles on the minimap to learn a few bars instead of the whole
+  piece.
 - **Rhythm**: hear the phrase *as written*, at the score's tempo, or as *even pulses*, one note per
   beat, so only the pitches are left to listen for.
 - **Octave**: *exact* register by default, or *any* octave of the right note for smaller keyboards.

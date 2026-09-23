@@ -4,9 +4,10 @@ import type { TempoMap } from '../utils/tempo';
 import { useGame } from '../context/GameContext';
 import { useStats } from '../context/StatsContext';
 import * as Tone from 'tone';
+import { LoopChip } from './LoopRangeSelector';
 
 export const PlayControls: React.FC = () => {
-    const { isPlaying, setIsPlaying, tempo, setTempo, scoreTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection } = useGame();
+    const { isPlaying, setIsPlaying, tempo, setTempo, scoreTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection, loopRange } = useGame();
     const { resetSession } = useStats();
 
     // Fix 10: stable refs so the keydown closure never captures stale values
@@ -70,14 +71,16 @@ export const PlayControls: React.FC = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [setIsPlaying, seek, setTempo]);
 
+    // Back to the start — of the loop, when there is one.
+    const loopStart = loopRange?.start ?? 0;
     const handleReset = useCallback(() => {
         setIsPlaying(false);
         Tone.getTransport().pause();
-        Tone.getTransport().ticks = 0;
-        setPlayPosition(0);
+        Tone.getTransport().ticks = loopStart;
+        setPlayPosition(loopStart);
         setWaitingForNotes([]);
         resetSession();
-    }, [setIsPlaying, setPlayPosition, setWaitingForNotes, resetSession]);
+    }, [setIsPlaying, setPlayPosition, setWaitingForNotes, resetSession, loopStart]);
 
     // Changing hands invalidates the run-in-progress (different note set,
     // different misses possible) — reset to the start so stats and minimap
@@ -142,12 +145,12 @@ export const PlayControls: React.FC = () => {
                 >
                     Practice
                 </button>
-                {instrument === 'piano' && (
+                {(instrument === 'piano' || instrument === 'saxo') && (
                     <button
                         onClick={() => {
-                            // By ear trains one staff: treble unless the left
-                            // hand was already chosen.
-                            if (handSelection === 'both') setHandSelection('right');
+                            // By ear trains one staff: on the piano, treble
+                            // unless the left hand was already chosen.
+                            if (instrument === 'piano' && handSelection === 'both') setHandSelection('right');
                             setGameMode('ear');
                         }}
                         title="Learn by ear: hear a phrase, play it back from memory, one more note each round"
@@ -271,6 +274,9 @@ export const PlayControls: React.FC = () => {
                 {isPlaying ? '⏸' : '▶'}
             </button>
             </>)}
+            {/* What is looping — or, by ear, the passage being learned — and
+                the way back to the whole piece. */}
+            <LoopChip />
 
             <button
                 onClick={() => setMetronomeMuted(!isMetronomeMuted)}

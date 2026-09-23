@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useGame, isTrackActiveForHand } from '../context/GameContext';
 import { useStats } from '../context/StatsContext';
-import { useMidi, MIDI_PAD_MAP } from './useMidi';
+import { useMidi } from './useMidi';
+import { useDrumMap } from './useDrumMap';
+import { inputAnswersPad, inputScorePitch } from '../utils/drumMap';
 
 // Tolerance in ticks (approx 100ms at 120bpm is ~192 ticks, but depends on PPQ)
 // Let's assume standard PPQ 192 (Tone default).
@@ -38,6 +40,8 @@ export function useGameLogic() {
     // produced by device note (W - inputOffset). See SAXO_INPUT_TRANSPOSE_SEMITONES.
     const inputOffset = instrument === 'saxo' ? SAXO_INPUT_TRANSPOSE_SEMITONES : 0;
     const { lastNote, activeNotes } = useMidi();
+    // Drums: what each controller note is (utils/drumMap.ts, editable).
+    const drumMap = useDrumMap();
     const { recordHit, recordWrong, recordGood } = useStats();
 
     const [feedback, setFeedback] = useState<string | null>(null);
@@ -139,18 +143,17 @@ export function useGameLogic() {
         // Practice Mode Validation
         if (gameMode === 'practice' && waitingForNotes.length > 0) {
 
-            // Drums: alternate pads for one instrument are interchangeable —
-            // both snare pads, rim and snare, open and closed hi-hat — exactly
-            // as in rhythm mode, which maps every pad through MIDI_PAD_MAP. (A
-            // score's noteheads tell practice mode which pad is *written*;
-            // they are not a reason to reject its alternate.) Everywhere else
-            // this is plain equality.
-            const sameDrum = (a: number, b: number) =>
-                a === b || (instrument === 'drums' && MIDI_PAD_MAP[a] !== undefined && MIDI_PAD_MAP[a] === MIDI_PAD_MAP[b]);
+            // Drums wait for General MIDI pads (the score's drums); the
+            // controller's notes go through its pad map. Voices notated in the
+            // same place count for each other — rim for snare, open hi-hat for
+            // closed — exactly as in rhythm mode: a score's noteheads say which
+            // one is *written*, not a reason to reject the other. Everywhere
+            // else this is plain equality.
+            const answers = (expected: number, input: number) =>
+                instrument === 'drums' ? inputAnswersPad(drumMap, expected, input) : expected === input;
             const heldFor = (expected: number) => {
-                const exact = activeNotes.get(expected - inputOffset);
-                if (exact || instrument !== 'drums') return exact;
-                for (const [pad, data] of activeNotes) if (sameDrum(expected, pad)) return data;
+                if (instrument !== 'drums') return activeNotes.get(expected - inputOffset);
+                for (const [note, data] of activeNotes) if (answers(expected, note)) return data;
                 return undefined;
             };
 
@@ -161,7 +164,7 @@ export function useGameLogic() {
             if (lastNote && selectedSong
                 && lastNote.timestamp > lastWrongTimeRef.current
                 && lastNote.timestamp > lastProcessedTimeRef.current) {
-                if (!waitingForNotes.some(w => sameDrum(w, lastNote.note + inputOffset))) {
+                if (!waitingForNotes.some(w => answers(w, lastNote.note + inputOffset))) {
                     lastWrongTimeRef.current = lastNote.timestamp;
                     groupWrongedRef.current = true;
                     recordWrong(selectedSong, songName, 'practice');
@@ -237,11 +240,14 @@ export function useGameLogic() {
         const hitTime = playPosition;
         let hit = false;
         let hitSourceTick: number | null = null;
+        // Drums: where the pad map says this note is notated; a note it does
+        // not assign matches nothing, and counts as a miss.
         const noteToMatch =
-            instrument === 'drums' ? (MIDI_PAD_MAP[lastNote.note] ?? lastNote.note)
+            instrument === 'drums' ? inputScorePitch(drumMap, lastNote.note)
             : lastNote.note + inputOffset;
 
         for (const onset of timemap.onsets) {
+            if (noteToMatch === undefined) break;
             // Onsets are tick-sorted — everything past the hit window is future.
             if (onset.tick - TOLERANCE_TICKS > hitTime) break;
             for (const n of onset.notes) {
@@ -269,7 +275,7 @@ export function useGameLogic() {
         }
 
     }, [lastNote, activeNotes, timemap, playPosition, gameMode, waitingForNotes, resumePractice,
-        isPlaying, selectedSong, songName, instrument, activeHand, recordHit, recordWrong, recordGood]);
+        isPlaying, selectedSong, songName, instrument, activeHand, recordHit, recordWrong, recordGood, drumMap]);
 
     // Reset the wronged-flag whenever a new note group arrives so each group
     // starts with a clean first-attempt slate.

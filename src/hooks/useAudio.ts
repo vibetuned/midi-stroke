@@ -3,6 +3,7 @@ import * as Tone from 'tone';
 import { useMidi } from './useMidi';
 import { useGame } from '../context/GameContext';
 import { createDrumKit, padForScoreNote, type DrumKit } from '../utils/drumKit';
+import { getDrumMap, voiceForInput } from '../utils/drumMap';
 import { registerPlaybackVoice, schedulePlayback } from '../utils/playback';
 
 export function useAudio() {
@@ -199,9 +200,12 @@ export function useAudio() {
                     // Normalize velocity (0-127) to (0-1)
                     const vel = velocity / 127;
                     if (drumKitRef.current) {
-                        // Drums are one-shots keyed by pad number, so there is
-                        // no frequency and nothing to release.
-                        drumKitRef.current.trigger(note, vel);
+                        // Drums are one-shots, so there is no frequency and
+                        // nothing to release. The pad map says which voice
+                        // this controller's note is (read at the hit, so an
+                        // edit in the pad map editor is heard at once).
+                        const voice = voiceForInput(getDrumMap(), note);
+                        if (voice) drumKitRef.current.play(voice, vel);
                     } else {
                         const freq = Tone.Frequency(note, "midi").toFrequency();
                         samplerRef.current?.triggerAttack(freq, Tone.now(), vel);
