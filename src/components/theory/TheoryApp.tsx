@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import * as Tone from 'tone';
 import type { VerovioToolkit } from 'verovio/esm';
 import { StartOverlay } from '../StartOverlay';
@@ -11,7 +11,7 @@ import { VideoSplash } from './VideoSplash';
 import { useTheoryExercise } from './useTheoryExercise';
 import { useAudio } from '../../hooks/useAudio';
 import { useVerovio } from '../../hooks/useVerovio';
-import { useMidi } from '../../hooks/useMidi';
+import { useMidiNotes } from '../../hooks/useMidi';
 import {
     fetchCoursesManifest, loadProgress, saveProgress, videoProgressKey,
     type Course, type CourseModule, type CourseExercise, type CoursesManifest, type TheoryProgress,
@@ -214,16 +214,11 @@ const ExercisePanel: React.FC<ExercisePanelProps> = ({
 }) => {
     const ex = useTheoryExercise(toolkit, course, module, exercise, onCompleted);
     const { noteInput, getPlaybackEvents } = ex;
-    const { lastNote } = useMidi();
-    const lastHandledRef = useRef<number | null>(null);
-
-    // MIDI keyboard input (sound already handled by useAudio in TheoryApp)
-    useEffect(() => {
-        if (!lastNote || !inputEnabled) return;
-        if (lastHandledRef.current === lastNote.timestamp) return;
-        lastHandledRef.current = lastNote.timestamp;
-        noteInput(lastNote.note);
-    }, [lastNote, inputEnabled, noteInput]);
+    // MIDI keyboard input, every key as it is struck (sound already handled
+    // by useAudio in TheoryApp).
+    useMidiNotes({
+        onNoteOn: hit => { if (inputEnabled) noteInput(hit.note); },
+    });
 
     const playNote = useCallback((midi: number) => {
         const sampler = getSampler();

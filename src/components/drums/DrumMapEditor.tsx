@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as Tone from 'tone';
 import { useGame } from '../../context/game';
-import { useMidi } from '../../hooks/useMidi';
+import { useMidiNotes, type MidiNote } from '../../hooks/useMidi';
 import { useDrumMap } from '../../hooks/useDrumMap';
 import {
-    DRUM_VOICES, GM_DRUM_MAP, GM_PERCUSSION, assignNote, notesForVoice, sameMap, setDrumMap,
+    DRUM_VOICES, GM_DRUM_MAP, GM_PERCUSSION, assignNote, getDrumMap, notesForVoice, sameMap, setDrumMap,
     voiceForInput, voiceInfo,
 } from '../../utils/drumMap';
 import type { DrumVoiceKey } from '../../utils/drumPads';
@@ -47,12 +47,11 @@ const noteLabel = (note: number) => `${note}${GM_PERCUSSION[note] ? ` · GM ${GM
 
 export const DrumMapPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const map = useDrumMap();
-    const { lastNote } = useMidi();
     const { setIsPlaying } = useGame();
     const [learning, setLearning] = useState<DrumVoiceKey | null>(null);
     const [typed, setTyped] = useState('');
-    // Only hits made with the panel open are shown or learned.
-    const [openedAt] = useState(() => performance.now());
+    // The last pad hit with the panel open.
+    const [hit, setHit] = useState<MidiNote | null>(null);
 
     // Teaching the kit while the piece runs would score every test hit.
     useEffect(() => {
@@ -66,15 +65,14 @@ export const DrumMapPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => 
         return () => window.removeEventListener('keydown', onKey);
     }, [onClose]);
 
-    // Learn: every pad hit while a voice is armed is assigned to it.
-    const learnedRef = useRef(0);
-    useEffect(() => {
-        if (!learning || !lastNote || lastNote.timestamp < openedAt || lastNote.timestamp <= learnedRef.current) return;
-        learnedRef.current = lastNote.timestamp;
-        setDrumMap(assignNote(map, lastNote.note, learning));
-    }, [lastNote, learning, map, openedAt]);
+    // Every hit is shown; while a voice is armed (Learn), it is assigned to it.
+    useMidiNotes({
+        onNoteOn: note => {
+            setHit(note);
+            if (learning) setDrumMap(assignNote(getDrumMap(), note.note, learning));
+        },
+    });
 
-    const hit = lastNote && lastNote.timestamp >= openedAt ? lastNote : null;
     const hitVoice = hit ? voiceForInput(map, hit.note) : undefined;
 
     const addTyped = () => {

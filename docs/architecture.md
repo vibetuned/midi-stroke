@@ -125,19 +125,28 @@ instrument**, each called by its app:
 Loads the Verovio WASM module once and exposes `{ toolkit }`. The toolkit renders MEI:
 `toolkit.loadData(mei)` → `toolkit.renderToSVG(1, {})` and `toolkit.renderToMIDI()`.
 
-### `useMidi()` — [useMidi.ts](../src/hooks/useMidi.ts)
-Web MIDI input. Exposes:
-- `activeNotes: Map<number, {velocity, timestamp}>` — currently-held notes.
-- `lastNote: {note, velocity, channel, timestamp}` — last note-on (drives hit detection).
-- `MIDI_PAD_MAP` — drum-pad MIDI → notation MIDI (the inverse of `MEI_TO_PAD`).
+### MIDI input — [midiInput.ts](../src/utils/midiInput.ts), [useMidi.ts](../src/hooks/useMidi.ts)
+One connection for the whole app, from Web MIDI or the Tauri native bridge, opened on first use.
+Consumers listen in one of two ways:
+- `useMidi()`: the state, for display. That covers `activeNotes` (held keys), `lastNote`, the
+  devices, the breath level and the TravelSax keys.
+- `useMidiNotes({ onNoteOn, onNoteOff })`: one call per message, for anything that must react to
+  every key. That covers scoring, practice, By ear, calibration, the pad-map editor, theory input
+  and the live instrument sound. React merges state updates made in the same frame, so a consumer
+  watching `lastNote` would see two quick notes as one: a chord, a fast run, a drum roll. Inside
+  a handler, `getMidiState()` gives the keys held at that moment, this one included.
+
+The handlers are kept in a ref refreshed on each render, not `useEffectEvent`: React 19.2 never
+refreshes an effect event inside a `memo()` component, and `VirtualPiano` and `VirtualSaxo` are
+both memoised.
 
 ### `useGameLogic()` — [useGameLogic.ts](../src/hooks/useGameLogic.ts)
 The scoring brain. Exposes `expectedNotes: { note: number; trackIndex: number }[]` — the notes
 hittable *right now*, used to glow the virtual instrument. It:
 - Computes expected notes from `midiData` + `playPosition` (windowed by tolerance).
 - Filters by hand for piano (`activeHand = instrument === 'piano' ? handSelection : 'both'`).
-- Remaps drum pads for drums (`MIDI_PAD_MAP`).
-- Detects hits / misses / wrongs and records them in `StatsContext`.
+- Matches drum hits through the pad map ([drumMap.ts](../src/utils/drumMap.ts)).
+- Judges every key as it arrives (`useMidiNotes`) and records hits, misses and wrongs in the stats.
 
 > This is the **one hook that already branches on `instrument`** (lines ~28 and ~217). A new
 > instrument needs a decision here: does it filter by hand (no) and does it remap notes (probably

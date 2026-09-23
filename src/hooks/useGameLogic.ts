@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useGame, isTrackActiveForHand } from '../context/game';
 import { useStats } from '../context/stats';
-import { useMidi } from './useMidi';
+import { useMidiNotes } from './useMidi';
+import { getMidiState, type MidiNote } from '../utils/midiInput';
 import { useDrumMap } from './useDrumMap';
 import { inputAnswersPad, inputScorePitch } from '../utils/drumMap';
 
@@ -28,32 +29,25 @@ export interface ExpectedNote {
 
 export interface GameLogicState {
     expectedNotes: ExpectedNote[];
-    feedback: string | null;
 }
 
 export function useGameLogic() {
-    const { timemap, playPosition, gameMode, waitingForNotes, resumePractice, isPlaying, selectedSong, instrument, handSelection } = useGame();
+    const { timemap, playPosition, gameMode, waitingForNotes, waitingForNotesRef, resumePractice, isPlaying, selectedSong, instrument, handSelection } = useGame();
     // Drums never filter by hand; piano uses the user's L/R/Both selection.
     const activeHand = instrument === 'piano' ? handSelection : 'both';
     // Saxo: shift incoming controller notes into the written score domain before
     // matching (both rhythm and practice). 0 for piano/drums. A written note W is
     // produced by device note (W - inputOffset). See SAXO_INPUT_TRANSPOSE_SEMITONES.
     const inputOffset = instrument === 'saxo' ? SAXO_INPUT_TRANSPOSE_SEMITONES : 0;
-    const { lastNote, activeNotes } = useMidi();
     // Drums: what each controller note is (utils/drumMap.ts, editable).
     const drumMap = useDrumMap();
     const { recordHit, recordWrong, recordGood } = useStats();
 
-    const [feedback, setFeedback] = useState<string | null>(null);
     const lastProcessedTimeRef = useRef<number>(0);
     // Tracks the last wrong-note timestamp in practice mode.
     // Gated against lastProcessedTimeRef so notes that were part of a
     // successful "Good!" can never be re-counted as wrong on the next pause.
     const lastWrongTimeRef = useRef<number>(0);
-    // Deduplicates standard-mode events: activeNotes dep causes the effect to
-    // re-fire on every note-off, but lastNote stays the same → without this
-    // guard a single key press would score once per subsequent note release.
-    const lastProcessedStandardRef = useRef<number>(0);
     // True when the current practice note group received at least one wrong
     // before the correct note — prevents that group from counting toward n/total.
     const groupWrongedRef = useRef<boolean>(false);
@@ -138,144 +132,116 @@ export function useGameLogic() {
     }, [timemap, playPosition, gameMode, waitingForNotes, activeHand]);
 
 
-    // Validation Logic
-    useEffect(() => {
-        // Practice Mode Validation
-        if (gameMode === 'practice' && waitingForNotes.length > 0) {
+    // ------------------------------------------------------------ judging
+    // Every key is judged as it arrives (useMidiNotes: one call per note-on,
+    // however fast they come), against the keys held at that moment.
 
-            // Drums wait for General MIDI pads (the score's drums); the
-            // controller's notes go through its pad map. Voices notated in the
-            // same place count for each other — rim for snare, open hi-hat for
-            // closed — exactly as in rhythm mode: a score's noteheads say which
-            // one is *written*, not a reason to reject the other. Everywhere
-            // else this is plain equality.
-            const answers = (expected: number, input: number) =>
-                instrument === 'drums' ? inputAnswersPad(drumMap, expected, input) : expected === input;
-            const heldFor = (expected: number) => {
-                if (instrument !== 'drums') return activeNotes.get(expected - inputOffset);
-                for (const [note, data] of activeNotes) if (answers(expected, note)) return data;
-                return undefined;
-            };
+    /**
+     * Practice mode: does the pause get its answer? `hit` is the key just
+     * struck — or, when the pause itself has just arrived, the last key
+     * struck, so one played a moment early and still held counts.
+     */
+    const judgePractice = (waiting: number[], hit: MidiNote | null) => {
+        const { activeNotes } = getMidiState();
+        // Drums wait for General MIDI pads (the score's drums); the
+        // controller's notes go through its pad map. Voices notated in the
+        // same place count for each other — rim for snare, open hi-hat for
+        // closed — exactly as in rhythm mode: a score's noteheads say which
+        // one is *written*, not a reason to reject the other. Everywhere
+        // else this is plain equality.
+        const answers = (expected: number, input: number) =>
+            instrument === 'drums' ? inputAnswersPad(drumMap, expected, input) : expected === input;
+        const heldFor = (expected: number) => {
+            if (instrument !== 'drums') return activeNotes.get(expected - inputOffset);
+            for (const [note, data] of activeNotes) if (answers(expected, note)) return data;
+            return undefined;
+        };
 
-            // Wrong note while waiting — count it but don't block resumption.
-            // Must be newer than BOTH the wrong-gate AND the last successful
-            // interaction so held/lingering correct notes from the previous
-            // "Good!" don't get miscounted on the next pause.
-            if (lastNote && selectedSong
-                && lastNote.timestamp > lastWrongTimeRef.current
-                && lastNote.timestamp > lastProcessedTimeRef.current) {
-                if (!waitingForNotes.some(w => answers(w, lastNote.note + inputOffset))) {
-                    lastWrongTimeRef.current = lastNote.timestamp;
-                    groupWrongedRef.current = true;
-                    recordWrong(selectedSong, songName, 'practice');
-                }
+        // Wrong note while waiting — count it but don't block resumption.
+        // Must be newer than BOTH the wrong-gate AND the last successful
+        // interaction so held/lingering correct notes from the previous
+        // "Good!" don't get miscounted on the next pause.
+        if (hit && selectedSong
+            && hit.timestamp > lastWrongTimeRef.current
+            && hit.timestamp > lastProcessedTimeRef.current) {
+            if (!waiting.some(w => answers(w, hit.note + inputOffset))) {
+                lastWrongTimeRef.current = hit.timestamp;
+                groupWrongedRef.current = true;
+                recordWrong(selectedSong, songName, 'practice');
             }
-
-            // Scenario A: Single Note -> Responsive "Hit" Logic (Don't need to hold)
-            if (waitingForNotes.length === 1) {
-                const target = waitingForNotes[0];
-                const noteData = heldFor(target);
-
-                if (noteData) {
-                    // Check freshness: event timestamp must be > last processed success
-                    if (noteData.timestamp > lastProcessedTimeRef.current) {
-                        lastProcessedTimeRef.current = Math.max(lastProcessedTimeRef.current, noteData.timestamp);
-
-                        const firstAttempt = !groupWrongedRef.current;
-                        groupWrongedRef.current = false;
-                        if (selectedSong) recordGood(selectedSong, songName, firstAttempt);
-                        setFeedback("Good!");
-                        resumePractice();
-                        setTimeout(() => setFeedback(null), 500);
-                    }
-                }
-            }
-            else {
-                // Check if ALL waiting notes are currently present
-                const allNotesHeld = waitingForNotes.every(note => !!heldFor(note));
-
-                if (allNotesHeld) {
-                    const hasFreshAttack = waitingForNotes.some(note => {
-                        const data = heldFor(note);
-                        return data && data.timestamp > lastProcessedTimeRef.current;
-                    });
-
-                    if (hasFreshAttack) {
-                        let maxTimestamp = lastProcessedTimeRef.current;
-                        waitingForNotes.forEach(note => {
-                            const data = heldFor(note);
-                            if (data && data.timestamp > maxTimestamp) {
-                                maxTimestamp = data.timestamp;
-                            }
-                        });
-                        lastProcessedTimeRef.current = maxTimestamp;
-
-                        const firstAttempt = !groupWrongedRef.current;
-                        groupWrongedRef.current = false;
-                        if (selectedSong) recordGood(selectedSong, songName, firstAttempt);
-                        setFeedback("Good!");
-                        resumePractice();
-                        setTimeout(() => setFeedback(null), 500);
-                    }
-                }
-            }
-            return;
         }
 
-        // Practice mode: don't fall through to standard mode scoring. Learn by
-        // ear judges keys itself (EarTrainingProvider) and never scores here.
-        if (gameMode === 'practice' || gameMode === 'ear') return;
+        // A single note needs a fresh strike; a chord needs every note held
+        // with at least one of them fresh. Fresh = struck after the last
+        // answer, so keys still down from the previous pause never count.
+        const held = waiting.map(heldFor);
+        if (!held.every(Boolean)) return;
+        const fresh = held.filter(d => d!.timestamp > lastProcessedTimeRef.current);
+        if (fresh.length === 0) return;
+        lastProcessedTimeRef.current = Math.max(lastProcessedTimeRef.current, ...held.map(d => d!.timestamp));
 
-        // Standard Mode Validation (event-based via lastNote)
-        if (!lastNote) return;
-        if (!timemap) return;
+        const firstAttempt = !groupWrongedRef.current;
+        groupWrongedRef.current = false;
+        if (selectedSong) recordGood(selectedSong, songName, firstAttempt);
+        resumePractice();
+    };
+
+    /** Rhythm mode: is this key a note that is sounding now? */
+    const judgeRhythm = (hit: MidiNote) => {
         // Only score when the transport is actually playing
-        if (!isPlaying) return;
-        if (!selectedSong) return;
-        // activeNotes is a dep so the effect re-fires on every note-off while
-        // lastNote stays the same — skip if we already scored this key press.
-        if (lastNote.timestamp <= lastProcessedStandardRef.current) return;
-        lastProcessedStandardRef.current = lastNote.timestamp;
+        if (!timemap || !isPlaying || !selectedSong) return;
 
         const hitTime = playPosition;
-        let hit = false;
         let hitSourceTick: number | null = null;
         // Drums: where the pad map says this note is notated; a note it does
         // not assign matches nothing, and counts as a miss.
         const noteToMatch =
-            instrument === 'drums' ? inputScorePitch(drumMap, lastNote.note)
-            : lastNote.note + inputOffset;
+            instrument === 'drums' ? inputScorePitch(drumMap, hit.note)
+            : hit.note + inputOffset;
 
-        for (const onset of timemap.onsets) {
-            if (noteToMatch === undefined) break;
-            // Onsets are tick-sorted — everything past the hit window is future.
-            if (onset.tick - TOLERANCE_TICKS > hitTime) break;
-            for (const n of onset.notes) {
-                if (n.midi !== noteToMatch) continue;
-                if (!isTrackActiveForHand(n.staff - 1, activeHand)) continue;
-
-                if (hitTime >= onset.tick - TOLERANCE_TICKS && hitTime <= n.endTick) {
-                    hit = true;
-                    hitSourceTick = onset.tick;
-                    break;
-                }
+        if (noteToMatch !== undefined) {
+            for (const onset of timemap.onsets) {
+                // Onsets are tick-sorted — everything past the hit window is future.
+                if (onset.tick - TOLERANCE_TICKS > hitTime) break;
+                const match = onset.notes.some(n =>
+                    n.midi === noteToMatch
+                    && isTrackActiveForHand(n.staff - 1, activeHand)
+                    && hitTime >= onset.tick - TOLERANCE_TICKS && hitTime <= n.endTick);
+                if (match) { hitSourceTick = onset.tick; break; }
             }
-            if (hit) break;
         }
 
-        if (hit) {
-            if (hitSourceTick !== null) resolvedTicksRef.current.add(hitSourceTick);
+        if (hitSourceTick !== null) {
+            resolvedTicksRef.current.add(hitSourceTick);
             recordHit(selectedSong, songName);
-            setFeedback("Hit!");
-            setTimeout(() => setFeedback(null), 1000);
         } else {
             recordWrong(selectedSong, songName, 'rhythm');
-            setFeedback("Miss!");
-            setTimeout(() => setFeedback(null), 500);
         }
+    };
 
-    }, [lastNote, activeNotes, timemap, playPosition, gameMode, waitingForNotes, resumePractice,
-        isPlaying, selectedSong, songName, instrument, inputOffset, activeHand, recordHit, recordWrong, recordGood, drumMap]);
+    useMidiNotes({
+        onNoteOn: hit => {
+            // Practice reads the waiting notes from the ref, which a pause
+            // sets at once — a key can land before the render that follows.
+            if (gameMode === 'practice') {
+                const waiting = waitingForNotesRef.current;
+                if (waiting.length > 0) judgePractice(waiting, hit);
+            } else if (gameMode === 'standard') {
+                judgeRhythm(hit);
+            }
+            // Learn by ear judges keys itself (EarTrainingProvider).
+        },
+    });
+
+    // A pause has just arrived: the key may already be down. (The latest
+    // judge through a ref, for the same reason as in useMidiNotes: this hook
+    // runs inside memo() components.)
+    const latestPractice = useRef({ judgePractice, gameMode });
+    useLayoutEffect(() => { latestPractice.current = { judgePractice, gameMode }; });
+    useEffect(() => {
+        const { judgePractice, gameMode } = latestPractice.current;
+        if (gameMode === 'practice' && waitingForNotes.length > 0) judgePractice(waitingForNotes, getMidiState().lastNote);
+    }, [waitingForNotes]);
 
     // Reset the wronged-flag whenever a new note group arrives so each group
     // starts with a clean first-attempt slate.
@@ -313,5 +279,5 @@ export function useGameLogic() {
         }
     }, [playPosition, gameMode, isPlaying, selectedSong, songName, noteGroups, recordWrong]);
 
-    return { expectedNotes, feedback };
+    return { expectedNotes };
 }

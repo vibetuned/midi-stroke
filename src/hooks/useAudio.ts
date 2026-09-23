@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Tone from 'tone';
-import { useMidi } from './useMidi';
+import { useMidiNotes } from './useMidi';
 import { useGame } from '../context/game';
 import { createDrumKit, padForScoreNote, type DrumKit } from '../utils/drumKit';
 import { getDrumMap, voiceForInput } from '../utils/drumMap';
@@ -15,7 +15,6 @@ export function useAudio() {
     const drumKitRef = useRef<DrumKit | null>(null);
     const extraNodesRef = useRef<Tone.ToneAudioNode[]>([]);
     const metronomeRef = useRef<Tone.MembraneSynth | null>(null);
-    const { activeNotes } = useMidi();
     const { isAudioStarted, isMetronomeMuted, gameMode, instrument, timemap, playbackTarget } = useGame();
     // Only the piano samples take time to arrive; the drum kit and the saxo
     // synth are ready the moment the engine is built.
@@ -110,6 +109,9 @@ export function useAudio() {
                 }
                 const instrumentVoice = samplerRef.current;
                 if (!instrumentVoice) return;
+                // The piano samples come over the network: until they are in,
+                // a note would throw inside playback's timer, not just be silent.
+                if (instrumentVoice instanceof Tone.Sampler && !instrumentVoice.loaded) return;
                 const freq = Tone.Frequency(midi, 'midi').toFrequency();
                 instrumentVoice.triggerAttackRelease(freq, durationSec, time, velocity);
             },
@@ -183,51 +185,29 @@ export function useAudio() {
     // The transport's BPM is set by GameProvider, which knows the score's own
     // tempo map as well as the slider (see utils/tempo.ts).
 
-    // Handle Incoming MIDI Notes (Active Notes)
-    const prevNotesRef = useRef<Map<number, { velocity: number, timestamp: number }>>(new Map());
-
-    useEffect(() => {
-        if (!isLoaded) return;
-        if (!samplerRef.current && !drumKitRef.current) return;
-
-        const prev = prevNotesRef.current;
-
-        // Find newly added or changed notes
-        activeNotes.forEach((data, note) => {
-            const { velocity } = data;
-            if (!prev.has(note)) {
-                // Note On
-                if (Tone.getContext().state === 'running') {
-                    // Normalize velocity (0-127) to (0-1)
-                    const vel = velocity / 127;
-                    if (drumKitRef.current) {
-                        // Drums are one-shots, so there is no frequency and
-                        // nothing to release. The pad map says which voice
-                        // this controller's note is (read at the hit, so an
-                        // edit in the pad map editor is heard at once).
-                        const voice = voiceForInput(getDrumMap(), note);
-                        if (voice) drumKitRef.current.play(voice, vel);
-                    } else {
-                        const freq = Tone.Frequency(note, "midi").toFrequency();
-                        samplerRef.current?.triggerAttack(freq, Tone.now(), vel);
-                    }
-                }
+    // The player's own notes, as they arrive: one call per note-on and
+    // note-off, so a pad struck again the moment it was released still
+    // sounds, and the app is not re-rendered for every key.
+    useMidiNotes({
+        onNoteOn: hit => {
+            if (!isLoaded || Tone.getContext().state !== 'running') return;
+            const vel = hit.velocity / 127;
+            if (drumKitRef.current) {
+                // Drums are one-shots, so there is no frequency and nothing
+                // to release. The pad map says which voice this controller's
+                // note is (read at the hit, so an edit in the pad map editor
+                // is heard at once).
+                const voice = voiceForInput(getDrumMap(), hit.note);
+                if (voice) drumKitRef.current.play(voice, vel);
+            } else {
+                samplerRef.current?.triggerAttack(Tone.Frequency(hit.note, 'midi').toFrequency(), Tone.now(), vel);
             }
-        });
-
-        // Find removed notes
-        if (!drumKitRef.current) {
-            prev.forEach((_, note) => {
-                if (!activeNotes.has(note)) {
-                    // Note Off
-                    const freq = Tone.Frequency(note, "midi").toFrequency();
-                    samplerRef.current?.triggerRelease(freq);
-                }
-            });
-        }
-
-        prevNotesRef.current = new Map(activeNotes);
-    }, [activeNotes, isLoaded]);
+        },
+        onNoteOff: note => {
+            if (drumKitRef.current) return;
+            samplerRef.current?.triggerRelease(Tone.Frequency(note, 'midi').toFrequency());
+        },
+    });
 
     // A getter rather than the instrument itself: read at play time it is
     // always the live one, even after the engine has been rebuilt (a value

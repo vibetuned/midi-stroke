@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Tone from 'tone';
 import { useGame } from '../context/game';
-import { useMidi } from '../hooks/useMidi';
+import { useMidiNotes } from '../hooks/useMidi';
 import { EarTrainingContext, type EarTrainingValue } from '../context/earTraining';
 import {
     callTimemap, earReducer, extractMelody, initialEarState, stavesWithNotes,
@@ -27,7 +27,6 @@ export const EarTrainingProvider: React.FC<{ children: React.ReactNode }> = ({ c
     // A saxo controller sends one octave below the written staff the score is
     // in, exactly as in the other modes (hooks/useGameLogic.ts).
     const inputOffset = instrument === 'saxo' ? SAXO_INPUT_TRANSPOSE_SEMITONES : 0;
-    const { lastNote } = useMidi();
 
     const active = gameMode === 'ear' && !!timemap;
     const staff: EarStaff = handSelection === 'left' ? 2 : 1;
@@ -100,21 +99,13 @@ export const EarTrainingProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return () => clearTimeout(t);
     }, [state.phase, state.k, send]);
 
-    // The student's turn: only keys struck after the call finished count.
-    const turnStartedAt = useRef(0);
-    const lastSeen = useRef(0);
-    useEffect(() => {
-        if (state.phase === 'response') turnStartedAt.current = performance.now();
-    }, [state.phase, state.callId]);
-    useEffect(() => {
-        if (!lastNote || lastNote.timestamp <= lastSeen.current) return;
-        lastSeen.current = lastNote.timestamp;
-        if (state.phase !== 'response' || lastNote.timestamp < turnStartedAt.current) return;
-        // useMidi hands key presses over as state rather than as an event to
-        // subscribe to, so reacting to one has to happen in an effect.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        send({ type: 'note', midi: lastNote.note + inputOffset });
-    }, [lastNote, state.phase, send, inputOffset]);
+    // The student's turn: every key is judged as it is struck, however fast
+    // they come. Keys struck during the call are not the student's turn.
+    useMidiNotes({
+        onNoteOn: hit => {
+            if (active && state.phase === 'response') send({ type: 'note', midi: hit.note + inputOffset });
+        },
+    });
 
     // A wrong note: a short, clearly unmusical buzz, distinct from the piece.
     const cueRef = useRef<Tone.PolySynth | null>(null);

@@ -89,14 +89,22 @@ the way. Install channels and downloads:
   (any generated one with more than a bar) drew bar 2 onwards in the wrong place.
 - The theory app reads the instrument when it plays a note instead of keeping the one from its
   last render, which would have gone silent had the audio engine been rebuilt.
-- Lint is down from 18 problems to 2. `context/GameContext.tsx` and `context/StatsContext.tsx` now
-  export only their providers, which Vite's hot reload needs, and `useGame()`/`useStats()` moved to
-  [context/game.ts](src/context/game.ts) and [context/stats.ts](src/context/stats.ts). The
-  playback-loop hooks moved to [hooks/useMidiFile.ts](src/hooks/useMidiFile.ts), and Verovio's type
-  declarations have real types instead of `any`. Two remain: the calibration and practice scoring
-  set state when a MIDI key arrives, because `useMidi` hands key presses over as state. That wants
-  a shared MIDI store with a note subscription, which also stops the ten `useMidi()` callers each
-  opening their own MIDI connection.
+- **Fast playing no longer loses notes.** MIDI input used to reach each part of the app as React
+  state, and React merges state updates made in the same frame. So two note-ons in quick
+  succession arrived as one: a chord, a fast run, or a By ear phrase played at speed. Against the
+  previous build, two By ear notes sent together were judged as a single wrong note. A pad struck
+  again the moment it was released made no sound either. There is now one MIDI connection for the
+  app instead of one per consumer (ten). Every key reaches scoring, practice, By ear, calibration,
+  the pad-map editor, theory input and the instrument sound as its own event
+  ([utils/midiInput.ts](src/utils/midiInput.ts), `useMidiNotes` in
+  [hooks/useMidi.ts](src/hooks/useMidi.ts)). The app no longer re-renders from the top for each
+  key.
+- Playback before the piano samples have arrived is silent instead of throwing inside its timer.
+- **Lint is clean** (it was at 18 problems). `context/GameContext.tsx` and `context/StatsContext.tsx`
+  now export only their providers, which Vite's hot reload needs. `useGame()` and `useStats()`
+  moved to [context/game.ts](src/context/game.ts) and [context/stats.ts](src/context/stats.ts), and
+  the playback-loop hooks moved to [hooks/useMidiFile.ts](src/hooks/useMidiFile.ts). Verovio's type
+  declarations have real types instead of `any`.
 
 ### Playback moves to the header
 

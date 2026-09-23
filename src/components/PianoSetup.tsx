@@ -1,42 +1,41 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useGame } from '../context/game';
-import { useMidi } from '../hooks/useMidi';
+import { useMidiNotes } from '../hooks/useMidi';
+import { getMidiState } from '../utils/midiInput';
 
 export const PianoSetup: React.FC = () => {
     const { pianoRange, setPianoRange } = useGame();
-    const { activeNotes } = useMidi();
     const [step, setStep] = useState<'intro' | 'low' | 'wait_low' | 'high' | 'wait_high' | 'done'>('intro');
     const [tempLow, setTempLow] = useState<number | null>(null);
     const [tempHigh, setTempHigh] = useState<number | null>(null);
 
-    // Audio Context Resume on Interaction (Just in case, usually handled by start overlay)
-    useEffect(() => {
-        //console.log(`[PianoSetup] Step: ${step}, Active Notes: ${Array.from(activeNotes.keys()).join(', ')}`);
-
-        if (!pianoRange) {
-            // Check for key press
-            const pressedNote = activeNotes.size > 0 ? activeNotes.keys().next().value : null;
-
-            if (step === 'low' && pressedNote !== null && pressedNote !== undefined) {
-                setTempLow(pressedNote);
+    // Calibration: press the lowest key, let go, press the highest, let go.
+    // Each step moves on at a key event, so the next step never sees the key
+    // that finished the last one.
+    useMidiNotes({
+        onNoteOn: hit => {
+            if (pianoRange) return;
+            if (step === 'low') {
+                setTempLow(hit.note);
                 setStep('wait_low');
-            }
-            else if (step === 'wait_low' && activeNotes.size === 0) {
-                setStep('high');
-            }
-            else if (step === 'high' && pressedNote !== null && pressedNote !== undefined) {
-                setTempHigh(pressedNote);
+            } else if (step === 'high') {
+                setTempHigh(hit.note);
                 setStep('wait_high');
             }
-            else if (step === 'wait_high' && activeNotes.size === 0 && tempLow !== null && tempHigh !== null) {
+        },
+        onNoteOff: () => {
+            if (pianoRange || getMidiState().activeNotes.size > 0) return;
+            if (step === 'wait_low') {
+                setStep('high');
+            } else if (step === 'wait_high' && tempLow !== null && tempHigh !== null) {
                 const min = Math.min(tempLow, tempHigh);
                 const max = Math.max(tempLow, tempHigh);
                 console.log("Setup Done. Range:", min, max);
                 setPianoRange({ min, max });
                 setStep('done');
             }
-        }
-    }, [activeNotes, step, tempLow, tempHigh, pianoRange, setPianoRange]);
+        },
+    });
 
     // If already set up, don't show
     if (pianoRange) return null;
