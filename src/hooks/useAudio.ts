@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Tone from 'tone';
 import { useMidi } from './useMidi';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../context/game';
 import { createDrumKit, padForScoreNote, type DrumKit } from '../utils/drumKit';
 import { getDrumMap, voiceForInput } from '../utils/drumMap';
 import { registerPlaybackVoice, schedulePlayback } from '../utils/playback';
@@ -17,7 +17,10 @@ export function useAudio() {
     const metronomeRef = useRef<Tone.MembraneSynth | null>(null);
     const { activeNotes } = useMidi();
     const { isAudioStarted, isMetronomeMuted, gameMode, instrument, timemap, playbackTarget } = useGame();
-    const [isLoaded, setIsLoaded] = useState(false);
+    // Only the piano samples take time to arrive; the drum kit and the saxo
+    // synth are ready the moment the engine is built.
+    const [samplesLoaded, setSamplesLoaded] = useState(false);
+    const isLoaded = isAudioStarted && (instrument === 'drums' || instrument === 'saxo' || samplesLoaded);
 
     // Master mute: silences the metronome AND the player-input instrument.
     // Mirrored in a ref so the (re)init effect can apply the current state
@@ -37,7 +40,6 @@ export function useAudio() {
             const kit = createDrumKit();
             kit.volume.value = mutedRef.current ? -100 : 0;
             drumKitRef.current = kit;
-            setIsLoaded(true);
         } else if (instrument === 'saxo') {
             // Reed-ish tone: sawtooth through a lowpass + gentle vibrato.
             const filter = new Tone.Filter({ type: 'lowpass', frequency: 2600, Q: 0.7 }).toDestination();
@@ -49,7 +51,6 @@ export function useAudio() {
             }).connect(vibrato);
             samplerRef.current = synth;
             extraNodesRef.current = [vibrato, filter];
-            setIsLoaded(true);
         } else {
         const sampler = new Tone.Sampler({
             urls: {
@@ -89,7 +90,7 @@ export function useAudio() {
             baseUrl: "https://tonejs.github.io/audio/salamander/",
             onload: () => {
                 console.log("Sampler loaded");
-                setIsLoaded(true);
+                setSamplesLoaded(true);
             }
         }).toDestination();
 
@@ -228,8 +229,13 @@ export function useAudio() {
         prevNotesRef.current = new Map(activeNotes);
     }, [activeNotes, isLoaded]);
 
+    // A getter rather than the instrument itself: read at play time it is
+    // always the live one, even after the engine has been rebuilt (a value
+    // handed out during render would be the one from that render).
+    const getSampler = useCallback(() => samplerRef.current, []);
+
     return {
-        sampler: samplerRef.current,
+        getSampler,
         isLoaded
     };
 }

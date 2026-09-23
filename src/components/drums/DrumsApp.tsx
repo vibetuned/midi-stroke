@@ -5,7 +5,8 @@ import { DrumsScoreView } from './DrumsScoreView';
 import { VirtualDrums } from './VirtualDrums';
 import { MidiStatus } from '../MidiStatus';
 import { PlayControls } from '../PlayControls';
-import { useDrumsMidiFile, useGame } from '../../context/GameContext';
+import { useGame } from '../../context/game';
+import { useDrumsMidiFile } from '../../hooks/useMidiFile';
 import { useAudio } from '../../hooks/useAudio';
 import { useGameLogic } from '../../hooks/useGameLogic';
 import { StartOverlay } from '../StartOverlay';
@@ -13,7 +14,7 @@ import { SongSelector } from '../SongSelector';
 import { LiveStats } from '../LiveStats';
 import { StatsPanel } from '../StatsPanel';
 import { SongNavigator } from '../SongNavigator';
-import { useStats } from '../../context/StatsContext';
+import { useStats } from '../../context/stats';
 
 interface DrumsAppProps {
     onBack: () => void;

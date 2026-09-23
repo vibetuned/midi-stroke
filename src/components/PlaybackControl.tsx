@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../context/game';
 import { useVerovio } from '../hooks/useVerovio';
 import { extractTimemap } from '../utils/timemap';
 import { listMidiOutputs } from '../utils/midiOut';

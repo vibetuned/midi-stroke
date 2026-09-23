@@ -33,7 +33,7 @@ interface Selection {
  * circle of fifths, or a MIDI keyboard.
  */
 export const TheoryApp: React.FC<TheoryAppProps> = ({ onBack }) => {
-    const { sampler } = useAudio();
+    const { getSampler } = useAudio();
     const { toolkit } = useVerovio();
 
     const [manifest, setManifest] = useState<CoursesManifest | null>(null);
@@ -186,7 +186,7 @@ export const TheoryApp: React.FC<TheoryAppProps> = ({ onBack }) => {
                         module={selection.module}
                         exercise={selection.exercise}
                         toolkit={toolkit}
-                        sampler={sampler}
+                        getSampler={getSampler}
                         inputEnabled={!overlaysOpen}
                         onCompleted={handleCompleted}
                     />
@@ -203,13 +203,14 @@ interface ExercisePanelProps {
     module: CourseModule;
     exercise: CourseExercise;
     toolkit: VerovioToolkit | null;
-    sampler: Tone.Sampler | Tone.PolySynth | null;
+    /** The instrument, read when a note is played (hooks/useAudio.ts). */
+    getSampler: () => Tone.Sampler | Tone.PolySynth | null;
     inputEnabled: boolean;
     onCompleted: (exerciseId: string) => void;
 }
 
 const ExercisePanel: React.FC<ExercisePanelProps> = ({
-    course, module, exercise, toolkit, sampler, inputEnabled, onCompleted,
+    course, module, exercise, toolkit, getSampler, inputEnabled, onCompleted,
 }) => {
     const ex = useTheoryExercise(toolkit, course, module, exercise, onCompleted);
     const { noteInput, getPlaybackEvents } = ex;
@@ -225,11 +226,12 @@ const ExercisePanel: React.FC<ExercisePanelProps> = ({
     }, [lastNote, inputEnabled, noteInput]);
 
     const playNote = useCallback((midi: number) => {
+        const sampler = getSampler();
         if (!sampler) return;
         try {
             sampler.triggerAttackRelease(Tone.Frequency(midi, 'midi').toFrequency(), '8n', Tone.now(), 0.8);
         } catch { /* sampler still loading */ }
-    }, [sampler]);
+    }, [getSampler]);
 
     // Clicked input (virtual piano / circle of fifths): sound + entry
     const handleInstrumentInput = useCallback((midi: number) => {
@@ -241,6 +243,7 @@ const ExercisePanel: React.FC<ExercisePanelProps> = ({
     // ear-training clue). Chords are scheduled at their real onsets so both
     // staves sound together.
     const handleListen = useCallback((source: 'current' | 'answer') => {
+        const sampler = getSampler();
         if (!sampler) return;
         const SECONDS_PER_QUARTER = 0.55;
         const start = Tone.now() + 0.05;
@@ -254,7 +257,7 @@ const ExercisePanel: React.FC<ExercisePanelProps> = ({
                 } catch { /* ignore scheduling errors */ }
             });
         });
-    }, [sampler, getPlaybackEvents]);
+    }, [getSampler, getPlaybackEvents]);
 
     const correctCount = ex.statuses
         ? [...ex.statuses.values()].filter(s => s === 'correct').length

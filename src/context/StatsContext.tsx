@@ -1,54 +1,9 @@
-import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-
-// ── Data model ────────────────────────────────────────────────────────────────
-
-export interface ModeStats {
-    plays: number;
-    hits: number;     // rhythm: note hit within tolerance
-    wrongs: number;   // both modes: wrong/out-of-time note played
-    goods: number;    // practice: note-group cleared correctly
-    maxCombo: number; // highest combo streak recorded across all sessions
-    scoreAccum: number; // sum of per-session (correct/totalNotes) ratios for precision avg
-}
+import React, { useState, useCallback, type ReactNode } from 'react';
+import { StatsContext, type ModeStats, type SessionStats, type SongRecord } from './stats';
 
 const emptyMode = (): ModeStats => ({ plays: 0, hits: 0, wrongs: 0, goods: 0, maxCombo: 0, scoreAccum: 0 });
 
-export interface SongRecord {
-    songName: string;
-    rhythm: ModeStats;
-    practice: ModeStats;
-}
-
-/** Current-session counters — reset whenever the active song changes or song finishes. */
-export interface SessionStats {
-    hits: number;
-    wrongs: number;
-    goods: number;
-    combo: number;
-    maxCombo: number; // highest combo reached this session
-    score: number;    // first-attempt correct notes only (used for n/total display)
-}
-
 type StatsStore = Record<string, SongRecord>; // key = songPath
-
-// ── Context interface ─────────────────────────────────────────────────────────
-
-interface StatsContextType {
-    // Recording (called from useGameLogic / app components)
-    recordHit: (songPath: string, songName: string, firstAttempt?: boolean) => void;
-    recordWrong: (songPath: string, songName: string, mode: 'rhythm' | 'practice') => void;
-    recordGood: (songPath: string, songName: string, firstAttempt?: boolean) => void;
-    recordPlay: (songPath: string, songName: string, mode: 'rhythm' | 'practice') => void;
-    /** Called when a song finishes naturally. Persists session maxCombo and precision. */
-    recordSessionEnd: (songPath: string, songName: string, mode: 'rhythm' | 'practice', precision: number, maxCombo: number) => void;
-    // Reading
-    getSongStats: (songPath: string) => SongRecord | null;
-    getAllStats: () => Array<{ songPath: string; record: SongRecord }>;
-    clearStats: (songPath?: string) => void;
-    // Session (transient, not persisted)
-    sessionStats: SessionStats;
-    resetSession: () => void;
-}
 
 // ── localStorage helpers ──────────────────────────────────────────────────────
 
@@ -72,8 +27,6 @@ function saveStore(store: StatsStore): void {
 }
 
 // ── Provider ──────────────────────────────────────────────────────────────────
-
-const StatsContext = createContext<StatsContextType | undefined>(undefined);
 
 const emptySession = (): SessionStats => ({ hits: 0, wrongs: 0, goods: 0, combo: 0, maxCombo: 0, score: 0 });
 
@@ -213,10 +166,4 @@ export const StatsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             {children}
         </StatsContext.Provider>
     );
-};
-
-export const useStats = (): StatsContextType => {
-    const ctx = useContext(StatsContext);
-    if (!ctx) throw new Error('useStats must be used within StatsProvider');
-    return ctx;
 };

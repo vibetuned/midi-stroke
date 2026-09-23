@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import * as PIXI from 'pixi.js';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../context/game';
 
 export interface LoopMarksLayout {
     /** Where the page sits in the scroll container. */

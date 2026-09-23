@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { useGame, isTrackActiveForHand } from '../context/GameContext';
-import { useStats } from '../context/StatsContext';
+import { useGame, isTrackActiveForHand } from '../context/game';
+import { useStats } from '../context/stats';
 import { useMidi } from './useMidi';
 import { useDrumMap } from './useDrumMap';
 import { inputAnswersPad, inputScorePitch } from '../utils/drumMap';
@@ -275,7 +275,7 @@ export function useGameLogic() {
         }
 
     }, [lastNote, activeNotes, timemap, playPosition, gameMode, waitingForNotes, resumePractice,
-        isPlaying, selectedSong, songName, instrument, activeHand, recordHit, recordWrong, recordGood, drumMap]);
+        isPlaying, selectedSong, songName, instrument, inputOffset, activeHand, recordHit, recordWrong, recordGood, drumMap]);
 
     // Reset the wronged-flag whenever a new note group arrives so each group
     // starts with a clean first-attempt slate.

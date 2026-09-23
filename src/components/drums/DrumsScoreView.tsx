@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import * as Tone from 'tone';
 import { useVerovio } from '../../hooks/useVerovio';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/game';
 import { loadSongText } from '../../utils/songUrl';
 import { extractTimemap, type TimemapData } from '../../utils/timemap';
 import { ensureCountInMeasure, ensureNoteIds } from '../../utils/mei';
@@ -297,6 +297,10 @@ export const DrumsScoreView: React.FC = () => {
                 setLoadingMsg('Error loading score');
             });
 
+        // processSvgToPixi is left out on purpose: it is redefined every
+        // render, and listing it would reload the score each time. It reads
+        // only refs and stable setters, so the first render's copy is right.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [toolkit, loadTimemap, selectedSong]);
 
     const processSvgToPixi = async (svgString: string, hiddenDiv: HTMLDivElement, timemapData: TimemapData) => {

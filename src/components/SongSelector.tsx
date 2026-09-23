@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useGame } from '../context/GameContext';
-import { useStats } from '../context/StatsContext';
+import { useGame } from '../context/game';
+import { useStats } from '../context/stats';
 import { buildSongUrl, catalogUrl, resolveSongUrl } from '../utils/songUrl';
 import { OPFS_PREFIX, isOpfsSupported, listOpfsSongs, importZipToOpfs, deleteOpfsCollection } from '../utils/opfs';
 import { ScaleBuilder } from './ScaleBuilder';

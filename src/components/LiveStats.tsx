@@ -1,6 +1,6 @@
 import React from 'react';
-import { useStats } from '../context/StatsContext';
-import { useGame } from '../context/GameContext';
+import { useStats } from '../context/stats';
+import { useGame } from '../context/game';
 
 /** Accuracy colour: green ≥80 %, yellow ≥60 %, red <60 % */
 function accColor(acc: number): string {

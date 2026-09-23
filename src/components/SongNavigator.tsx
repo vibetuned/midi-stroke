@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../context/game';
 import { buildSongUrl, catalogUrl } from '../utils/songUrl';
 import { listOpfsSongs } from '../utils/opfs';
 import { describeScaleUrl } from '../utils/scaleGen';

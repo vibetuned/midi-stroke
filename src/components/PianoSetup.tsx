@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../context/game';
 import { useMidi } from '../hooks/useMidi';
 
 export const PianoSetup: React.FC = () => {

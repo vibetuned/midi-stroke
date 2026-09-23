@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { TEMPO_MAX, TEMPO_MIN } from '../context/GameContext';
+import { TEMPO_MAX, TEMPO_MIN } from '../context/game';
 import type { TempoMap } from '../utils/tempo';
-import { useGame } from '../context/GameContext';
-import { useStats } from '../context/StatsContext';
+import { useGame } from '../context/game';
+import { useStats } from '../context/stats';
 import * as Tone from 'tone';
 import { LoopChip } from './LoopRangeSelector';
 

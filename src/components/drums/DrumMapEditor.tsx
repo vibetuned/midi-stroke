@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as Tone from 'tone';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/game';
 import { useMidi } from '../../hooks/useMidi';
 import { useDrumMap } from '../../hooks/useDrumMap';
 import {

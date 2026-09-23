@@ -82,6 +82,22 @@ the way. Install channels and downloads:
   checks can load them. `npm run check:pads` (43 checks) covers the default, a remapped kit,
   storage, and every drum in the 518 bundled charts (8,613 notes), all playable on a GM kit.
 
+### Fixes and upkeep
+
+- **The drum grid could misplace every bar after the first.** It stepped from bar to bar with the
+  bar length of the chart shown before, so after a 12/8 or 3/4 chart, a multi-bar 4/4 pattern
+  (any generated one with more than a bar) drew bar 2 onwards in the wrong place.
+- The theory app reads the instrument when it plays a note instead of keeping the one from its
+  last render, which would have gone silent had the audio engine been rebuilt.
+- Lint is down from 18 problems to 2. `context/GameContext.tsx` and `context/StatsContext.tsx` now
+  export only their providers, which Vite's hot reload needs, and `useGame()`/`useStats()` moved to
+  [context/game.ts](src/context/game.ts) and [context/stats.ts](src/context/stats.ts). The
+  playback-loop hooks moved to [hooks/useMidiFile.ts](src/hooks/useMidiFile.ts), and Verovio's type
+  declarations have real types instead of `any`. Two remain: the calibration and practice scoring
+  set state when a MIDI key arrives, because `useMidi` hands key presses over as state. That wants
+  a shared MIDI store with a note subscription, which also stops the ten `useMidi()` callers each
+  opening their own MIDI connection.
+
 ### Playback moves to the header
 
 - **The transport's playback selector is now a 🎧 button beside the stats**, opening a panel that

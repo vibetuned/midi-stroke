@@ -6,7 +6,8 @@ import { PianoScoreView } from './PianoScoreView';
 import { VirtualPiano } from './VirtualPiano';
 import { MidiStatus } from '../MidiStatus';
 import { PlayControls } from '../PlayControls';
-import { useMidiFile, useGame } from '../../context/GameContext';
+import { useGame } from '../../context/game';
+import { useMidiFile } from '../../hooks/useMidiFile';
 import { useAudio } from '../../hooks/useAudio';
 import { StartOverlay } from '../StartOverlay';
 import { PianoSetup } from '../PianoSetup';
@@ -14,7 +15,7 @@ import { SongSelector } from '../SongSelector';
 import { LiveStats } from '../LiveStats';
 import { StatsPanel } from '../StatsPanel';
 import { SongNavigator } from '../SongNavigator';
-import { useStats } from '../../context/StatsContext';
+import { useStats } from '../../context/stats';
 
 interface PianoAppProps {
     onBack: () => void;

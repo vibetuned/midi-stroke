@@ -1,5 +1,7 @@
 declare module 'verovio/wasm' {
-    const createVerovioModule: () => Promise<any>;
+    /** The compiled Verovio module, handed straight to the toolkit. */
+    export type VerovioModule = object;
+    const createVerovioModule: () => Promise<VerovioModule>;
     export default createVerovioModule;
 }
 
@@ -18,11 +20,14 @@ declare module 'verovio/esm' {
         measureOn?: string;
     }
 
+    /** Verovio's options (verovio.org/docs): names and values as it takes them. */
+    export type VerovioOptions = Record<string, string | number | boolean>;
+
     export class VerovioToolkit {
-        constructor(module: any);
-        setOptions(options: any): void;
+        constructor(module: import('verovio/wasm').VerovioModule);
+        setOptions(options: VerovioOptions): void;
         loadData(data: string): void;
-        renderToSVG(page: number, options: any): string;
+        renderToSVG(page: number, options?: VerovioOptions): string;
         renderToTimemap(options?: { includeMeasures?: boolean; includeRests?: boolean }): TimemapEvent[];
         getMIDIValuesForElement(xmlId: string): { time: number; pitch: number; duration: number };
         // add other methods as needed

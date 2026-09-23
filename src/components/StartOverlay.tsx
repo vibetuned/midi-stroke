@@ -1,6 +1,6 @@
 import React from 'react';
 import * as Tone from 'tone';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../context/game';
 
 export const StartOverlay: React.FC = () => {
     const { isAudioStarted, setAudioStarted } = useGame();

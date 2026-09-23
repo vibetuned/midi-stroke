@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../context/game';
 import { barBoundaries, barSpanLabel, dragRangeEnd } from '../utils/loopRange';
 
 /**

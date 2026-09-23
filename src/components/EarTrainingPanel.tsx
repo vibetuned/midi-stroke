@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { useEarTraining } from '../context/earTraining';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../context/game';
 import { barBoundaries, barSpanLabel } from '../utils/loopRange';
 import { pitchAccuracy, type EarStats } from '../utils/earTraining';
 

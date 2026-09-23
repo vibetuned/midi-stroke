@@ -1,6 +1,6 @@
 import React, { memo, useMemo, useEffect, useRef } from 'react';
 import { useEarTraining } from '../../context/earTraining';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/game';
 import { useGameLogic } from '../../hooks/useGameLogic';
 import { useMidi } from '../../hooks/useMidi';
 import { scaleUrlPitchClasses, parseScaleUrl, type ScaleMode } from '../../utils/scaleGen';

@@ -6,14 +6,15 @@ import { SaxoScoreView } from './SaxoScoreView';
 import { VirtualSaxo } from './VirtualSaxo';
 import { MidiStatus } from '../MidiStatus';
 import { PlayControls } from '../PlayControls';
-import { useMidiFile, useGame } from '../../context/GameContext';
+import { useGame } from '../../context/game';
+import { useMidiFile } from '../../hooks/useMidiFile';
 import { useAudio } from '../../hooks/useAudio';
 import { StartOverlay } from '../StartOverlay';
 import { SongSelector } from '../SongSelector';
 import { LiveStats } from '../LiveStats';
 import { StatsPanel } from '../StatsPanel';
 import { SongNavigator } from '../SongNavigator';
-import { useStats } from '../../context/StatsContext';
+import { useStats } from '../../context/stats';
 
 interface SaxoAppProps {
     onBack: () => void;

@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState } from 'react';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/game';
 import { resolveSongUrl } from '../../utils/songUrl';
 
 interface DrumMapItem {
@@ -104,7 +104,7 @@ export const VirtualDrums: React.FC = () => {
                 const is12_8_feel = (meterCount === 12 && meterUnit === 8) || (meterCount === 4 && meterUnit === 4 && hasTuplets);
 
                 let ticksPerColumn = TICKS_PER_QUARTER / 4; // Default to 16th note columns
-                let measureLengthQuarters = meterCount * (4 / meterUnit);
+                const measureLengthQuarters = meterCount * (4 / meterUnit);
                 let columns = 16;
                 let ticksPerMeasure = measureLengthQuarters * TICKS_PER_QUARTER;
 
@@ -205,7 +205,9 @@ export const VirtualDrums: React.FC = () => {
                             processNode(child);
                         }
                     }
-                    globalTick += gridConfig.ticksPerMeasure;
+                    // This chart's bar length — the state still holds the
+                    // previous chart's until the next render.
+                    globalTick += ticksPerMeasure;
                 }
                 setMeiNotes(notes);
             })

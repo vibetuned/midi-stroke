@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useStats, type ModeStats } from '../context/StatsContext';
+import { useStats, type ModeStats } from '../context/stats';
 
 interface StatsPanelProps {
     onClose: () => void;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { VerovioToolkit } from 'verovio/esm';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/game';
 import { type Course, type CourseModule, type CourseExercise, exerciseFileUrl } from '../../utils/course';
 import {
     parseExercise, buildRenderXml, checkEntries, slotRemaining, playbackEvents,

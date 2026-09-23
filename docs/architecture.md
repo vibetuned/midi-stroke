@@ -66,8 +66,10 @@ main.tsx → App.tsx
 
 ## 4. State — `GameContext`
 
-[src/context/GameContext.tsx](../src/context/GameContext.tsx) exposes `useGame()`. The most
-relevant fields:
+[src/context/GameContext.tsx](../src/context/GameContext.tsx) holds the state (`GameProvider`),
+and [src/context/game.ts](../src/context/game.ts) is how the rest of the app sees it: `useGame()`,
+the `GameState` type, `GameMode`, `HandSelection` and the tempo limits. They are kept apart so the
+`.tsx` file exports only a component, which Vite's hot reload needs. The most relevant fields:
 
 | Field | Type | Purpose |
 |---|---|---|
@@ -101,7 +103,8 @@ There are two tick resolutions and a fixed offset you must keep straight:
 
 ### The playback hooks
 
-`GameContext` also exports **one playback-loop hook per instrument**, each called by its app:
+[src/hooks/useMidiFile.ts](../src/hooks/useMidiFile.ts) holds **one playback-loop hook per
+instrument**, each called by its app:
 
 - `useMidiFile()` — piano. 50 ms poll; **filters notes by `handSelection`**
   (`isTrackActiveForHand(trackIndex, hand)`, where track 0 = right/treble, track 1 = left/bass);
@@ -266,7 +269,8 @@ view is simpler — the whole pattern is centred and only the cursor sweeps.
 
 ## 8. Stats & theming
 
-- **Stats** — [StatsContext.tsx](../src/context/StatsContext.tsx), `useStats()`. Per-song,
+- **Stats** — [StatsContext.tsx](../src/context/StatsContext.tsx) (the provider) and
+  [stats.ts](../src/context/stats.ts) (`useStats()` and the data model). Per-song,
   per-mode (`rhythm`/`practice`) counts in `localStorage` (`midi-stroke-stats`). The app records
   `recordPlay` / `recordSessionEnd` on completion and resets `sessionStats` on song change. This is
   instrument-agnostic — a new instrument inherits it for free.

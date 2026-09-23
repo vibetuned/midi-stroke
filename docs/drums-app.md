@@ -51,10 +51,13 @@ Root div uses `className="app-container theme-drums"` (red accent). Hooks:
 Drum notation encodes each instrument as a *pitch + notehead shape* on the percussion staff (e.g.
 bass drum = `f4`, snare = `c5`, closed hi-hat = `g5` with an `x` head). Two maps bridge notation
 and pads:
-- `MEI_TO_PAD` ([GameContext.tsx](../src/context/GameContext.tsx)) — notation MIDI → standard
-  GM drum-pad MIDI, used by `useDrumsMidiFile()` so playback matches a real drum controller.
-- `MIDI_PAD_MAP` ([useMidi.ts](../src/hooks/useMidi.ts)) — the inverse, used by `useGameLogic()`
-  to match an incoming pad hit back to the notated instrument.
+- `padForScoreNote` / `MEI_TO_PAD` ([drumPads.ts](../src/utils/drumPads.ts)): notation MIDI (and
+  notehead) → the General MIDI pad. `useDrumsMidiFile()` uses it for the practice pauses, and
+  playback uses it so the score sounds on the right voices.
+- The pad map ([drumMap.ts](../src/utils/drumMap.ts)) goes the other way: controller note → kit voice
+  → where that voice is notated. It is what `useGameLogic()` matches an incoming hit through, and
+  what the live kit sounds. It starts as General MIDI and is edited in the 🥁 panel
+  ([DrumMapEditor.tsx](../src/components/drums/DrumMapEditor.tsx)).
 
 ---
 

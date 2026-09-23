@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../context/game';
 import { listMidiOutputs } from '../utils/midiOut';
 
 /**
