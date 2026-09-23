@@ -75,7 +75,8 @@ the first note.
 
 ## Hearing the score
 
-Next to the transport is a **playback** selector with three kinds of setting:
+The **🎧** button in the header, beside the 📊 stats, opens the playback panel
+with three choices. The button lights up whenever the score is being played:
 
 - **Playback off** — the score stays silent and only your own playing sounds, which is how the
   trainer has always worked.

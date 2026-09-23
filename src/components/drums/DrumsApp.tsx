@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { PlaybackButton } from '../PlaybackPanel';
 import { DrumsScoreView } from './DrumsScoreView';
 import { VirtualDrums } from './VirtualDrums';
 import { MidiStatus } from '../MidiStatus';
@@ -104,6 +105,7 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
                         </>
                     )}
                     {/* Stats history button — to the right of Change Song */}
+                    <PlaybackButton />
                     <button
                         onClick={() => setShowStats(true)}
                         title="Song statistics"

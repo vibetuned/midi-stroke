@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { TEMPO_MAX, TEMPO_MIN } from '../context/GameContext';
 import type { TempoMap } from '../utils/tempo';
-import { TransportPlayback } from './PlaybackControl';
 import { useGame } from '../context/GameContext';
 import { useStats } from '../context/StatsContext';
 import * as Tone from 'tone';
@@ -259,8 +258,6 @@ export const PlayControls: React.FC = () => {
             >
                 {isMetronomeMuted ? '🔇' : '🔊'}
             </button>
-
-            <TransportPlayback />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '240px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>

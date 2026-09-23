@@ -8,6 +8,18 @@ the way. Install channels and downloads:
 
 ## Unreleased
 
+### Playback moves to the header
+
+- **The transport's playback selector is now a 🎧 button beside the stats**, opening a panel that
+  lays the three choices out as cards — off, play in sound, send to MIDI — with what each one does,
+  instead of a select squeezed into the transport. The MIDI card lists the output ports to pick
+  from, says so plainly when there are none, and keeps showing a remembered port that is not
+  plugged in, marked *not connected*, so it is clear why nothing sounds
+  ([src/components/PlaybackPanel.tsx](src/components/PlaybackPanel.tsx)).
+- The button lights up whenever the score is being played, and its tooltip names where.
+- The exercise builders keep their compact selector beside ▶ Listen; both set the same remembered
+  choice.
+
 ### The score's own tempo
 
 - **A score that states its tempo now opens at it.** Every piece used to play at whatever the

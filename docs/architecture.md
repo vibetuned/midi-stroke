@@ -194,8 +194,10 @@ disagree.
   `padForScoreNote()` — the notehead is what separates a snare from a rim shot, which is why the
   timemap carries `head`.
 
-The target (`off` / `audio` / a port name) lives in `GameContext` and is remembered, so the
-transport and every builder share one setting.
+The target (`off` / `audio` / a port name) lives in `GameContext` and is remembered. It is set
+from two places sharing that one value: the 🎧 panel beside the stats button in each app's header
+([PlaybackPanel.tsx](../src/components/PlaybackPanel.tsx)), which spells the three choices out and
+lists the MIDI ports, and the compact selector beside each exercise builder's ▶ Listen.
 
 ---
 

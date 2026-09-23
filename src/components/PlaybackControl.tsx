@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { useVerovio } from '../hooks/useVerovio';
 import { extractTimemap } from '../utils/timemap';
@@ -6,9 +6,9 @@ import { listMidiOutputs } from '../utils/midiOut';
 import { hasPlaybackVoice, playTimemap, type PlaybackHandle } from '../utils/playback';
 
 /**
- * Where playback goes: silent, the app's own instrument, or a MIDI output.
- * One control, shared by the transport and by every exercise builder, backed
- * by one remembered setting — pick your synth once.
+ * Where playback goes: silent, the app's own instrument, or a MIDI output — the
+ * compact form, for the exercise builders. The transport's version is the 🎧
+ * panel in the header (PlaybackPanel.tsx); both share one remembered setting.
  */
 export const PlaybackTargetSelect: React.FC<{ compact?: boolean }> = ({ compact }) => {
     const { playbackTarget, setPlaybackTarget } = useGame();
@@ -109,21 +109,5 @@ export const AuditionButton: React.FC<{
         >
             {playing ? '⏹ Stop' : '▶ Listen'}
         </button>
-    );
-};
-
-/** The transport's playback control: the target, plus what it will do. */
-export const TransportPlayback: React.FC = () => {
-    const { playbackTarget } = useGame();
-    const label = useMemo(() => {
-        if (playbackTarget === 'off') return 'the score stays silent';
-        if (playbackTarget === 'audio') return 'the score plays as you scroll';
-        return `sending to ${playbackTarget}`;
-    }, [playbackTarget]);
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', alignItems: 'flex-start' }}>
-            <PlaybackTargetSelect compact />
-            <span style={{ fontSize: '0.62rem', color: 'var(--color-text-secondary, #8a8a98)' }}>{label}</span>
-        </div>
     );
 };

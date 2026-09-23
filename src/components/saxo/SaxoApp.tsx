@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { PlaybackButton } from '../PlaybackPanel';
 import { SaxoScoreView } from './SaxoScoreView';
 import { VirtualSaxo } from './VirtualSaxo';
 import { MidiStatus } from '../MidiStatus';
@@ -104,6 +105,7 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
                             <SongNavigator onChangeRequest={handleChangeSong} />
                         </>
                     )}
+                    <PlaybackButton />
                     <button
                         onClick={() => setShowStats(true)}
                         title="Song statistics"

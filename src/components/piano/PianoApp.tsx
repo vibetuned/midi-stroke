@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { PlaybackButton } from '../PlaybackPanel';
 import { PianoScoreView } from './PianoScoreView';
 import { VirtualPiano } from './VirtualPiano';
 import { MidiStatus } from '../MidiStatus';
@@ -104,6 +105,7 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
                         </>
                     )}
                     {/* Stats history button — to the right of Change Song */}
+                    <PlaybackButton />
                     <button
                         onClick={() => setShowStats(true)}
                         title="Song statistics"
