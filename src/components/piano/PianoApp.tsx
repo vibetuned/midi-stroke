@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { EarTrainingProvider } from '../EarTrainingProvider';
+import { EarTrainingPanel } from '../EarTrainingPanel';
 import { PlaybackButton } from '../PlaybackPanel';
 import { PianoScoreView } from './PianoScoreView';
 import { VirtualPiano } from './VirtualPiano';
@@ -58,6 +60,7 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
     }, [songCompleted]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
+        <EarTrainingProvider>
         <div className="app-container">
             <StartOverlay />
             <PianoSetup />
@@ -100,7 +103,7 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     {selectedSong && (
                         <>
-                            <LiveStats />
+                            {gameMode !== 'ear' && <LiveStats />}
                             <SongNavigator onChangeRequest={handleChangeSong} />
                         </>
                     )}
@@ -134,7 +137,9 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
                 <PianoScoreView />
             </main>
             <VirtualPiano />
+            <EarTrainingPanel />
             <PlayControls />
         </div>
+        </EarTrainingProvider>
     );
 };

@@ -15,7 +15,8 @@
     "build:course-manifest": "node scripts/build-course-manifest.mjs",
     "check:jazz": "node scripts/check-jazz-scales.mjs",
     "check:drums": "node scripts/check-drum-patterns.mjs",
-    "check:tempo": "node scripts/check-tempo.mjs"
+    "check:tempo": "node scripts/check-tempo.mjs",
+    "check:ear": "node scripts/check-ear-training.mjs"
   },
   "dependencies": {
     "@types/d3": "^7.4.3",

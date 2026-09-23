@@ -51,3 +51,39 @@ export function ensureCountInMeasure(meiDoc: Document): boolean {
     firstMeasure.parentNode?.insertBefore(countIn, firstMeasure);
     return true;
 }
+
+/**
+ * Give every note an xml:id, so it can be matched to what Verovio renders.
+ *
+ * The timemap learns which staff a note is on (the hand it belongs to, the
+ * staff Learn by ear isolates) by looking its id up in the source MEI. A file
+ * whose notes carry no ids — hand-written, or from some converters — would
+ * otherwise have every note filed under staff 1: the left hand would vanish
+ * from hand selection, and the bass staff would have nothing to train on.
+ * Verovio keeps ids it is given, so the ones assigned here survive into the
+ * rendered page and the timemap alike.
+ *
+ * DOM Level 2 only, like ensureCountInMeasure. Mutates the document; returns
+ * true when any id was added.
+ */
+export function ensureNoteIds(meiDoc: Document): boolean {
+    if (meiDoc.getElementsByTagName('parsererror').length > 0) return false;
+    const notes = meiDoc.getElementsByTagName('note');
+    const taken = new Set<string>();
+    for (let i = 0; i < notes.length; i++) {
+        const id = notes.item(i)?.getAttribute('xml:id');
+        if (id) taken.add(id);
+    }
+    let added = false;
+    let counter = 0;
+    for (let i = 0; i < notes.length; i++) {
+        const note = notes.item(i)!;
+        if (note.getAttribute('xml:id')) continue;
+        let id: string;
+        do { id = `ms-note-${++counter}`; } while (taken.has(id));
+        taken.add(id);
+        note.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:id', id);
+        added = true;
+    }
+    return added;
+}

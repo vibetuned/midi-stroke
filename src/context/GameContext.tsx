@@ -9,6 +9,8 @@ import type { PlaybackTarget } from '../utils/playback';
 /** Where playback sends notes; remembered across sessions. */
 const PLAYBACK_TARGET_KEY = 'midi-stroke-playback-target';
 
+export type GameMode = 'standard' | 'practice' | 'ear';
+
 /** Slider limits, wide enough for real scores (Bartók's Mikrokosmos marks 160). */
 export const TEMPO_MIN = 20;
 export const TEMPO_MAX = 240;
@@ -51,8 +53,9 @@ interface GameState {
      *  note onsets, durations, measure ticks and song length. */
     timemap: TimemapData | null;
     loadTimemap: (data: TimemapData) => void;
-    gameMode: 'standard' | 'practice';
-    setGameMode: (mode: 'standard' | 'practice') => void;
+    /** Rhythm (`standard`), Practice, or Learn by ear (`ear`, piano). */
+    gameMode: GameMode;
+    setGameMode: (mode: GameMode) => void;
     waitingForNotes: number[];
     setWaitingForNotes: (notes: number[]) => void;
     removeWaitingNote: (note: number) => void;
@@ -101,7 +104,7 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
     const [playSizeTicks, setPlaySizeTicks] = useState(0);
     const [playPosition, setPlayPosition] = useState(0);
     const [timemap, setTimemap] = useState<TimemapData | null>(null);
-    const [gameMode, setGameMode] = useState<'standard' | 'practice'>('standard');
+    const [gameMode, setGameMode] = useState<GameMode>('standard');
     const [waitingForNotes, setWaitingForNotesState] = useState<number[]>([]);
     const waitingForNotesRef = React.useRef<number[]>([]);
     const [selectedSong, setSelectedSong] = useState<string | null>(null);

@@ -158,6 +158,7 @@ A **train & practice course player**: each course module pairs lesson videos wit
 | [CHANGELOG.md](CHANGELOG.md) | What each release ships — features, install channels, and the platform behaviours probed along the way. |
 | [docs/architecture.md](docs/architecture.md) | The shared engine: routing, `GameContext`, hooks, the Verovio→Pixi score pipeline, tick model, assets, stats, theming — plus the checklist for adding a new instrument. |
 | [docs/piano-app.md](docs/piano-app.md) | The Piano app (reference implementation). |
+| [docs/learn-by-ear.md](docs/learn-by-ear.md) | The piano's By ear mode: additive call-and-response dictation, the veil, the assessment, and the decisions behind it. |
 | [docs/drums-app.md](docs/drums-app.md) | The Drums app and how it differs from Piano. |
 | [docs/drums-patterns.md](docs/drums-patterns.md) | The Drums pattern generator: the 16-step sequencer, the Euclidean/Bernoulli/LFSR/Markov/automata engines, pink-noise dynamics, and the percussion engraving. |
 | [docs/saxo-app.md](docs/saxo-app.md) | The Saxo app: design, offline score pipeline, transposition, fingering chart, TravelSax input. |
@@ -185,7 +186,7 @@ The application is built on a web stack trying to be optimized for low-latency a
   - **Finger Drums:** rhythmic, notation-pitch ↔ drum-pad mapping
   - **Saxophone:** monophonic wind-controller input with written-pitch transposition and breath (CC) capture
 * **Dynamic Notation Mapping:** Interactive sheet music that responds to MIDI input, providing instant visual confirmation of accuracy.
-* **Two Game Modes:** *Rhythm* (play along in time, scored with hit/miss windows) and *Practice* (playback waits for the correct note).
+* **Game Modes:** *Rhythm* (play along in time, scored with hit/miss windows), *Practice* (playback waits for the correct note), and on the piano *By ear* — hear a phrase, play it back from memory, and it grows by a note each time, with the score veiled until each note has been played.
 * **Bring Your Own Scores:** load a single MEI file, or **import a ZIP of MEI scores** as a permanent on-device collection (stored in the browser's OPFS, offline-capable, delete anytime). Scores need no special preparation — the one-beat count-in measure (`n="0"`) is injected automatically at load time if missing.
 
 ![Song picker with ZIP import](docs/screenshots/song-selector.png)
@@ -249,6 +250,7 @@ node scripts/build-keysig-assets.mjs  # re-engrave the circle-of-fifths key-sign
 npm run check:jazz               # validate the saxo jazz generator (range, engraving vs MIDI, bebop downbeats)
 npm run check:drums              # validate the drums pattern generator (hit counts, Euclidean references, engraving)
 npm run check:tempo              # validate reading a score's tempo (every MEI encoding, change positions, the slider maths)
+npm run check:ear                # validate Learn by ear against its acceptance criteria
 ```
 
 ### Local Network Access

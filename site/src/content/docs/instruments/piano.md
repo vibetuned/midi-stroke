@@ -52,6 +52,26 @@ exercise's key (root + scale). Two device notes:
   shows the device and the sends, but nothing reaches it). If the lights stay
   dark on a work machine, use an unmanaged browser or the desktop app.
 
+## Learn by ear
+
+The **By ear** mode, beside Rhythm and Practice, trains you to hear a melody and play it without
+reading it. It works on any piece: the instrument plays a phrase, you play it back from memory,
+and every time you get it right it grows by one note.
+
+- **Nothing gives the answer away.** The keyboard shows no targets, the ROLI lights stay dark, the
+  other staff and everything ahead of you show as empty bars, laid out like the real ones. A
+  note appears, properly engraved, only once you have played it.
+- **Pick the staff** you are learning: Treble keeps the top line of each chord, Bass the bottom one.
+- **Rhythm**: hear the phrase *as written*, at the score's tempo, or as *even pulses*, one note per
+  beat, so only the pitches are left to listen for.
+- **Octave**: *exact* register by default, or *any* octave of the right note for smaller keyboards.
+
+Keys pressed while the phrase is playing are ignored. A wrong note stops the response at once —
+so the wrong interval doesn't settle in — and shows how you are doing: pitch accuracy, how many
+notes you have retained by ear, and your longest streak. Then either **retry** the same phrase, with
+what you've learned still on the page, or **restart** from the first note with everything veiled.
+Play the whole melody in one go and the score is unveiled.
+
 ## Scale generator
 
 The song picker's **🎼 Scale generator** entry engraves technique exercises

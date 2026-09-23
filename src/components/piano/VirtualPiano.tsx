@@ -1,4 +1,5 @@
 import React, { memo, useMemo, useEffect, useRef } from 'react';
+import { useEarTraining } from '../../context/earTraining';
 import { useGame } from '../../context/GameContext';
 import { useGameLogic } from '../../hooks/useGameLogic';
 import { useMidi } from '../../hooks/useMidi';
@@ -18,6 +19,8 @@ import * as Tone from 'tone';
 // Pressed-but-not-expected keys light up in this red ("release me") — same
 // feature as the saxo fingering view, drums-theme red family.
 const WRONG_RED = '#f5576c';
+/** A key played right, by ear. */
+const EAR_RIGHT = '#4ade80';
 
 interface VirtualPianoProps {
     /** When set, keys become clickable and report their MIDI number (theory mode input). */
@@ -33,12 +36,17 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
     const { pianoRange, selectedSong } = useGame();
     const { activeNotes } = useMidi();
     const { expectedNotes } = useGameLogic();
+    // Learn by ear: no hints of any kind, and a pressed key says right or wrong.
+    const ear = useEarTraining();
+    const earOn = !!ear?.active;
+    const judged = earOn ? ear!.state.last : null;
 
     // For generated scale exercises, gray out the keys foreign to the key —
-    // a practice guide, not a lock: they stay playable. Null for normal songs.
+    // a practice guide, not a lock: they stay playable. Null for normal songs,
+    // and off by ear, where showing the key's notes would give the answer away.
     const scalePcs = useMemo(
-        () => (selectedSong ? scaleUrlPitchClasses(selectedSong) : null),
-        [selectedSong],
+        () => (selectedSong && !earOn ? scaleUrlPitchClasses(selectedSong) : null),
+        [selectedSong, earOn],
     );
 
     // ROLI light guide: mirror the expected notes onto the hardware keys via
@@ -60,17 +68,25 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
     // Scale exercises: paint the exercise's key onto the hardware (root +
     // scale), mirroring the grayed-out foreign keys on the virtual keyboard.
     useEffect(() => {
-        const spec = selectedSong ? parseScaleUrl(selectedSong) : null;
+        const spec = selectedSong && !earOn ? parseScaleUrl(selectedSong) : null;
         if (!spec) return;
         const pc = tonicPitchClass(spec.tonic);
         if (pc !== null) configureHardwareScale(pc, HARDWARE_SCALE[spec.mode]);
-    }, [selectedSong]);
+    }, [selectedSong, earOn]);
 
     if (!pianoRange) return null;
 
     // Only flag wrong presses while some note is actually expected, so free
     // play (nothing loaded / between note windows) doesn't flash red.
     const hasExpectation = expectedNotes.length > 0;
+
+    /** A pressed key's colour: by ear, the judgement of that key; otherwise
+     *  red for a key nothing expected, accent for the rest. */
+    const pressColor = (note: number, expected: boolean): string => {
+        if (judged && judged.midi === note) return judged.ok ? EAR_RIGHT : WRONG_RED;
+        if (!earOn && hasExpectation && !expected) return WRONG_RED;
+        return 'var(--color-accent)';
+    };
 
     const { min, max } = pianoRange;
     const keys: { note: number; isBlack: boolean; isActive: boolean; isExpected: boolean; inScale: boolean; glowColor: string; noteName: string }[] = [];
@@ -126,7 +142,7 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
                                 textAlign: 'center',
                                 fontSize: '8px',
                                 fontFamily: 'monospace',
-                                color: key.isActive ? (hasExpectation && !key.isExpected ? WRONG_RED : 'var(--color-accent)') : '#555',
+                                color: key.isActive ? pressColor(key.note, key.isExpected) : '#555',
                                 transition: 'color 0.05s ease',
                                 userSelect: 'none',
                                 letterSpacing: '-0.5px',
@@ -144,7 +160,7 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
                                     textAlign: 'center',
                                     fontSize: '7px',
                                     fontFamily: 'monospace',
-                                    color: blackActive ? (hasExpectation && blackKey && !blackKey.isExpected ? WRONG_RED : 'var(--color-accent)') : '#444',
+                                    color: blackActive ? pressColor(nextNote, !blackKey || blackKey.isExpected) : '#444',
                                     transition: 'color 0.05s ease',
                                     userSelect: 'none',
                                     zIndex: 11,
@@ -178,15 +194,13 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
                             blackGlowColor = blackHighlight;
                         }
 
-                        const whiteWrong = key.isActive && hasExpectation && !key.isExpected;
-                        const blackWrong = blackActive && hasExpectation && !blackExpected;
                         const blackInScale = keys.find(k => k.note === nextNote)?.inScale ?? true;
 
                         const whiteKeyStyle: React.CSSProperties = {
                             width: '24px',
                             height: '100%',
                             background: key.isActive
-                                ? (whiteWrong ? WRONG_RED : 'var(--color-accent)')
+                                ? pressColor(key.note, key.isExpected)
                                 : key.inScale
                                     ? 'linear-gradient(to bottom, #e8e8e8 0%, #ffffff 60%, #f5f5f5 100%)'
                                     : 'linear-gradient(to bottom, #8f8f8f 0%, #a8a8a8 60%, #9d9d9d 100%)',
@@ -212,7 +226,7 @@ export const VirtualPiano: React.FC<VirtualPianoProps> = memo(({ onNoteClick, hi
                             width: '16px',
                             height: 'calc(60% + 2px)',
                             background: blackActive
-                                ? (blackWrong ? WRONG_RED : 'var(--color-accent)')
+                                ? pressColor(nextNote, blackExpected)
                                 : blackInScale
                                     ? 'linear-gradient(to bottom, #444 0%, #111 40%, #000 100%)'
                                     : 'linear-gradient(to bottom, #5c5c60 0%, #4a4a4e 40%, #414145 100%)',

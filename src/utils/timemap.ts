@@ -13,7 +13,7 @@ export interface TimemapOnset {
      *  `head` carries @head.shape when the source MEI was supplied: drum voices
      *  share staff positions (snare and rim shot are both c5), so the notehead
      *  is the only thing that tells them apart. */
-    notes: Array<{ midi: number; staff: number; endTick: number; head?: string }>;
+    notes: Array<{ midi: number; staff: number; endTick: number; head?: string; id?: string }>;
 }
 
 export interface TimemapData {
@@ -186,6 +186,9 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
                 staff: n.staff,
                 endTick: Math.max(endTickOf(n.id), raw.tick + 1),
                 head: n.head,
+                // Verovio's id for the note — the same id its SVG element
+                // carries, so a note can be found on the rendered page.
+                id: n.id,
             }));
         // An onset that only contained tie continuations disappears entirely —
         // nothing new is struck there.

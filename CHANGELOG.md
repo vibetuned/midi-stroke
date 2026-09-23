@@ -8,6 +8,34 @@ the way. Install channels and downloads:
 
 ## Unreleased
 
+### Learn by ear
+
+- **A third piano mode, By ear**: additive melodic dictation. The instrument plays a phrase, the
+  student plays it back from memory, and each correct response adds a note, until the whole melody
+  comes back in one go. Built from a functional and pedagogical specification; the design record is
+  [docs/learn-by-ear.md](docs/learn-by-ear.md).
+- **One staff, one line**: the student picks treble or bass, and where notes start together the
+  treble keeps the top one and the bass the bottom one.
+- **Nothing gives the next note away.** The keyboard's expected-note glow, the ROLI key lights and
+  the scale shading are all off. The other staff, and everything from the first unplayed note to
+  the end, show as empty bars in the page colour, lined up with the real ones. Notes are revealed
+  strictly in order, so what is visible is always a prefix of the melody, and one cut hides every
+  later note completely, beam slopes included. A note appears in its real engraving once it has
+  been played.
+- **Input is locked while the call sounds**; a wrong note stops the response at once with a short
+  dissonant cue and an assessment — pitch accuracy, audiation depth ("retained 7 notes by ear"),
+  longest streak — and two ways on: *Retry from here* (same phrase, learned notes kept) or *Restart
+  from beginning* (one note, everything veiled).
+- **Settings**: rhythm as written (at the score's own tempo, changes included) or even pulses; exact
+  octave or any octave. The call goes to the chosen MIDI output when there is one.
+- **Notes without ids** in an imported file used to be filed under staff 1, which silently dropped
+  the left hand from hand selection; the viewers now give every note an id before loading.
+- **Drums practice mode** accepts either pad of an instrument (rim or snare, open or closed hi-hat),
+  as rhythm mode already did. Id-less charts now reveal which pad is written, and without this they
+  would have started refusing the alternate.
+- `npm run check:ear` states the specification's acceptance criteria as 49 checks, and the mode was
+  driven end to end in the browser with a simulated MIDI keyboard.
+
 ### Playback moves to the header
 
 - **The transport's playback selector is now a 🎧 button beside the stats**, opening a panel that

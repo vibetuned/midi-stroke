@@ -14,6 +14,9 @@ export const PlayControls: React.FC = () => {
     const tempoRef = useRef(tempo);
     useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
     useEffect(() => { tempoRef.current = tempo; }, [tempo]);
+    const byEar = gameMode === 'ear';
+    const byEarRef = useRef(byEar);
+    useEffect(() => { byEarRef.current = byEar; }, [byEar]);
 
     // Fix 10: global keyboard shortcuts
     // Space = play/pause, ←/→ = seek ±1 beat, ↑/↓ = tempo ±5 BPM
@@ -25,6 +28,10 @@ export const PlayControls: React.FC = () => {
                 e.target instanceof HTMLSelectElement ||
                 e.target instanceof HTMLTextAreaElement
             ) return;
+
+            // By ear, the session drives the page: play and seek would give the
+            // melody away, so only the tempo keys stay live.
+            if (byEarRef.current && (e.key === ' ' || e.key === 'ArrowLeft' || e.key === 'ArrowRight')) return;
 
             switch (e.key) {
                 case ' ':
@@ -135,10 +142,34 @@ export const PlayControls: React.FC = () => {
                 >
                     Practice
                 </button>
+                {instrument === 'piano' && (
+                    <button
+                        onClick={() => {
+                            // By ear trains one staff: treble unless the left
+                            // hand was already chosen.
+                            if (handSelection === 'both') setHandSelection('right');
+                            setGameMode('ear');
+                        }}
+                        title="Learn by ear: hear a phrase, play it back from memory, one more note each round"
+                        style={{
+                            background: byEar ? 'var(--color-accent)' : 'transparent',
+                            color: byEar ? 'white' : 'var(--color-text-secondary)',
+                            border: 'none',
+                            borderRadius: '16px',
+                            padding: '0.5rem 1rem',
+                            fontSize: '0.9rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        By ear
+                    </button>
+                )}
             </div>
 
-            {/* Hand Selection — piano only. Drums never see this control. */}
-            {instrument === 'piano' && (
+            {/* Hand Selection — piano only. Drums never see this control. By ear
+                it gives way to the ear panel's own treble / bass choice. */}
+            {instrument === 'piano' && !byEar && (
                 <div style={{
                     display: 'flex',
                     background: 'rgba(255, 255, 255, 0.05)',
@@ -175,6 +206,9 @@ export const PlayControls: React.FC = () => {
                 </div>
             )}
 
+            {/* Reset and play belong to the transport; by ear the session drives
+                itself from the ear panel above. */}
+            {!byEar && (<>
             {/* Reset Button (Always visible) */}
             <button
                 onClick={handleReset}
@@ -236,6 +270,7 @@ export const PlayControls: React.FC = () => {
             >
                 {isPlaying ? '⏸' : '▶'}
             </button>
+            </>)}
 
             <button
                 onClick={() => setMetronomeMuted(!isMetronomeMuted)}

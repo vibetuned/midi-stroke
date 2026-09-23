@@ -90,7 +90,9 @@ export function useGameLogic() {
 
     // Calculate expected notes based on current play position
     const expectedNotes = useMemo(() => {
-        if (!timemap) return [];
+        // Learn by ear shows no landing targets at all — this is also what
+        // keeps the keyboard glow and the ROLI key lights dark.
+        if (!timemap || gameMode === 'ear') return [];
 
         const currentTicks = playPosition;
         const notes: ExpectedNote[] = [];
@@ -137,6 +139,21 @@ export function useGameLogic() {
         // Practice Mode Validation
         if (gameMode === 'practice' && waitingForNotes.length > 0) {
 
+            // Drums: alternate pads for one instrument are interchangeable —
+            // both snare pads, rim and snare, open and closed hi-hat — exactly
+            // as in rhythm mode, which maps every pad through MIDI_PAD_MAP. (A
+            // score's noteheads tell practice mode which pad is *written*;
+            // they are not a reason to reject its alternate.) Everywhere else
+            // this is plain equality.
+            const sameDrum = (a: number, b: number) =>
+                a === b || (instrument === 'drums' && MIDI_PAD_MAP[a] !== undefined && MIDI_PAD_MAP[a] === MIDI_PAD_MAP[b]);
+            const heldFor = (expected: number) => {
+                const exact = activeNotes.get(expected - inputOffset);
+                if (exact || instrument !== 'drums') return exact;
+                for (const [pad, data] of activeNotes) if (sameDrum(expected, pad)) return data;
+                return undefined;
+            };
+
             // Wrong note while waiting — count it but don't block resumption.
             // Must be newer than BOTH the wrong-gate AND the last successful
             // interaction so held/lingering correct notes from the previous
@@ -144,7 +161,7 @@ export function useGameLogic() {
             if (lastNote && selectedSong
                 && lastNote.timestamp > lastWrongTimeRef.current
                 && lastNote.timestamp > lastProcessedTimeRef.current) {
-                if (!waitingForNotes.includes(lastNote.note + inputOffset)) {
+                if (!waitingForNotes.some(w => sameDrum(w, lastNote.note + inputOffset))) {
                     lastWrongTimeRef.current = lastNote.timestamp;
                     groupWrongedRef.current = true;
                     recordWrong(selectedSong, songName, 'practice');
@@ -154,7 +171,7 @@ export function useGameLogic() {
             // Scenario A: Single Note -> Responsive "Hit" Logic (Don't need to hold)
             if (waitingForNotes.length === 1) {
                 const target = waitingForNotes[0];
-                const noteData = activeNotes.get(target - inputOffset);
+                const noteData = heldFor(target);
 
                 if (noteData) {
                     // Check freshness: event timestamp must be > last processed success
@@ -172,18 +189,18 @@ export function useGameLogic() {
             }
             else {
                 // Check if ALL waiting notes are currently present
-                const allNotesHeld = waitingForNotes.every(note => activeNotes.has(note - inputOffset));
+                const allNotesHeld = waitingForNotes.every(note => !!heldFor(note));
 
                 if (allNotesHeld) {
                     const hasFreshAttack = waitingForNotes.some(note => {
-                        const data = activeNotes.get(note - inputOffset);
+                        const data = heldFor(note);
                         return data && data.timestamp > lastProcessedTimeRef.current;
                     });
 
                     if (hasFreshAttack) {
                         let maxTimestamp = lastProcessedTimeRef.current;
                         waitingForNotes.forEach(note => {
-                            const data = activeNotes.get(note - inputOffset);
+                            const data = heldFor(note);
                             if (data && data.timestamp > maxTimestamp) {
                                 maxTimestamp = data.timestamp;
                             }
@@ -202,8 +219,9 @@ export function useGameLogic() {
             return;
         }
 
-        // Practice mode: don't fall through to standard mode scoring
-        if (gameMode === 'practice') return;
+        // Practice mode: don't fall through to standard mode scoring. Learn by
+        // ear judges keys itself (EarTrainingProvider) and never scores here.
+        if (gameMode === 'practice' || gameMode === 'ear') return;
 
         // Standard Mode Validation (event-based via lastNote)
         if (!lastNote) return;
