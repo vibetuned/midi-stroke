@@ -158,6 +158,7 @@ A **train & practice course player**: each course module pairs lesson videos wit
 | [CHANGELOG.md](CHANGELOG.md) | What each release ships — features, install channels, and the platform behaviours probed along the way. |
 | [docs/architecture.md](docs/architecture.md) | The shared engine: routing, `GameContext`, hooks, the Verovio→Pixi score pipeline, tick model, assets, stats, theming — plus the checklist for adding a new instrument. |
 | [docs/piano-app.md](docs/piano-app.md) | The Piano app (reference implementation). |
+| [docs/accompaniment.md](docs/accompaniment.md) | Accompaniments: a recording synced to a piece and played along in Rhythm mode — the sync maths, the sync view, playback and storage. |
 | [docs/learn-by-ear.md](docs/learn-by-ear.md) | The By ear mode (piano and saxo): additive call-and-response dictation, the veil, passages, the assessment, and the decisions behind it. |
 | [docs/drums-app.md](docs/drums-app.md) | The Drums app and how it differs from Piano. |
 | [docs/drums-patterns.md](docs/drums-patterns.md) | The Drums pattern generator: the 16-step sequencer, the Euclidean/Bernoulli/LFSR/Markov/automata engines, pink-noise dynamics, and the percussion engraving. |
@@ -187,6 +188,7 @@ The application is built on a web stack trying to be optimized for low-latency a
   - **Saxophone:** monophonic wind-controller input with written-pitch transposition and breath (CC) capture
 * **Dynamic Notation Mapping:** Interactive sheet music that responds to MIDI input, providing instant visual confirmation of accuracy.
 * **Game Modes:** *Rhythm* (play along in time, scored with hit/miss windows), *Practice* (playback waits for the correct note), and on the piano and the saxophone *By ear*: hear a phrase, play it back from memory, and it grows by a note each time, with the score showing empty bars until each note has been played.
+* **Accompaniment (piano, saxo):** attach a recording to a piece (a backing track, a band, a teacher). Line it up once on its waveform, and it plays along in Rhythm mode, loops included.
 * **Loop a passage:** drag the two handles on the minimap to choose bars. They loop in Rhythm and Practice, and By ear they choose the passage to learn.
 * **Your kit's pad map (Drums):** each note a drum controller sends is assigned to a kit voice. The map starts as General MIDI and you can teach it any module's notes by hitting the pads.
 * **Bring Your Own Scores:** load a single MEI file, or **import a ZIP of MEI scores** as a permanent on-device collection (stored in the browser's OPFS, offline-capable, delete anytime). Scores need no special preparation — the one-beat count-in measure (`n="0"`) is injected automatically at load time if missing.
@@ -255,6 +257,7 @@ npm run check:tempo              # validate reading a score's tempo (every MEI e
 npm run check:ear                # validate Learn by ear against its acceptance criteria
 npm run check:loop               # validate the minimap bar range (snapping, labels, by-ear passages)
 npm run check:pads               # validate the drum pad map (GM default, remapping, every bundled chart)
+npm run check:accompaniment      # validate lining a recording up with a score (offset, tempo, peaks, storage rules)
 ```
 
 ### Local Network Access

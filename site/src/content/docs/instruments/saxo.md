@@ -55,6 +55,24 @@ since that is your own hand. Your controller's octave is handled as in the other
 
 The same minimap handles loop a passage in Rhythm and Practice.
 
+## Accompaniment
+
+Give a piece a recording to play along with: a backing track, a band, your teacher. Open 🎧 and
+choose **Accompaniment → Add…**, then pick the file. Anything your browser plays works: WAV, MP3,
+AAC/M4A, FLAC, OGG, Opus and more.
+
+- **Line it up once.** The recording's waveform fills the view, with the piece laid over it as a
+  band, bar lines drawn in. Drag the band so bar 1 sits where the music starts, and drag its end
+  so the piece lasts as long as the recording does (that sets the tempo). Zoom in on either end to
+  be exact, or nudge it with the buttons or the arrow keys. **▶ Check** plays the recording with a
+  click on every beat of the piece, so you can hear whether they agree.
+- **It plays along in Rhythm mode**, following play, pause, seeking and loops. The piece plays at
+  the recording's tempo, so the tempo slider is locked, and the metronome is quiet.
+- **The recording can be longer than the piece**: an intro, an outro.
+- **It stays with the piece** on this device: bundled, from the score server, or in an uploaded
+  collection. A piece opened from a single local file keeps it for the session only. The song list
+  marks pieces that have one with 🎶🗑, which deletes it.
+
 ## Jazz scale generator
 
 The song picker's **🎼 Jazz generator** entry engraves jazz practice material

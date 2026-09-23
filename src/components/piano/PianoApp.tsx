@@ -8,6 +8,7 @@ import { MidiStatus } from '../MidiStatus';
 import { PlayControls } from '../PlayControls';
 import { useGame } from '../../context/game';
 import { useMidiFile } from '../../hooks/useMidiFile';
+import { useAccompanimentPlayer } from '../../hooks/useAccompanimentPlayer';
 import { useAudio } from '../../hooks/useAudio';
 import { StartOverlay } from '../StartOverlay';
 import { PianoSetup } from '../PianoSetup';
@@ -24,6 +25,8 @@ interface PianoAppProps {
 export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
     useAudio();
     useMidiFile();
+    // A song's accompaniment, played along in rhythm mode.
+    useAccompanimentPlayer();
     const { selectedSong, setSelectedSong, gameMode, timemap, songCompleted, setSongCompleted } = useGame();
     const { recordPlay, recordSessionEnd, resetSession, sessionStats } = useStats();
 

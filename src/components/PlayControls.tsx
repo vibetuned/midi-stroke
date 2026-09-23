@@ -7,7 +7,7 @@ import * as Tone from 'tone';
 import { LoopChip } from './LoopRangeSelector';
 
 export const PlayControls: React.FC = () => {
-    const { isPlaying, setIsPlaying, tempo, setTempo, scoreTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection, loopRange } = useGame();
+    const { isPlaying, setIsPlaying, tempo, setTempo, scoreTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection, loopRange, tempoLock } = useGame();
     const { resetSession } = useStats();
 
     // Fix 10: stable refs so the keydown closure never captures stale values
@@ -18,6 +18,8 @@ export const PlayControls: React.FC = () => {
     const byEar = gameMode === 'ear';
     const byEarRef = useRef(byEar);
     useEffect(() => { byEarRef.current = byEar; }, [byEar]);
+    const lockedRef = useRef(tempoLock !== null);
+    useEffect(() => { lockedRef.current = tempoLock !== null; }, [tempoLock]);
 
     // Fix 10: global keyboard shortcuts
     // Space = play/pause, ←/→ = seek ±1 beat, ↑/↓ = tempo ±5 BPM
@@ -59,10 +61,13 @@ export const PlayControls: React.FC = () => {
                     break;
                 case 'ArrowUp':
                     e.preventDefault();
+                    // An accompaniment sets the tempo; the keys leave it be.
+                    if (lockedRef.current) break;
                     setTempo(Math.min(TEMPO_MAX, tempoRef.current + 5));
                     break;
                 case 'ArrowDown':
                     e.preventDefault();
+                    if (lockedRef.current) break;
                     setTempo(Math.max(TEMPO_MIN, tempoRef.current - 5));
                     break;
             }
@@ -303,9 +308,18 @@ export const PlayControls: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '240px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
                     <span style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', fontWeight: 'bold' }}>
-                        Tempo: {tempo} BPM
+                        Tempo: {Math.round(tempo * 10) / 10} BPM
                     </span>
-                    <ScoreTempoBadge scoreTempo={scoreTempo} tempo={tempo} onReset={setTempo} />
+                    {tempoLock !== null
+                        ? (
+                            <span
+                                title="The accompaniment was synced at this tempo, so the piece plays at it. Change it in the accompaniment's sync view (🎧 → Accompaniment)."
+                                style={{ fontSize: '0.68rem', color: 'var(--color-text-secondary, #8a8a98)' }}
+                            >
+                                🎶 set by the accompaniment
+                            </span>
+                        )
+                        : <ScoreTempoBadge scoreTempo={scoreTempo} tempo={tempo} onReset={setTempo} />}
                 </div>
                 <input
                     type="range"
@@ -313,11 +327,13 @@ export const PlayControls: React.FC = () => {
                     max={TEMPO_MAX}
                     step="1"
                     value={tempo}
+                    disabled={tempoLock !== null}
                     onChange={(e) => setTempo(Number(e.target.value))}
                     title="Quarter notes per minute — for a score that states its tempo, this is its opening tempo, and later changes keep their proportion"
                     style={{
                         flex: 1,
-                        cursor: 'pointer',
+                        cursor: tempoLock !== null ? 'not-allowed' : 'pointer',
+                        opacity: tempoLock !== null ? 0.45 : 1,
                         accentColor: 'var(--color-accent)'
                     }}
                 />

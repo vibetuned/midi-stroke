@@ -6,6 +6,7 @@ import { effectiveBpm, type TempoMap } from '../utils/tempo';
 import type { PlaybackTarget } from '../utils/playback';
 import type { LoopRange } from '../utils/loopRange';
 import { GameContext, TEMPO_MAX, TEMPO_MIN, type GameMode, type HandSelection } from './game';
+import { useAccompanimentFor } from '../hooks/useAccompaniment';
 
 /** Where playback sends notes; remembered across sessions. */
 const PLAYBACK_TARGET_KEY = 'midi-stroke-playback-target';
@@ -111,17 +112,22 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
     // is followed as it plays — polling, not scheduled events, so seeking back
     // across a change restores the earlier tempo too.
     const scoreTempo = timemap?.tempo?.initial ? timemap.tempo : null;
+    // A recording plays at one tempo: while it accompanies the piece (rhythm
+    // mode, piano and saxo), the transport follows it, not the slider.
+    const accompaniment = useAccompanimentFor(instrument === 'piano' || instrument === 'saxo' ? selectedSong : null);
+    const tempoLock = gameMode === 'standard' && accompaniment ? accompaniment.bpm : null;
+    const transportTempo = tempoLock ?? tempo;
     useEffect(() => {
         const transport = Tone.getTransport();
         const apply = () => {
-            const bpm = effectiveBpm(scoreTempo, transport.ticks, tempo);
+            const bpm = effectiveBpm(scoreTempo, transport.ticks, transportTempo);
             if (Math.abs(transport.bpm.value - bpm) > 1e-3) transport.bpm.value = bpm;
         };
         apply();
         if (!scoreTempo || scoreTempo.marks.length < 2) return;
         const id = setInterval(apply, 40);
         return () => clearInterval(id);
-    }, [tempo, scoreTempo]);
+    }, [transportTempo, scoreTempo]);
 
     // The loop is the transport's own: Tone wraps from the end of the range
     // back to its start on the audio clock, and events at the start tick fire
@@ -143,8 +149,9 @@ export const GameProvider: React.FC<{ children: ReactNode, instrument?: 'piano' 
         <GameContext.Provider value={{
             isPlaying,
             setIsPlaying,
-            tempo,
+            tempo: transportTempo,
             setTempo,
+            tempoLock,
             scoreTempo,
             currentMeasure,
             setCurrentMeasure,

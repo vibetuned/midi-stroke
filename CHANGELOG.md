@@ -6,7 +6,51 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
-## Unreleased
+## 0.0.3 — 2026-09-23
+
+Play along, and learn by ear. A piece can now have a recording that plays along
+with it, lined up once on its waveform. A new By ear mode on the piano and the
+saxophone teaches a melody by dictation, one more note each time. Two handles on
+the minimap loop a passage, or choose it to learn. The drums gained a pad map for
+any kit, and scores that state a tempo open at it. Under the hood, MIDI input is
+one connection shared by the whole app, so fast playing no longer loses notes.
+
+### Accompaniment
+
+- **A recording to play along with**, attached to a piece (piano and saxo): a backing track, a
+  band, a teacher. It is added from 🎧 → Accompaniment and played in Rhythm mode. Every format the
+  browser decodes is accepted (WAV, MP3, AAC/M4A, FLAC, OGG, Opus...). It is decoded before it is
+  stored, so a format that won't play is refused with a message. The design record is
+  [docs/accompaniment.md](docs/accompaniment.md).
+- **The sync view** ([src/components/AccompanimentPanel.tsx](src/components/AccompanimentPanel.tsx))
+  shows the recording's waveform with the score laid over it as a band, bar lines numbered.
+  - Drag the band to place bar 1 and drag its end to set the tempo. Zoom in on either end, nudge
+    by 10 or 100 ms, or type the numbers in.
+  - **▶ Check** plays the recording with a click on every beat of the score, accented at each bar.
+  - The first guess puts bar 1 where the sound starts, at the score's own tempo.
+  - The recording may be longer than the score at either end, or shorter.
+- **Playback follows the transport**
+  ([src/hooks/useAccompanimentPlayer.ts](src/hooks/useAccompanimentPlayer.ts)).
+  - The recording starts at the place matching the playhead, on the audio clock, and is re-placed
+    exactly when a loop wraps, or after a seek or a tempo change.
+  - While it plays, the piece runs at the recording's tempo: the slider and ↑/↓ are locked,
+    marked *🎶 set by the accompaniment*, and the metronome is quiet. Practice mode, By ear and
+    drums are untouched.
+- **Kept with the song**, on this device, for bundled, score-server and ZIP-collection pieces and
+  generated exercises ([src/utils/accompaniment.ts](src/utils/accompaniment.ts)). Deleting an
+  uploaded collection deletes its songs' accompaniments. A piece opened from a single local file
+  keeps its accompaniment for the session only, and it is gone when another song replaces it.
+  Pieces with one show 🎶🗑 in the song list, which deletes it, and the sync view has a Delete
+  button.
+- `npm run check:accompaniment` (34 checks) covers the sync maths, tempo changes, dragging the
+  end, the first guess, the waveform peaks, which songs keep theirs, and a real piece. It caught
+  59.96 s printing as "0:60".
+- In the browser, with a generated click track:
+  - **Placement:** bar 1 was found at 3.000 s, and dragging the end 1 s later gave the calculated
+    ♩ = 116.36.
+  - **Playback:** it followed a seek to the same 0.01 s, and restarted on each wrap of a one-bar
+    loop.
+  - **Storage:** it survived a reload, and deleting it left nothing behind in storage.
 
 ### Learn by ear
 

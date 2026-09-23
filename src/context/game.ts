@@ -29,10 +29,15 @@ export function isTrackActiveForHand(trackIndex: number, hand: HandSelection): b
 export interface GameState {
     isPlaying: boolean;
     setIsPlaying: (playing: boolean) => void;
+    /** The piece's opening tempo in quarter notes per minute, as the
+     *  transport plays it: the slider's, or the accompaniment's (tempoLock). */
     tempo: number;
-    /** The slider: the piece's opening tempo in quarter notes per minute.
-     *  Set by the user; loading a score that states a tempo moves it there. */
+    /** The slider. Set by the user; loading a score that states a tempo moves
+     *  it there. Ignored while tempoLock holds. */
     setTempo: (tempo: number) => void;
+    /** In rhythm mode, a song with an accompaniment plays at the tempo its
+     *  recording was synced to (hooks/useAccompaniment.ts); null otherwise. */
+    tempoLock: number | null;
     /** What the loaded score says about its own tempo (null when nothing). */
     scoreTempo: TempoMap | null;
     currentMeasure: number;

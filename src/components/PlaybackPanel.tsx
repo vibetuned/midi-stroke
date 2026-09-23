@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useGame } from '../context/game';
 import { listMidiOutputs } from '../utils/midiOut';
+import { AccompanimentPanel } from './AccompanimentPanel';
+import { useAccompanimentFor } from '../hooks/useAccompaniment';
+import { formatTime } from '../utils/accompanimentSync';
 
 /**
  * Where the score's own playback goes, as a header button beside the stats and
@@ -20,6 +23,8 @@ const VOICE_OF: Record<string, string> = {
 export const PlaybackButton: React.FC = () => {
     const { playbackTarget } = useGame();
     const [open, setOpen] = useState(false);
+    // The accompaniment's sync view opens from the panel, in its place.
+    const [accompanimentOpen, setAccompanimentOpen] = useState(false);
     const active = playbackTarget !== 'off';
     const state = playbackTarget === 'off' ? 'off'
         : playbackTarget === 'audio' ? 'in sound'
@@ -47,14 +52,21 @@ export const PlaybackButton: React.FC = () => {
             >
                 🎧
             </button>
-            {open && <PlaybackPanel onClose={() => setOpen(false)} />}
+            {open && (
+                <PlaybackPanel
+                    onClose={() => setOpen(false)}
+                    onOpenAccompaniment={() => { setOpen(false); setAccompanimentOpen(true); }}
+                />
+            )}
+            {accompanimentOpen && <AccompanimentPanel onClose={() => setAccompanimentOpen(false)} />}
         </>
     );
 };
 
 /** The choices themselves. Picking one applies it at once; there is no Save. */
-export const PlaybackPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-    const { playbackTarget, setPlaybackTarget, instrument } = useGame();
+export const PlaybackPanel: React.FC<{ onClose: () => void; onOpenAccompaniment?: () => void }> = ({ onClose, onOpenAccompaniment }) => {
+    const { playbackTarget, setPlaybackTarget, instrument, selectedSong } = useGame();
+    const accompaniment = useAccompanimentFor(selectedSong);
     const [ports, setPorts] = useState<string[] | null>(null);
 
     // Asking for the port list is what raises the Web MIDI permission prompt in
@@ -171,6 +183,26 @@ export const PlaybackPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                 <p style={{ margin: 0, fontSize: '0.72rem', color: '#7a7a88' }}>
                     Remembered for next time. The exercise builders&apos; ▶ Listen uses the same choice.
                 </p>
+
+                {/* A recording to play along with, in rhythm mode (piano, saxo). */}
+                {onOpenAccompaniment && (instrument === 'piano' || instrument === 'saxo') && (
+                    <div style={accompanimentCardStyle}>
+                        <span style={{ fontSize: '1.35rem', lineHeight: 1.2 }}>🎶</span>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: 0 }}>
+                            <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Accompaniment</span>
+                            <span style={{ fontSize: '0.8rem', color: '#b0b0bc', lineHeight: 1.4 }}>
+                                {!selectedSong
+                                    ? 'Open a piece to give it a recording to play along with.'
+                                    : accompaniment
+                                        ? `${accompaniment.fileName} · ${formatTime(accompaniment.duration, 0)} · ♩ = ${Math.round(accompaniment.bpm * 10) / 10}. Plays along in Rhythm mode.`
+                                        : 'A recording of the piece — a backing track, a band, a teacher — that plays along in Rhythm mode.'}
+                            </span>
+                        </div>
+                        <button onClick={onOpenAccompaniment} disabled={!selectedSong} style={accompanimentButtonStyle(!selectedSong)}>
+                            {accompaniment ? 'Sync…' : 'Add…'}
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -213,6 +245,18 @@ const Choice: React.FC<{
         </div>
     </div>
 );
+
+const accompanimentCardStyle: React.CSSProperties = {
+    display: 'flex', gap: '0.8rem', alignItems: 'center',
+    padding: '0.85rem 1rem', borderRadius: '10px',
+    border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)',
+};
+
+const accompanimentButtonStyle = (disabled: boolean): React.CSSProperties => ({
+    padding: '0.45rem 0.9rem', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 600,
+    background: 'transparent', color: 'white', border: '1px solid var(--color-accent)',
+    cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.45 : 1, flexShrink: 0,
+});
 
 const closeStyle: React.CSSProperties = {
     width: '32px', height: '32px', borderRadius: '50%', border: '1px solid #444',

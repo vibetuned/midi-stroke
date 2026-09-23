@@ -8,6 +8,7 @@ import { MidiStatus } from '../MidiStatus';
 import { PlayControls } from '../PlayControls';
 import { useGame } from '../../context/game';
 import { useMidiFile } from '../../hooks/useMidiFile';
+import { useAccompanimentPlayer } from '../../hooks/useAccompanimentPlayer';
 import { useAudio } from '../../hooks/useAudio';
 import { StartOverlay } from '../StartOverlay';
 import { SongSelector } from '../SongSelector';
@@ -25,6 +26,8 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
     // Saxo is single-voice and melodic, so it reuses the piano playback loop.
     // handSelection defaults to 'both', so the single track plays unfiltered.
     useMidiFile();
+    // A song's accompaniment, played along in rhythm mode.
+    useAccompanimentPlayer();
     const { selectedSong, setSelectedSong, gameMode, timemap, songCompleted, setSongCompleted } = useGame();
     const { recordPlay, recordSessionEnd, resetSession, sessionStats } = useStats();
 

@@ -15,7 +15,10 @@ export function useAudio() {
     const drumKitRef = useRef<DrumKit | null>(null);
     const extraNodesRef = useRef<Tone.ToneAudioNode[]>([]);
     const metronomeRef = useRef<Tone.MembraneSynth | null>(null);
-    const { isAudioStarted, isMetronomeMuted, gameMode, instrument, timemap, playbackTarget } = useGame();
+    const { isAudioStarted, isMetronomeMuted, gameMode, instrument, timemap, playbackTarget, tempoLock } = useGame();
+    // An accompaniment keeps the time itself; the click would only fight it.
+    const accompaniedRef = useRef(tempoLock !== null);
+    useEffect(() => { accompaniedRef.current = tempoLock !== null; }, [tempoLock]);
     // Only the piano samples take time to arrive; the drum kit and the saxo
     // synth are ready the moment the engine is built.
     const [samplesLoaded, setSamplesLoaded] = useState(false);
@@ -137,7 +140,7 @@ export function useAudio() {
 
         // 4. Setup Transport Loop
         const loopId = Tone.getTransport().scheduleRepeat((time) => {
-            if (gameMode !== 'practice') {
+            if (gameMode !== 'practice' && !accompaniedRef.current) {
                 metro.triggerAttackRelease("C1", "8n", time);
             }
         }, "4n");

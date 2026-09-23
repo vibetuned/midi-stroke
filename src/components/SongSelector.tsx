@@ -3,6 +3,8 @@ import { useGame } from '../context/game';
 import { useStats } from '../context/stats';
 import { buildSongUrl, catalogUrl, resolveSongUrl } from '../utils/songUrl';
 import { OPFS_PREFIX, isOpfsSupported, listOpfsSongs, importZipToOpfs, deleteOpfsCollection } from '../utils/opfs';
+import { removeAccompaniment, removeAccompanimentsUnder } from '../utils/accompaniment';
+import { useAccompaniments } from '../hooks/useAccompaniment';
 import { ScaleBuilder } from './ScaleBuilder';
 import { JazzScaleBuilder } from './saxo/JazzScaleBuilder';
 import { DrumPatternBuilder } from './drums/DrumPatternBuilder';
@@ -219,6 +221,8 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
         if (!window.confirm(`Delete the uploaded collection "${collectionLabel(path)}" from this device?`)) return;
         try {
             await deleteOpfsCollection(path);
+            // Its songs go, so their accompaniments go with them.
+            await removeAccompanimentsUnder(`${path}/`);
             setOpfsRefresh(n => n + 1);
         } catch (err) {
             console.error('Failed to delete uploaded collection:', err);
@@ -319,8 +323,19 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const songKeyFor = (name: string) => buildSongUrl(serverBase, instrument, selectedPath, name);
     const startPiece = (name: string) => {
-        setSelectedSong(buildSongUrl(serverBase, instrument, selectedPath, name));
+        setSelectedSong(songKeyFor(name));
+    };
+
+    // Pieces with a recording to play along with (🎧 → Accompaniment).
+    const accompaniments = useAccompaniments();
+    const deleteAccompaniment = (name: string) => {
+        const key = songKeyFor(name);
+        const meta = accompaniments.get(key);
+        if (!meta) return;
+        if (!window.confirm(`Delete the accompaniment "${meta.fileName}" of ${niceName(name)}?`)) return;
+        void removeAccompaniment(key);
     };
 
     const handleLocalFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -435,6 +450,18 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                                             )}
                                             {/* Uploaded (OPFS) pieces are already on-device — no offline-cache chip.
                                                 role=button (not a nested <button>) so it can live inside the row button */}
+                                            {accompaniments.has(songKeyFor(f.name)) && (
+                                                <span
+                                                    role="button"
+                                                    tabIndex={-1}
+                                                    title={`Accompaniment: ${accompaniments.get(songKeyFor(f.name))!.fileName} — click to delete it`}
+                                                    aria-label="Delete the accompaniment"
+                                                    onClick={(e) => { e.stopPropagation(); deleteAccompaniment(f.name); }}
+                                                    style={cacheChipStyle(true)}
+                                                >
+                                                    🎶🗑
+                                                </span>
+                                            )}
                                             {!isOpfsPath && (
                                                 <span
                                                     role="button"
