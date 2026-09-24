@@ -6,7 +6,15 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
-## Unreleased
+## 0.0.4 — 2026-09-25
+
+Games. A new tab of four short rhythm games that need no instrument — a key, a touch or a pad —
+as a way in for people who don't play yet, and timing practice away from the instrument for those
+who do. The Slingshot is about how long a note lasts. In the Conductor you conduct a choir a beat
+at a time, and the song follows you. In Rhythm echo you relay the second voice of a canon through a
+satellite, with the first of Kunz's canons now in the piano library. In the Groove Builder you build
+a drum groove part by part, like a looper, on a kit cut from Perseverance's recordings on Mars. Each
+game ends with the rhythm written out, and a way on to play the piece on an instrument.
 
 ### Games
 
@@ -154,6 +162,12 @@ the way. Install channels and downloads:
     through the two final loops. It scored 82 %, and the tip named the kick.
 - `npm run lint` ignores build output (Tauri's bundled assets, Astro's generated types), which it
   had started reading as source.
+
+### Docs
+
+- **Contact and feedback**: a [Contact page](site/src/content/docs/contact.md) in the user guide
+  (under *More*), a feedback section and a *report an issue* link in the README, and the same in
+  the game sounds' credits. Report issues on GitHub, or write to dev@vibetuned.com.
 
 ## 0.0.3 — 2026-09-23
 

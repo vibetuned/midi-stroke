@@ -4,7 +4,7 @@
 **Midi Stroke** is a high-performance, web-based training suite designed to bridge the gap between technical execution and professional music notation.
 By leveraging real-time MIDI data and industry-standard rendering engines, it provides a data-driven environment for mastering melodic keys, rhythmic percussion, wind-controller saxophone, and written theory.
 
-**▶ Use it now: [ms.vibetuned.com/app](https://ms.vibetuned.com/app/)** · **User guide: [ms.vibetuned.com](https://ms.vibetuned.com/)** · **Desktop app: [install it natively](#install)** · [releases](https://github.com/vibetuned/midi-stroke/releases) · [changelog](CHANGELOG.md)
+**▶ Use it now: [ms.vibetuned.com/app](https://ms.vibetuned.com/app/)** · **User guide: [ms.vibetuned.com](https://ms.vibetuned.com/)** · **Desktop app: [install it natively](#install)** · [releases](https://github.com/vibetuned/midi-stroke/releases) · [changelog](CHANGELOG.md) · [report an issue](https://github.com/vibetuned/midi-stroke/issues)
 
 ![Instrument selection](docs/screenshots/splash.png)
 
@@ -168,6 +168,17 @@ A **train & practice course player**: each course module pairs lesson videos wit
 | [docs/theory-app.md](docs/theory-app.md) | The Theory app: course/module content model, worksheet exercise engine, video player, input instruments. |
 
 ---
+
+## Feedback and contact
+
+Found a bug, have an idea, or want to suggest a piece for the library?
+[Open an issue](https://github.com/vibetuned/midi-stroke/issues) on GitHub, or write to
+[dev@vibetuned.com](mailto:dev@vibetuned.com). For a bug, say which version of the app you
+have (it is in the [changelog](CHANGELOG.md)), whether it is the desktop app or the browser,
+your system, and your MIDI device if it is involved.
+
+If you made something the app uses (a score, a sample, a sound) and would like it credited
+differently or removed, write to the same address.
 
 ## Technical Architecture
 

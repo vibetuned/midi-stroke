@@ -57,6 +57,7 @@ export default defineConfig({
           label: "More",
           items: [
             { slug: "development" },
+            { slug: "contact" },
           ],
         },
       ],
