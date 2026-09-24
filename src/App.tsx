@@ -10,7 +10,7 @@ import { StatsProvider } from './context/StatsContext';
 
 function App() {
   const [currentApp, setCurrentApp] = useState<'splash' | 'piano' | 'drums' | 'saxo' | 'theory' | 'games'>('splash');
-  // A piece to open straight away — a game's "play it on the saxophone".
+  // A piece to open straight away — a game's "play it on the saxophone" (or piano, or drums).
   const [initialSong, setInitialSong] = useState<string | null>(null);
   const back = () => { setInitialSong(null); setCurrentApp('splash'); };
 
@@ -31,8 +31,8 @@ function App() {
   if (currentApp === 'drums') {
     return (
       <StatsProvider>
-        <GameProvider instrument="drums">
-          <DrumsApp onBack={() => setCurrentApp('splash')} />
+        <GameProvider instrument="drums" initialSong={initialSong}>
+          <DrumsApp onBack={back} />
         </GameProvider>
       </StatsProvider>
     );

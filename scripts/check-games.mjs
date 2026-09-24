@@ -10,6 +10,15 @@
  *      each orbit's entry when the note starts and at the release mark when it
  *      ends; a note turns a quarter circle per beat; orbits never overlap.
  *   5. Calibration: the delay from taps along to clicks.
+ *   6. Matching taps to any rhythm: nearest note, quick notes, extras.
+ *   7. The Conductor: chords, tunes, the choir, lessons and folk songs with
+ *      their piano, every note in the notation; the beats of a level, each
+ *      beat's judging, the song's stretch, the tips, notes graded by beats.
+ *   8. Rhythm echo: canons from a line and from two-voice pieces, the
+ *      signals and when they reach the satellite, what reaches Earth, the
+ *      summary and tips; every Kunz canon in the piano catalog is checked.
+ *   9. Groove Builder: the drum charts as parts on the wheel's grid, the run
+ *      loop by loop, where a tap lands, a take's score, the summary and tips.
  *   (1b. The written note shown at each anchor, for every length.)
  *
  * Usage:  node scripts/check-games.mjs
@@ -30,6 +39,9 @@ export * from ${JSON.stringify(join(ROOT, 'src/games/rhythm.ts'))};
 export * from ${JSON.stringify(join(ROOT, 'src/games/judge.ts'))};
 export * from ${JSON.stringify(join(ROOT, 'src/games/slingshot/course.ts'))};
 export { measureLatency } from ${JSON.stringify(join(ROOT, 'src/games/latency.ts'))};
+export * from ${JSON.stringify(join(ROOT, 'src/games/choir.ts'))};
+export * from ${JSON.stringify(join(ROOT, 'src/games/echo.ts'))};
+export * from ${JSON.stringify(join(ROOT, 'src/games/groove.ts'))};
 export { extractTimemap } from ${JSON.stringify(join(ROOT, 'src/utils/timemap.ts'))};
 export { ensureCountInMeasure, ensureNoteIds } from ${JSON.stringify(join(ROOT, 'src/utils/mei.ts'))};
 `);
@@ -169,6 +181,232 @@ for (const level of [...E.LESSONS, { title: 'legato', notes: [{ start: 0, dur: 1
   ok('5. a stray tap does not move it', Math.abs(E.measureLatency(clicks, [...taps, 11.1]).latency - 0.045) <= 0.012);
   eq('5. too few taps: no result', E.measureLatency(clicks, taps.slice(0, 3)), null);
   eq('5. taps all over the place: no result', E.measureLatency(clicks, clicks.map((c, k) => c + [0.25, -0.2, 0.1, -0.28, 0.22, -0.1, 0.27, -0.25][k])), null);
+}
+
+// ------------------------------------------------ shared: a piece, prepared as the games prepare it
+const loadPiece = (songKey) => {
+  const dom = new DOMParser().parseFromString(readFileSync(join(ROOT, 'public', songKey), 'utf8'), 'text/xml');
+  E.ensureCountInMeasure(dom);
+  E.ensureNoteIds(dom);
+  const mei = new XMLSerializer().serializeToString(dom);
+  tk.loadData(mei);
+  return { dom, mei, tm: E.extractTimemap(tk, dom) };
+};
+const svgOf = (mei, measureRange) => {
+  tk.loadData(mei);
+  if (measureRange) { tk.select({ measureRange }); tk.redoLayout(); }
+  const svg = tk.renderToSVG(1, {});
+  tk.select({});
+  return svg;
+};
+
+// ------------------------------------------------ 6. matching taps to any rhythm
+{
+  const m = E.matchOnsets([0, 1, 2], [0.01, 1.02, 1.97]);
+  eq('6. taps on the notes: each matched, no extras', [m.errors.map(e => Math.round(e * 100)), m.extras], [[1, 2, -3], 0]);
+  const quick = E.matchOnsets([0, 0.15], [0.0, 0.07]);
+  eq('6. two quick notes, two quick taps: the second goes to the free neighbour', [quick.errors.map(e => Math.round(e * 100)), quick.extras], [[0, -8], 0]);
+  const far = E.matchOnsets([0, 1], [0.5]);
+  eq('6. a tap far from every note is an extra, and the notes are missed', [far.errors, far.extras], [[null, null], 1]);
+  const twice = E.matchOnsets([0], [0.02, -0.01]);
+  eq('6. two taps on one note: the closer counts, the other is an extra', [Math.round(twice.errors[0] * 100), twice.extras], [-1, 1]);
+}
+
+// ------------------------------------------------ 7. the Conductor
+{
+  eq('7. pitches by name', [E.pitchOf('C4'), E.pitchOf('F#3'), E.pitchOf('Bb3'), E.pitchOf('A2')], [60, 54, 58, 45]);
+  eq('7. a black key is written with a sharp', E.spell(61), { pname: 'c', oct: 4, accid: 's' });
+  throws('7. a tune with too few pitches is refused', () => E.parseBars('q q h', 4, [60, 62]));
+  throws('7. …and one with too many', () => E.parseBars('w', 4, [60, 62]));
+  eq('7. chords: C, Am, G7', [E.chordTones('C'), E.chordTones('Am'), E.chordTones('G7')], [[0, 4, 7], [9, 0, 4], [7, 11, 2, 5]]);
+  throws('7. an unknown chord is refused', () => E.chordTones('H'));
+  const bk = E.chordBacking('C | F G', 4);
+  eq('7. a chord a bar, or two sharing it: root low and the chord above', bk.map(n => [n.start, n.dur, n.midi]),
+    [[0, 4, 36], [0, 4, 48], [0, 4, 52], [0, 4, 55], [4, 2, 41], [4, 2, 53], [4, 2, 57], [4, 2, 48], [6, 2, 43], [6, 2, 55], [6, 2, 59], [6, 2, 50]]);
+  eq('7. one singer per pitch, lowest first', E.singersOf([{ midi: 67 }, { midi: 60 }, { midi: 64 }, { midi: 60 }]).map(x => x.name), ['C', 'E', 'G']);
+  eq('7. a tune sung as written…', E.choirShift([{ midi: 60 }, { midi: 67 }]), 0);
+  eq('7. …unless it sits too high for a choir', E.choirShift([{ midi: 84 }, { midi: 88 }, { midi: 91 }]), -12);
+  eq('7. …or too low', E.choirShift([{ midi: 33 }, { midi: 36 }]), 12);
+  for (const l of E.CHOIR_LESSONS) {
+    const singers = E.singersOf(l.notes, E.choirShift(l.notes));
+    ok(`7. "${l.title}": a few singers, a real tune`, singers.length >= 3 && singers.length <= 9, String(singers.length));
+    eq(`7. "${l.title}": sung where it is written`, E.choirShift(l.notes), 0);
+    ok(`7. "${l.title}": the piano plays every bar`, Array.from({ length: l.length / l.beatsPerBar }, (_, b) => b).every(b => l.backing.some(n => n.start >= b * l.beatsPerBar && n.start < (b + 1) * l.beatsPerBar)));
+    ok(`7. "${l.title}": the piano stays inside the level`, l.backing.every(n => n.start >= 0 && n.start + n.dur <= l.length + 1e-9));
+    const svg = svgOf(l.source.mei);
+    eq(`7. "${l.title}": one note head per note, on a real staff`, [(svg.match(/class="note"/g) || []).length, l.notes.every(n => svg.includes(`id="${n.id}"`))], [l.notes.length, true]);
+  }
+  eq('7. the first lesson has three singers: C, E, G', E.singersOf(E.CHOIR_LESSONS[0].notes).map(x => x.name), ['C', 'E', 'G']);
+  // Conducting, a beat at a time.
+  const byId = id => E.CHOIR_LESSONS.find(l => l.id === id);
+  const first = E.choirBeats(byId('first-voices'));
+  eq('7. every beat of the level is a hold, the rests too', first.length, 32);
+  eq('7. a half note: sung in the first beat, held over into the second, then a rest', first.slice(0, 4).map(b => [b.starts, b.held]), [[[0], null], [[], 0], [[], null], [[], null]]);
+  const whole = E.choirBeats(byId('basses'));
+  eq('7. a whole note is four holds on one note', whole.slice(0, 4).map(b => [b.starts.length, b.held]), [[1, null], [0, 0], [0, 0], [0, 0]]);
+  eq('7. two eighths: two notes in one hold', E.choirBeats(byId('runs'))[0].starts.length, 2);
+  eq('7. a dotted quarter carries into the next beat, and the eighth starts inside it', E.choirBeats(byId('dotted')).slice(0, 2).map(b => [b.starts, b.held]), [[[0], null], [[1], 0]]);
+  eq('7. the note sounding at a point of the song, or none in a rest', [E.noteAt(byId('first-voices'), 1.5), E.noteAt(byId('first-voices'), 2.5)], [0, null]);
+  const short = E.choirBeats({ notes: [{ start: 0, dur: 1.5 }], length: 1.5 });
+  eq('7. a short last beat is only as long as it is', short.map(b => b.length), [1, 0.5]);
+  const g = r => [r.press, r.release];
+  eq('7. the first beat comes in against the count-in', g(E.beatResult(0.03, -E.LIFT)), ['perfect', 'perfect']);
+  eq('7. after that, against a beat after the last press: on it, a little late, a pause', [0.02, 0.08, 0.4].map(e => E.beatResult(e, -E.LIFT).press), ['perfect', 'good', 'miss']);
+  eq('7. the let-go: a lift before the ring, right on it, early, far too long', [-E.LIFT, 0, -0.25, 0.3].map(h => E.beatResult(0, h).release), ['perfect', 'perfect', 'ok', 'miss']);
+  {
+    const beat = 0.75;
+    const early = Array.from({ length: 8 }, () => E.beatResult(0, -0.2));
+    const s = E.summarizeConductor(early);
+    ok('7. letting go early every beat, but coming in on time: the song keeps its length', Math.abs(s.stretch + 0.2) < 1e-9, String(s.stretch));
+    ok('7. …and the tip says to hold until the ring closes', /before the ring closes/.test(E.conductorTip(s) ?? ''), E.conductorTip(s));
+    const dragging = Array.from({ length: 8 }, (_, k) => E.beatResult(k === 0 ? 0 : 0.1, -E.LIFT));
+    const sd = E.summarizeConductor(dragging);
+    ok('7. each beat 100 ms late: the song comes out 0.7 s long, and the tip says it drags', Math.abs(sd.stretch - (7 * 0.1 - E.LIFT)) < 1e-9 && /drags/.test(E.conductorTip(sd) ?? ''), `${sd.stretch} ${E.conductorTip(sd)}`);
+    // Beat 1 held on (so beat 2 comes in late: that is the hold, not a pause), beat 5 cut short, a pause before beat 4.
+    const bumpy = E.summarizeConductor([0, 1, 2, 3, 4, 5, 6, 7].map(k => E.beatResult(k === 4 ? 0.5 : k === 2 ? 0.49 : 0, k === 1 ? 0.45 : k === 5 ? -0.3 : -E.LIFT)));
+    eq('7. what went wrong, by kind', bumpy.incidents, { heldOn: 1, cut: 1, lateIn: 1, rushed: 0 });
+    eq('7. …and the tip says so, not that all went well', E.conductorTip(bumpy), 'A singer ran out of breath once, the choir was cut off once and the choir waited for you once. Let go as the ring closes.');
+    const tight = E.summarizeConductor(Array.from({ length: 8 }, () => E.beatResult(0, -E.LIFT)));
+    eq('7. a beat on every beat, let go a lift before each: every beat perfect', tight.counts.perfect, 8);
+    ok('7. …and the song keeps its written length', Math.abs(tight.stretch + E.LIFT) < 1e-9 && Math.abs(tight.stretch) < 0.1 * beat);
+    const bs = E.choirBeats(byId('basses'));
+    const res = bs.map((_, k) => E.beatResult(0, k === 2 ? 0.3 : 0));
+    const ng = E.noteGradesFromBeats(byId('basses'), bs, res);
+    eq('7. a whole note takes the worst of its four beats; the next note is untouched', [ng[0], ng[1]], ['miss', 'perfect']);
+  }
+  for (const song of E.CHOIR_SONGS) {
+    const { mei, tm } = loadPiece(song.songKey);
+    const lv = E.levelFromTimemap(tm, E.SONG_LEVEL_BARS);
+    const singers = E.singersOf(lv.notes, E.choirShift(lv.notes));
+    ok(`7. "${song.title}": a tune for the choir`, lv.notes.length >= 12, String(lv.notes.length));
+    ok(`7. "${song.title}": a piano part, inside the level`, lv.backing.length >= 8 && lv.backing.every(n => n.start >= 0 && n.start + n.dur <= lv.length + 1e-9), String(lv.backing.length));
+    ok(`7. "${song.title}": the piano never doubles the tune`, !lv.backing.some(b => lv.notes.some(n => n.id === b.id)));
+    ok(`7. "${song.title}": no more singers than a choir has rows for`, singers.length >= 3 && singers.length <= 12, String(singers.length));
+    const svg = svgOf(mei, `2-${lv.bars + 1}`);
+    eq(`7. "${song.title}": every note of the tune is in its bars' notation`, lv.notes.filter(n => !svg.includes(`id="${n.id}"`)).length, 0);
+    console.log(`   ${song.title}: ${lv.bars} bars, ${lv.notes.length} notes for ${singers.length} singers, ${lv.backing.length} for the piano`);
+  }
+}
+
+// ------------------------------------------------ 8. Rhythm echo
+{
+  const line = E.parseBars('q q h | w', 4, [60, 64, 67, 60]).notes;
+  const c = E.canonFromLine(line, 4, 2, 1);
+  eq('8. a line as a canon: the star sings it an octave up…', c.calls.map(n => [n.start, n.midi]), [[0, 72], [1, 76], [2, 79], [4, 72]]);
+  eq('8. …you sing it a bar behind, as written, and the level runs a bar longer', [c.answers.map(n => [n.start, n.midi]), c.bars], [[[4, 60], [5, 64], [6, 67], [8, 60]], 3]);
+  for (const l of E.CANON_LESSONS) {
+    const shift = l.distance * l.beatsPerBar;
+    ok(`8. "${l.title}": your voice is the star's, ${l.distance === 1 ? 'a bar' : `${l.distance} bars`} behind`, l.answers.length === l.calls.length && l.answers.every((a, k) => Math.abs(a.start - l.calls[k].start - shift) < 1e-9 && a.dur === l.calls[k].dur && a.midi === l.calls[k].midi - 12));
+    const packets = E.packetsOf(l);
+    ok(`8. "${l.title}": a signal for every note, arriving at the satellite as it is due, none hollow`, packets.length === l.answers.length && packets.every(p => p.answer !== null && Math.abs(p.arrive - l.answers[p.answer].start) < 1e-9 && Math.abs(p.arrive - p.emit - shift) < 1e-9));
+    const svg = svgOf(l.notation.mei);
+    eq(`8. "${l.title}": one note head per note, every answer in the notation`, [(svg.match(/class="note"/g) || []).length, l.answers.every(a => svg.includes(`id="${a.id}"`))], [l.answers.length, true]);
+  }
+  eq('8. the lessons: a bar behind, then a round two bars behind, and two bars behind to finish', E.CANON_LESSONS.map(l => l.distance), [1, 1, 1, 1, 2, 1, 1, 1, 2]);
+  eq('8. Frère Jacques: 32 notes, a round at two bars', (l => [l.answers.length, l.distance, l.bars])(E.CANON_LESSONS.find(l => l.id === 'frere-jacques')), [32, 2, 10]);
+
+  // What reaches Earth.
+  const r = (press, release, pe, re) => ({ press, release, pressError: pe, releaseError: re });
+  eq('8. perfect and good get through', [E.messageOf(r('perfect', 'perfect', 0, 0)), E.messageOf(r('good', 'perfect', 0.08, 0))], ['received', 'received']);
+  eq('8. let go too soon, or never sent: lost', [E.messageOf(r('perfect', 'ok', 0, -0.18)), E.messageOf(r('miss', 'miss', null, null)), E.messageOf(r('perfect', 'miss', 0, -0.4))], ['lost', 'lost', 'lost']);
+  eq('8. held too long, or on until the game let go: garbled', [E.messageOf(r('perfect', 'ok', 0, 0.18)), E.messageOf(r('good', 'miss', 0.06, null))], ['garbled', 'garbled']);
+  {
+    const all = E.summarizeEcho(Array.from({ length: 6 }, () => r('perfect', 'perfect', 0.01, -0.01)));
+    eq('8. everything through: counted, and the tip says so', [all.received, all.lost, all.garbled, /second voice/.test(E.echoTip(all) ?? '')], [6, 0, 0, true]);
+    const early = E.summarizeEcho(Array.from({ length: 6 }, () => r('perfect', 'good', 0, -0.1)));
+    ok('8. letting go early every time gets the tip about holding until each note has passed', /let go .* early/.test(E.echoTip(early) ?? ''), E.echoTip(early));
+    const long = E.summarizeEcho(Array.from({ length: 6 }, () => r('perfect', 'good', 0, 0.1)));
+    ok('8. …and holding on, the one about garbled messages', /garbled/.test(E.echoTip(long) ?? ''), E.echoTip(long));
+  }
+
+  // The library's canons, from the catalog — every one there is checked.
+  const catalog = JSON.parse(readFileSync(join(ROOT, 'public/piano_files.json'), 'utf8'));
+  const canons = E.canonsFrom(catalog);
+  ok('8. the canons come from the piano catalog, in order, named by number', canons.length >= 7 && canons[0].title === 'Kunz · Canon 1' && canons[6].title === 'Kunz · Canon 7', canons.map(x => x.title).join(', '));
+  const expect = { 1: [1, 1], 5: [2, 1], 7: [2, 2] };   // canon: [distance in bars, the staff that answers]
+  for (const song of canons) {
+    const { mei, tm } = loadPiece(song.songKey);
+    const canon = E.canonFromTimemap(tm);
+    ok(`8. "${song.title}": a canon`, canon !== null);
+    if (!canon) continue;
+    ok(`8. "${song.title}": a strict one — your voice imitates the star's`, canon.imitation >= 0.8, canon.imitation.toFixed(2));
+    const n = parseInt(song.songKey.match(/(\d+)-canon/)?.[1] ?? '0', 10);
+    if (expect[n]) {
+      const answersHigh = canon.answers[0].midi > canon.calls[0].midi;
+      eq(`8. "${song.title}": ${expect[n][0]} bar(s) behind, the ${expect[n][1] === 1 ? 'upper' : 'lower'} voice answering`, [canon.distance, answersHigh ? 1 : 2], expect[n]);
+    }
+    const level = { ...canon, id: 'x', title: song.title, detail: '', notation: { mei, bars: canon.bars } };
+    const packets = E.packetsOf(level);
+    const hollow = packets.filter(p => p.answer === null);
+    ok(`8. "${song.title}": a signal for every note of your voice, on time`, level.answers.every((a, k) => packets.some(p => p.answer === k && Math.abs(p.arrive - a.start) < 1e-9)));
+    ok(`8. "${song.title}": the hollow ones are the star's free ending`, hollow.every(p => p.emit >= (canon.bars - canon.distance - 2) * canon.beatsPerBar), hollow.map(p => p.emit).join(' '));
+    const svg = svgOf(mei, `2-${canon.bars + 1}`);
+    eq(`8. "${song.title}": every note of your voice is in the notation`, canon.answers.filter(a => !svg.includes(`id="${a.id}"`)).length, 0);
+    console.log(`   ${song.title}: ${canon.bars} bars, ${canon.distance} behind, ${canon.answers.length} notes to relay, ${hollow.length} hollow, imitation ${(canon.imitation * 100).toFixed(0)} %`);
+  }
+  {
+    const { tm } = loadPiece(E.SONGS[0].songKey);
+    eq('8. a one-line song is no canon', E.canonFromTimemap(tm), null);
+  }
+}
+
+// ------------------------------------------------ 9. Groove Builder
+{
+  eq('9. the grid: sixteenths, even for a groove of eighths', E.gridOf([0, 1, 2, 3], 4), 0.25);
+  eq('9. …triplets make 24 steps a bar', E.gridOf([0, 1 / 3, 2 / 3], 4), 1 / 6);
+  eq('9. …twelve-eight on eighths: 12 steps', E.gridOf([0, 1.5, 2.5], 6, 1.5), 0.5);
+  const meterOf = dom => {
+    const sig = dom.getElementsByTagName('meterSig').item(0), def = dom.getElementsByTagName('scoreDef').item(0);
+    const count = parseInt(sig?.getAttribute('count') ?? def?.getAttribute('meter.count') ?? '4', 10), unit = parseInt(sig?.getAttribute('unit') ?? def?.getAttribute('meter.unit') ?? '4', 10);
+    return { beatsPerBar: count * 4 / unit, pulse: unit === 8 && count % 3 === 0 ? 1.5 : 1 };
+  };
+  const built = {};
+  for (const entry of E.GROOVES) {
+    const { dom, tm } = loadPiece(entry.songKey);
+    const { beatsPerBar, pulse } = meterOf(dom);
+    const g = E.grooveFromTimemap(tm, beatsPerBar, pulse);
+    ok(`9. "${entry.title}": parts to build`, g && g.layers.length >= 2, g ? String(g.layers.length) : 'none');
+    if (!g) continue;
+    const level = { ...g, id: entry.songKey, title: entry.title, detail: '', bpm: entry.bpm, pulse };
+    built[entry.title] = level;
+    eq(`9. "${entry.title}": the kick comes in first`, g.layers[0].voice, 'kick');
+    ok(`9. "${entry.title}": every hit on a step of the wheel`, g.layers.every(l => l.hits.every(h => h >= 0 && h < g.loopBeats && Math.abs(h / g.step - Math.round(h / g.step)) < 1e-3)));
+    ok(`9. "${entry.title}": 12, 16, 24 or 32 steps round the wheel`, [12, 16, 24, 32].includes(E.stepsOf(level)), String(E.stepsOf(level)));
+    ok(`9. "${entry.title}": a tempo you can tap`, entry.bpm >= 60 && entry.bpm <= 140);
+    const beat = 60 / entry.bpm;
+    const fastest = Math.min(...g.layers.map(l => Math.min(...l.hits.slice(1).map((h, k) => (h - l.hits[k]) * beat), Infinity)));
+    ok(`9. "${entry.title}": no part faster than ~6 taps a second`, fastest >= 0.155, `${Math.round(fastest * 1000)} ms`);
+    console.log(`   ${entry.title}: ${g.layers.map(l => `${l.label} ${l.hits.length}`).join(', ')} — ${E.stepsOf(level)} steps`);
+  }
+  const rock = built.Rock;
+  if (rock) {
+    eq('9. Rock: kick on every beat, snare on two and four, hi-hat in eighths', rock.layers.map(l => [l.voice, l.hits]),
+      [['kick', [0, 1, 2, 3]], ['snare', [1, 3]], ['hatClosed', [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]]]);
+    eq('9. …on the wheel, the kick\'s steps', E.targetCells(rock, 0), [0, 4, 8, 12]);
+    eq('9. the run: a bar counted in, a loop for each part, the groove twice, then the end',
+      [0, 1, 2, 3, 4, 5, 6].map(j => { const t = E.turnOf(rock, j); return t.kind + ('layer' in t ? t.layer : ''); }),
+      ['countin', 'record0', 'record1', 'record2', 'final', 'final', 'end']);
+    const stepSec = 60 / 96 / 4;
+    const early = E.cellOfTap(16 * stepSec - 0.03, stepSec, 16);
+    eq('9. a tap a hair before a loop is that loop\'s first step', [early.loop, early.cell, Math.round(early.error * 1000)], [1, 0, -30]);
+    const off = E.cellOfTap(16 * stepSec + 4 * stepSec + 0.7 * stepSec, stepSec, 16);
+    eq('9. …and one late by more than half a step lands on the next step: the wrong one', [off.loop, off.cell], [1, 5]);
+    const take = new Map();
+    E.addTap(take, 4, 0.04); E.addTap(take, 4, -0.01);
+    eq('9. a step keeps the tap closest to it', take.get(4), -0.01);
+    const perfect = new Map([[0, 0.005], [4, -0.01], [8, 0], [12, 0.01]]);
+    eq('9. the kick, every step hit: all of it', E.scoreTake(rock, 0, perfect).accuracy, 1);
+    const faulty = E.scoreTake(rock, 0, new Map([[0, 0], [5, 0], [8, 0], [12, 0]]));
+    eq('9. one hit a step late: a step missing and a step wrong, in the groove for good', [faulty.missed, faulty.wrong, faulty.correct.length], [[4], [5], 3]);
+    ok('9. …and it costs', faulty.accuracy < 0.7, String(faulty.accuracy));
+    const hats = new Map([0, 2, 4, 6, 8, 10, 12, 14].map(c => [c, -0.07]));
+    const s = E.summarizeGroove(rock, [perfect, new Map([[4, 0], [12, 0]]), hats]);
+    ok('9. parts weigh by their hits', Math.abs(s.accuracy - (4 * 1 + 2 * 1 + 8 * 0.7) / 14) < 1e-9, String(s.accuracy));
+    ok('9. every hit on its step but early: the tip says you play ahead', /ahead of the beat/.test(E.grooveTip(rock, s) ?? ''), E.grooveTip(rock, s));
+    const withWrong = E.summarizeGroove(rock, [faulty && new Map([[0, 0], [5, 0], [8, 0], [12, 0]]), new Map([[4, 0], [12, 0]]), hats]);
+    ok('9. a wrong step: the tip names the part, and says it stayed', /kick landed on the wrong step once, and those hits stayed/.test(E.grooveTip(rock, withWrong) ?? ''), E.grooveTip(rock, withWrong));
+    eq('9. an untouched part is all missing', E.scoreTake(rock, 1, new Map()).missed, [4, 12]);
+  }
 }
 
 rmSync(outDir, { recursive: true, force: true });

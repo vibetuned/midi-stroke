@@ -6,7 +6,9 @@ import { heardAt, heardNow, scheduleNow } from '../../games/clock';
 import { getLatency } from '../../games/latency';
 import { PRESS, RELEASE, grade, noteGrade, type Grade, type NoteResult } from '../../games/judge';
 import { angleAt, buildCourse, idealPosition, onOrbit, tangent, type Course, type Point } from '../../games/slingshot/course';
-import { LESSON_PITCH, noteShape, type NoteShape, type RhythmLevel } from '../../games/rhythm';
+import { LESSON_PITCH, noteShape, type RhythmLevel } from '../../games/rhythm';
+import { drawNote } from './noteGlyph';
+import { SOUNDS, heldSampler, heldSynth, preload, type HeldVoice } from './sounds';
 
 /**
  * Centripetal Groove — the Slingshot. Hold (space, a touch, any MIDI key)
@@ -24,37 +26,6 @@ const GRADE_COLOR: Record<Grade, number> = { perfect: 0x4ade80, good: 0x22d3ee, 
 const GRADE_LABEL: Record<Grade, string> = { perfect: 'Perfect', good: 'Good', ok: 'OK', miss: 'Miss' };
 const ACCENT = 0x22d3ee;
 const LEAD_SECONDS = 0.4;
-
-/**
- * The note an orbit holds, written at its anchor: an open head for a whole
- * note, open with a stem for a half, filled with a stem for a quarter,
- * flags for eighths and sixteenths, a dot for a dotted value. (Drawn in
- * the orbit's colour — a "black" head is a filled one, on this dark sky.)
- */
-function drawNote(g: PIXI.Graphics, cx: number, cy: number, shape: NoteShape, color: number, alpha: number): void {
-    const whole = !shape.stem;
-    const hw = whole ? 11 : 9.5, hh = whole ? 7.6 : 6.8, tilt = whole ? -0.2 : -0.38;
-    // Centred as a whole: the head sits low, the stem rises above it.
-    const hx = cx - (shape.stem ? 3 : 0), hy = cy + (shape.stem ? 11 : 0);
-    const pts: number[] = [];
-    for (let k = 0; k < 28; k++) {
-        const a = (k / 28) * Math.PI * 2;
-        const x = hw * Math.cos(a), y = hh * Math.sin(a);
-        pts.push(hx + x * Math.cos(tilt) - y * Math.sin(tilt), hy + x * Math.sin(tilt) + y * Math.cos(tilt));
-    }
-    g.poly(pts);
-    if (shape.head === 'open') g.stroke({ width: whole ? 3.4 : 2.6, color, alpha });
-    else g.fill({ color, alpha });
-    if (shape.stem) {
-        const sx = hx + hw * 0.88, sy0 = hy - 2.5, sy1 = hy - 34;
-        g.moveTo(sx, sy0).lineTo(sx, sy1).stroke({ width: 2.2, color, alpha });
-        for (let f = 0; f < shape.flags; f++) {
-            const fy = sy1 + f * 7;
-            g.moveTo(sx, fy).bezierCurveTo(sx + 1, fy + 7, sx + 11, fy + 9, sx + 8, fy + 19).stroke({ width: 2.2, color, alpha });
-        }
-    }
-    if (shape.dotted) g.circle(hx + hw + 6, hy - 2, 2.6).fill({ color, alpha });
-}
 
 interface Play {
     started: boolean;
@@ -83,7 +54,9 @@ export const SlingshotGame: React.FC<{
     const [course] = useState<Course>(() => buildCourse(level.notes, { beat }));
     const play = useRef<Play>({ started: false, finished: false, downbeat: 0, i: 0, holding: false, pressError: null, results: [], fling: null, combo: 0 });
     const [hud, setHud] = useState({ started: false, countIn: 0, combo: 0, done: 0 });
-    const audio = useRef<{ click: Tone.Synth; accent: Tone.Synth; voice: Tone.Synth } | null>(null);
+    const audio = useRef<{ click: Tone.Synth; accent: Tone.Synth; voice: HeldVoice; space: Tone.Freeverb } | null>(null);
+    // The NASA pad is fetched while the intro is up, so it is ready by the first press.
+    useEffect(() => preload(SOUNDS.slingshot, SOUNDS.slingshotTexture), []);
     const popups = useRef<Array<{ text: string; color: number; at: Point; t: number }>>([]);
     const judged = useRef<Map<number, Grade>>(new Map());
     const onFinishRef = useRef(onFinish);
@@ -110,14 +83,23 @@ export const SlingshotGame: React.FC<{
         setHud(h => ({ ...h, combo: p.combo, done: i + 1 }));
     };
 
+    // Starting takes a moment (the audio, the samples): a second press meanwhile must not start twice.
+    const starting = useRef(false);
     const start = async () => {
         const p = play.current;
-        if (p.started) return;
+        if (p.started || starting.current) return;
+        starting.current = true;
         await Tone.start();
         const click = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.001, decay: 0.03, sustain: 0, release: 0.01 }, volume: -20 }).toDestination();
         const accent = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.001, decay: 0.04, sustain: 0, release: 0.01 }, volume: -15 }).toDestination();
-        const voice = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.7, release: 0.12 }, volume: -8 }).toDestination();
-        audio.current = { click, accent, voice };
+        // The held note: Nasa Space Pad's sonar ping at the note's pitch, the take-off rumble under it,
+        // in a little space — or, without the samples, the triangle it always had.
+        const space = new Tone.Freeverb({ roomSize: 0.78, dampening: 3000 });
+        space.wet.value = 0.22;
+        space.toDestination();
+        const voice = await heldSampler([{ set: SOUNDS.slingshot, volume: -4 }, { set: SOUNDS.slingshotTexture, volume: -15 }], space)
+            ?? heldSynth(new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.7, release: 0.12 }, volume: -8 }).toDestination());
+        audio.current = { click, accent, voice, space };
         // One bar counted in, then every beat to the end.
         const t0 = scheduleNow() + LEAD_SECONDS;
         const countIn = level.beatsPerBar;
@@ -143,7 +125,7 @@ export const SlingshotGame: React.FC<{
         }
         p.holding = true;
         p.pressError = err;
-        audio.current?.voice.triggerAttack(freq(p.i), Tone.now());
+        audio.current?.voice.attack(freq(p.i), Tone.now());
     };
 
     const release = (heard: number) => {
@@ -157,7 +139,7 @@ export const SlingshotGame: React.FC<{
         const a = angleAt(o, course.omega, Math.min(seen, noteEnd(i)));
         p.fling = { from: onOrbit(o, course.radius, a), dir: tangent(o, a), t: seen };
         p.holding = false;
-        audio.current?.voice.triggerRelease(Tone.now());
+        audio.current?.voice.release(Tone.now());
         record(i, { press: grade(p.pressError, PRESS), release: grade(t - noteEnd(i), RELEASE), pressError: p.pressError, releaseError: t - noteEnd(i) });
         p.i++;
     };
@@ -302,7 +284,7 @@ export const SlingshotGame: React.FC<{
                     } else if (p.holding && now > noteEnd(p.i) + RELEASE.ok) {
                         const i = p.i;
                         p.holding = false;
-                        audio.current?.voice.triggerRelease(Tone.now());
+                        audio.current?.voice.release(Tone.now());
                         record(i, { press: grade(p.pressError, PRESS), release: 'miss', pressError: p.pressError, releaseError: null });
                         p.fling = null;
                         p.i++;
@@ -429,7 +411,7 @@ export const SlingshotGame: React.FC<{
     useEffect(() => () => {
         const a = audio.current;
         audio.current = null;
-        if (a) { a.voice.dispose(); a.click.dispose(); a.accent.dispose(); }
+        if (a) { a.voice.dispose(); a.click.dispose(); a.accent.dispose(); a.space.dispose(); }
     }, []);
 
     return (

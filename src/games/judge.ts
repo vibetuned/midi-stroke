@@ -80,3 +80,36 @@ export function tip(s: Summary): string | null {
     if (s.pressBias !== null && s.pressBias > 0.04) return `You tend to drag — strikes land about ${ms(s.pressBias)} late. Feel the beat coming.`;
     return null;
 }
+
+/**
+ * Taps against the moments they were asked for, in any rhythm. Seconds,
+ * both on one clock, `expected` in order. Each tap goes to the nearest moment
+ * within the OK window — or, when that one is already answered, to its free neighbour
+ * if that is in the window too (two quick notes, two quick taps); each moment
+ * keeps its closest tap. A moment nobody tapped is null; a tap no moment
+ * wanted is an extra.
+ */
+export function matchOnsets(expected: number[], taps: number[], w: Windows = PRESS): { errors: Array<number | null>; extras: number } {
+    const best: Array<number | null> = expected.map(() => null);
+    let extras = 0;
+    for (const t of [...taps].sort((a, b) => a - b)) {
+        if (expected.length === 0) { extras++; continue; }
+        let lo = 0, hi = expected.length - 1;
+        while (lo < hi) {
+            const mid = (lo + hi) >> 1;
+            if (expected[mid] < t) lo = mid + 1; else hi = mid;
+        }
+        // lo: the first moment at or after the tap; the nearest is it or the one before.
+        const near = lo > 0 && Math.abs(expected[lo - 1] - t) <= Math.abs(expected[lo] - t) ? lo - 1 : lo;
+        const other = near === lo ? lo - 1 : lo;
+        const within = (k: number) => k >= 0 && k < expected.length && Math.abs(t - expected[k]) <= w.ok;
+        let k = near;
+        if (best[near] !== null && within(other) && best[other] === null) k = other;
+        if (!within(k)) { extras++; continue; }
+        const e = t - expected[k];
+        const prev = best[k];
+        if (prev === null) best[k] = e;
+        else { extras++; if (Math.abs(e) < Math.abs(prev)) best[k] = e; }
+    }
+    return { errors: best, extras };
+}

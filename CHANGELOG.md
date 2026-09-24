@@ -44,11 +44,116 @@ the way. Install channels and downloads:
   told when the count-in changes, and the trail draws in five strokes instead of forty. Script time
   while playing dropped from 66 to 52 ms a second in Chrome; the WebKit webview on macOS felt the
   old churn more.
-- `npm run check:games` (118 checks) covers the lessons and their notation, every song level and
-  its note ids, judging, the course's geometry (continuity, a quarter turn a beat, no overlaps)
-  and calibration. In the browser, a bot on the game's own clock scored 100 % on a lesson and on
-  Ode to Joy (30 notes, all coloured in the notation), and letting go 150 ms early brought the
-  tip about holding on.
+- **The Conductor**: conduct the choir, a beat at a time
+  ([src/components/games/ConductorGame.tsx](src/components/games/ConductorGame.tsx),
+  [src/games/choir.ts](src/games/choir.ts)).
+  - **One singer per pitch** of the tune, standing low to high. **Each hold of the button is one
+    beat.** While you hold, the song moves on at the piece's tempo, whoever has a note in that
+    beat sings it (a choir "aah" at the note's pitch), and a ring fills round the singer. Let go
+    as it closes and press straight away for the next.
+  - **The song follows you.** Let go early and the singer is cut off, surprised. Hold on and the
+    song waits while the singer holds the note, reddening, until they run out of breath. Pause
+    and the choir stops to wait for you.
+  - **Judging:** each press against where the beat falls, one beat after the last, and each
+    let-go against the ring, allowing a finger's lift. Two MIDI keys can alternate with no lift.
+  - **The conductor's baton** moves with your beats through the real conducting pattern for 4/4
+    and 3/4. The display shows the tempo you're conducting at next to the piece's.
+  - **A piano plays along**, following the song: chords under the six lessons (the Slingshot's
+    rhythms, each given a tune), and the left hand of six folk songs from the piano library
+    (*Hänschen klein*, *Summ, summ, summ*, *Kuckuck*…).
+  - **Results:** every beat's length as conducted, how much longer or shorter the song ran, a tip
+    that names what went wrong (or the habit behind it), and the tune on a real staff with each
+    note coloured by its beats.
+- **Rhythm echo**: relay a canon
+  ([src/components/games/EchoGame.tsx](src/components/games/EchoGame.tsx),
+  [src/games/echo.ts](src/games/echo.ts)).
+  - **You sing the second voice.** A star sings a line; every note it sends flies to a satellite
+    halfway to Earth and arrives just as your voice, a bar or two behind, should sing it.
+  - **Hold** as it arrives and **let go** as it ends: the satellite beams it down for as long as
+    you hold, and your note sounds. Judged press and release, like the Slingshot.
+  - **The message** along the bottom is what Earth receives: a green tremolo for a note that got
+    through, a quarter rest for one let go too soon, a tofu box for one held too long.
+  - **Empty circles** are the star's free ending, which needs no relay.
+  - **Levels**: nine canon lessons, *Frère Jacques* among them, then the **Kunz canons**, read
+    from the piano catalog so every one added becomes a level. My pieces are accepted when they
+    are canons. Results show the message, the two voices with what you actually sent, and the
+    canon written out with your voice coloured.
+  - **Adding canons**: `npm run build:piano-manifest`
+    ([scripts/build-piano-manifest.mjs](scripts/build-piano-manifest.mjs)) brings
+    `piano_files.json` up to date with the folders. It keeps the existing order and adds new
+    files in name order.
+- **Groove Builder**: a drum groove from the drum library's charts, built one part at a time
+  like a looper ([src/components/games/GrooveGame.tsx](src/components/games/GrooveGame.tsx),
+  [src/games/groove.ts](src/games/groove.ts)).
+  - **The turns**: a bar counted in, then you play each part once round the wheel: kick, snare,
+    hi-hat, the rest.
+  - **What you play is what it keeps**: each part plays as you played it from then on, every tap
+    on the step it landed nearest, so a wrong step stays wrong and a missed one stays missing.
+  - **The end**: after the last part, the whole groove plays twice, with no click.
+  - **The wheel**: Simon-style pads, a ring per part and a pad per step, 16 a bar (12 in 12/8,
+    32 for two bars). The step sounding lights its column, and each pad that plays flashes. The
+    part being played has its steps outlined.
+  - **Grooves**: eleven, from rock to a six-part samba, each at a tempo that suits it.
+  - **Results**: each part as a row of the drums app's step grid, with wrong and missing steps
+    marked, and a tip naming the part that went most wrong. **Play it on the drums →** opens the
+    chart in the drums app, which can now be opened from a game.
+- **Sampled sounds for the games** (`public/games/sounds/`, 476 KB), cut by
+  [scripts/build-game-sounds.py](scripts/build-game-sounds.py) (`npm run build:game-sounds`)
+  from sound libraries of 1.6 GB, with credits in `public/games/sounds/CREDITS.md`.
+  - **The sounds:**
+    - **Slingshot:** its held note is *Nasa Space Pad*'s sonar ping, pitched, over a take-off
+      rumble.
+    - **Conductor:** the choir sings with *The Spellsinger*.
+    - **Rhythm echo:** the star is *Space Voices*' whistle, and Earth its hums.
+    - **Groove Builder:** a drum kit cut from Perseverance and InSight on Mars: SuperCam's laser
+      zapping rock for the hi-hats and rim, the rover's wheels for the kick and snare, MOXIE's hum
+      for the cowbell, and a meteoroid strike for the toms.
+  - **Every note speaks at once:**
+    - sustained notes are cut from their steady part, not their slow swell, and tuned to within a
+      few cents;
+    - drum hits peak within a few milliseconds;
+    - the MP3 padding is trimmed on load, so each sound starts within about 2 ms of its trigger.
+  - **Always sound:** without its sounds, a game keeps its synthesized voice.
+  - **Before a public release**, the three libraries' makers should give leave. The NASA
+    recordings need only credit.
+- **The Kunz canons in the piano library**: `piano/kunz_op14`, Konrad Max Kunz's short canons,
+  Op. 14, Nos. 1–7.
+- **Fix**: a text label made and dropped for every grade upset Pixi's texture pool as the
+  Conductor's scene was torn down, and blanked the tab. It happened about one run in two when
+  every note was pressed too early. Its names and grades are now plain DOM over the canvas, and
+  the crash no longer reproduces.
+- `npm run check:games` (371 checks) covers:
+  - the lessons and their notation, and every song level and its note ids;
+  - judging, including the new onset matcher;
+  - the Slingshot's geometry, and calibration;
+  - the Conductor's chords, tunes, singers and folk songs with their piano, the beats of each
+    level (rests, long notes over several holds, two notes in one), each beat's judging, the
+    song's stretch, and tips that tell an incident from a habit;
+  - canons, from a line and from two-voice pieces: every Kunz canon in the piano catalog is
+    checked strict (the seven so far: 96–100 % imitation), at the right distance, with the right
+    voice answering, its signals on time and its hollow notes only in the free ending; what
+    reaches Earth, and the tips;
+  - every groove: the kick first, hits on the wheel's grid (12, 16, 24 or 32 steps), no part
+    faster than about six taps a second; where a tap lands, a take's score, the run loop by loop,
+    the summary and tips.
+- **In the browser**, a bot on the games' own clock scored 100 % on:
+  - a Slingshot lesson, and Ode to Joy (30 notes, all coloured in the notation);
+  - a Conductor lesson (32 beats), and *Hänschen klein* with its piano (48 beats, all 38 notes
+    green), each conducted beat by beat and ending "on time";
+  - Rhythm echo's first lesson (10/10 messages through), and Kunz Canon 1 (13/13), its free
+    ending flying past as empty circles.
+
+  Other runs:
+  - Rhythm echo, *One beat each*, relayed badly on purpose: the notes let go at half length came
+    out as rests, the ones held on as tofu, and the message strip showed exactly that.
+  - Conductor, *The basses*, with one beat held on, one cut short and a pause: exactly those came
+    out as misses, the song ran 4 % long, and the tip named all three.
+  - Slingshot: letting go 150 ms early brought the tip about holding on.
+  - Groove Builder, Rock: played on every step, 100 %. Then with one kick a sixteenth late and
+    one snare skipped: the late kick stayed red on the wrong step and both gaps stayed empty
+    through the two final loops. It scored 82 %, and the tip named the kick.
+- `npm run lint` ignores build output (Tauri's bundled assets, Astro's generated types), which it
+  had started reading as source.
 
 ## 0.0.3 — 2026-09-23
 

@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { useVerovio } from '../../hooks/useVerovio';
 import { noteGrade, summarize, tip, type Grade, type NoteResult } from '../../games/judge';
 import type { RhythmLevel } from '../../games/rhythm';
+import { Notation } from './Notation';
+import { NOTATION_INK } from './ink';
 
 /**
  * After a run: how it went, one tip, and the level written out — every note
@@ -9,7 +10,7 @@ import type { RhythmLevel } from '../../games/rhythm';
  * felt, shown as it is read, so the games lead into the real thing.
  */
 
-const INK: Record<Grade, string> = { perfect: '#16a34a', good: '#0891b2', ok: '#ca8a04', miss: '#dc2626' };
+const INK: Record<Grade, string> = NOTATION_INK;
 
 export const RhythmResults: React.FC<{
     level: RhythmLevel;
@@ -22,36 +23,12 @@ export const RhythmResults: React.FC<{
 }> = ({ level, results, onRetry, onNext, onBack, onOpenInstrument }) => {
     const s = summarize(results);
     const hint = tip(s);
-    const { toolkit } = useVerovio();
-
-    const svg = useMemo(() => {
-        if (!toolkit) return null;
-        try {
-            // Up to eight bars on one line; longer levels in systems.
-            const bars = Math.round(level.length / level.beatsPerBar);
-            toolkit.setOptions({
-                scale: 42, pageWidth: bars <= 8 ? 60000 : 2400, pageHeight: 60000, adjustPageHeight: true,
-                header: 'none', footer: 'none', breaks: bars <= 8 ? 'none' : 'auto', pageMarginTop: 40, pageMarginBottom: 20,
-            });
-            toolkit.loadData(level.source.mei);
-            if (level.source.kind === 'song') {
-                toolkit.select({ measureRange: level.source.measureRange });
-                toolkit.redoLayout();
-            }
-            return toolkit.renderToSVG(1, {});
-        } catch (e) {
-            console.error('Results notation failed:', e);
-            return null;
-        }
-    }, [toolkit, level]);
-
     // Each played note in its grade's colour.
-    const css = useMemo(() => level.notes.map((n, i) => {
-        const r = results[i];
-        if (!n.id || !r) return '';
-        const c = INK[noteGrade(r)];
-        return `#${CSS.escape(n.id)} { fill: ${c}; color: ${c}; stroke: ${c}; }`;
-    }).join('\n'), [level, results]);
+    const colors = useMemo(() => {
+        const out = new Map<string, string>();
+        level.notes.forEach((n, i) => { if (n.id && results[i]) out.set(n.id, INK[noteGrade(results[i])]); });
+        return out;
+    }, [level, results]);
 
     const pct = Math.round(s.accuracy * 100);
     return (
@@ -72,15 +49,13 @@ export const RhythmResults: React.FC<{
                 </div>
                 {hint && <p style={{ margin: 0, color: '#d6d6e0', lineHeight: 1.5 }}>💡 {hint}</p>}
 
-                <div style={{ background: '#f4f4f5', borderRadius: 12, padding: '0.8rem', color: '#111' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#555', margin: '0 0 0.4rem 0.3rem' }}>
-                        This is what you just played{level.source.kind === 'song' ? ' — the melody, as written' : ''}. Each note shows how you did.
-                    </div>
-                    <style>{css}</style>
-                    {svg
-                        ? <div className="games-notation" dangerouslySetInnerHTML={{ __html: svg }} />
-                        : <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>Writing it out…</div>}
-                </div>
+                <Notation
+                    mei={level.source.mei}
+                    measureRange={level.source.kind === 'song' ? level.source.measureRange : undefined}
+                    bars={Math.round(level.length / level.beatsPerBar)}
+                    colors={colors}
+                    caption={`This is what you just played${level.source.kind === 'song' ? ' — the melody, as written' : ''}. Each note shows how you did.`}
+                />
 
                 <div style={{ display: 'flex', gap: '0.7rem', flexWrap: 'wrap' }}>
                     <button onClick={onRetry} style={ghostStyle}>↻ Again</button>

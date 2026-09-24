@@ -158,7 +158,7 @@ A **train & practice course player**: each course module pairs lesson videos wit
 | [CHANGELOG.md](CHANGELOG.md) | What each release ships — features, install channels, and the platform behaviours probed along the way. |
 | [docs/architecture.md](docs/architecture.md) | The shared engine: routing, `GameContext`, hooks, the Verovio→Pixi score pipeline, tick model, assets, stats, theming — plus the checklist for adding a new instrument. |
 | [docs/piano-app.md](docs/piano-app.md) | The Piano app (reference implementation). |
-| [docs/games.md](docs/games.md) | The Games tab: rhythm games that need no instrument — levels from lessons and library pieces, audio-clock timing and calibration, the Slingshot, results in notation. |
+| [docs/games.md](docs/games.md) | The Games tab: rhythm games that need no instrument — levels from lessons and library pieces, audio-clock timing and calibration, the Slingshot, the Conductor, Rhythm echo and its canons, the Groove Builder, results in notation. |
 | [docs/accompaniment.md](docs/accompaniment.md) | Accompaniments: a recording synced to a piece and played along in Rhythm mode — the sync maths, the sync view, playback and storage. |
 | [docs/learn-by-ear.md](docs/learn-by-ear.md) | The By ear mode (piano and saxo): additive call-and-response dictation, the veil, passages, the assessment, and the decisions behind it. |
 | [docs/drums-app.md](docs/drums-app.md) | The Drums app and how it differs from Piano. |
@@ -189,7 +189,7 @@ The application is built on a web stack trying to be optimized for low-latency a
   - **Saxophone:** monophonic wind-controller input with written-pitch transposition and breath (CC) capture
 * **Dynamic Notation Mapping:** Interactive sheet music that responds to MIDI input, providing instant visual confirmation of accuracy.
 * **Game Modes:** *Rhythm* (play along in time, scored with hit/miss windows), *Practice* (playback waits for the correct note), and on the piano and the saxophone *By ear*: hear a phrase, play it back from memory, and it grows by a note each time, with the score showing empty bars until each note has been played.
-* **Games:** short rhythm games that need no instrument — a key, a tap or a pad. The first is the *Slingshot*: hold to orbit, let go to fling, and how long you hold is the note. Lessons teach one note value at a time, songs are the melodies of real pieces from the library, and the results show the rhythm written out, each note coloured by how it was played, with a way on to play the piece on an instrument.
+* **Games:** short rhythm games that need no instrument — a key, a tap or a pad. The *Slingshot*: hold to orbit, let go to fling, and how long you hold is the note. The *Conductor*: a singer for every pitch of the tune, conducted a beat at a time — hold each beat, and the song stretches or shortens with you, a piano playing along. *Rhythm echo*: sing the second voice of a canon, the Kunz canons among them — hold each note as it reaches your satellite, and send it on to Earth. *Groove Builder*: a drum groove from the library, built one part at a time like a looper, on a Simon-style wheel of pads: what you play is what it keeps. Lessons teach one idea at a time, songs are real pieces from the library, and the results show the rhythm written out, each note coloured by how it was played, with a way on to play the piece on an instrument.
 * **Accompaniment (piano, saxo):** attach a recording to a piece (a backing track, a band, a teacher). Line it up once on its waveform, and it plays along in Rhythm mode, loops included.
 * **Loop a passage:** drag the two handles on the minimap to choose bars. They loop in Rhythm and Practice, and By ear they choose the passage to learn.
 * **Your kit's pad map (Drums):** each note a drum controller sends is assigned to a kit voice. The map starts as General MIDI and you can teach it any module's notes by hitting the pads.
@@ -252,6 +252,8 @@ Saxophone scores live in `public/saxo/` as single-staff, alto-transposed MEI fil
 npm run build:saxo               # derive saxo scores from piano MEI (drop bass, flatten chords, transpose up M6)
 npm run build:saxo-manifest      # regenerate public/saxo_files.json by scanning public/saxo/ (run after adding songs)
 npm run build:course-manifest    # regenerate the theory course manifest from public/courses/
+npm run build:piano-manifest     # bring public/piano_files.json up to date with public/piano/ (run after adding scores, e.g. Kunz canons)
+npm run build:game-sounds        # cut the games' sounds (public/games/sounds/) from the sample libraries in ../sounds (needs uv and ffmpeg)
 node scripts/build-keysig-assets.mjs  # re-engrave the circle-of-fifths key-signature assets (src/assets/keySignatures.ts)
 npm run check:jazz               # validate the saxo jazz generator (range, engraving vs MIDI, bebop downbeats)
 npm run check:drums              # validate the drums pattern generator (hit counts, Euclidean references, engraving)
@@ -260,7 +262,7 @@ npm run check:ear                # validate Learn by ear against its acceptance 
 npm run check:loop               # validate the minimap bar range (snapping, labels, by-ear passages)
 npm run check:pads               # validate the drum pad map (GM default, remapping, every bundled chart)
 npm run check:accompaniment      # validate lining a recording up with a score (offset, tempo, peaks, storage rules)
-npm run check:games              # validate the rhythm games (lessons, song levels, judging, the Slingshot's course, calibration)
+npm run check:games              # validate the rhythm games (lessons, song levels, judging, the Slingshot's course, the choir, canons, grooves, calibration)
 ```
 
 ### Local Network Access

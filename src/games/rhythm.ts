@@ -39,6 +39,9 @@ export interface RhythmLevel {
     notes: RhythmNote[];
     /** Beats, first downbeat to the level's end. */
     length: number;
+    /** The rest of the music, played along while the notes are the player's:
+     *  a song's other parts, a lesson's chords (the Conductor's piano). */
+    backing?: RhythmNote[];
     source:
         | { kind: 'lesson'; mei: string }
         | { kind: 'song'; songKey: string; instrument: 'piano' | 'saxo'; mei: string; measureRange: string };
@@ -59,8 +62,31 @@ const MEI_DUR: Record<string, { dur: string; dots?: number }> = {
     w: { dur: '1' }, 'h.': { dur: '2', dots: 1 }, h: { dur: '2' }, 'q.': { dur: '4', dots: 1 }, q: { dur: '4' }, e: { dur: '8' },
 };
 
-/** "h hr | q q q qr" → notes, checked to fill each bar exactly. */
-export function parseBars(bars: string, beatsPerBar: number, pitch = LESSON_PITCH): { notes: RhythmNote[]; length: number } {
+/** "C4" → 60, "F#3" → 54, "Bb3" → 58. */
+export function pitchOf(name: string): number {
+    const m = /^([A-Ga-g])([#b]?)(-?\d)$/.exec(name.trim());
+    if (!m) throw new Error(`Unknown pitch "${name}"`);
+    const pc = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 }[m[1].toLowerCase() as 'c'];
+    return (parseInt(m[3], 10) + 1) * 12 + pc + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+}
+
+/** "C4 E4 G4" → MIDI pitches. */
+export function tune(names: string): number[] {
+    return names.split(/[\s|]+/).filter(Boolean).map(pitchOf);
+}
+
+/** How a pitch is written: 61 → c♯4. Sharps for the black keys. */
+export function spell(midi: number): { pname: string; oct: number; accid?: 's' } {
+    const names = ['c', 'c', 'd', 'd', 'e', 'f', 'f', 'g', 'g', 'a', 'a', 'b'];
+    const pc = ((midi % 12) + 12) % 12;
+    return { pname: names[pc], oct: Math.floor(midi / 12) - 1, ...([1, 3, 6, 8, 10].includes(pc) ? { accid: 's' as const } : {}) };
+}
+
+/**
+ * "h hr | q q q qr" → notes, checked to fill each bar exactly. `pitch` is one
+ * pitch for every note, or a tune: one pitch per note, in order.
+ */
+export function parseBars(bars: string, beatsPerBar: number, pitch: number | number[] = LESSON_PITCH): { notes: RhythmNote[]; length: number } {
     const notes: RhythmNote[] = [];
     let at = 0;
     bars.split('|').forEach((bar, b) => {
@@ -70,54 +96,69 @@ export function parseBars(bars: string, beatsPerBar: number, pitch = LESSON_PITC
             const value = rest ? token.slice(0, -1) : token;
             const beats = VALUES[value];
             if (beats === undefined) throw new Error(`Unknown note value "${token}"`);
-            if (!rest) notes.push({ start: at + inBar, dur: beats, midi: pitch, id: `g-${notes.length}` });
+            if (!rest) {
+                const midi = typeof pitch === 'number' ? pitch : pitch[notes.length];
+                if (midi === undefined) throw new Error(`The tune has ${notes.length} pitches, and the rhythm more notes`);
+                notes.push({ start: at + inBar, dur: beats, midi, id: `g-${notes.length}` });
+            }
             inBar += beats;
         }
         if (Math.abs(inBar - beatsPerBar) > 1e-9) throw new Error(`Bar ${b + 1} has ${inBar} beats, not ${beatsPerBar}`);
         at += inBar;
     });
+    if (typeof pitch !== 'number' && pitch.length !== notes.length) throw new Error(`The tune has ${pitch.length} pitches for ${notes.length} notes`);
     return { notes, length: at };
 }
 
-/** A lesson's notation: one line, one note head per note, ids g-0, g-1… */
-export function lessonMei(bars: string, meter: { count: number; unit: number }): string {
+/**
+ * A lesson's notation, one note head per note, ids g-0, g-1…: on a one-line
+ * rhythm staff, or — given the tune — on a real staff at its pitches, in the
+ * clef the tune sits best in.
+ */
+export function lessonMei(bars: string, meter: { count: number; unit: number }, pitches?: number[]): string {
     let noteIndex = 0;
+    const sorted = pitches ? [...pitches].sort((a, b) => a - b) : [];
+    const treble = !pitches || sorted[Math.floor(sorted.length / 2)] >= 57;
     const measures = bars.split('|').map((bar, b) => {
         const events = bar.trim().split(/\s+/).filter(Boolean).map(token => {
             const rest = token.endsWith('r');
             const v = MEI_DUR[rest ? token.slice(0, -1) : token];
             const dots = v.dots ? ` dots="${v.dots}"` : '';
-            return rest
-                ? `<rest dur="${v.dur}"${dots}/>`
-                : `<note xml:id="g-${noteIndex++}" dur="${v.dur}"${dots} pname="c" oct="5"/>`;
+            if (rest) return `<rest dur="${v.dur}"${dots}/>`;
+            const p = pitches ? spell(pitches[noteIndex]) : { pname: 'c', oct: 5 };
+            const accid = 'accid' in p && p.accid ? ` accid="${p.accid}"` : '';
+            return `<note xml:id="g-${noteIndex++}" dur="${v.dur}"${dots} pname="${p.pname}" oct="${p.oct}"${accid}/>`;
         }).join('');
         return `<measure n="${b + 1}"><staff n="1"><layer n="1">${events}</layer></staff></measure>`;
     }).join('');
     return `<?xml version="1.0" encoding="UTF-8"?>
 <mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="5.1"><meiHead><fileDesc><titleStmt><title/></titleStmt><pubStmt/></fileDesc></meiHead>
 <music><body><mdiv><score><scoreDef meter.count="${meter.count}" meter.unit="${meter.unit}"><staffGrp>
-<staffDef n="1" lines="1" clef.shape="perc" clef.line="1"/></staffGrp></scoreDef><section>${measures}</section></score></mdiv></body></music></mei>`;
+${pitches ? `<staffDef n="1" lines="5" clef.shape="${treble ? 'G' : 'F'}" clef.line="${treble ? 2 : 4}"/>` : '<staffDef n="1" lines="1" clef.shape="perc" clef.line="1"/>'}</staffGrp></scoreDef><section>${measures}</section></score></mdiv></body></music></mei>`;
 }
 
-function lesson(id: string, title: string, detail: string, bpm: number, meter: { count: number; unit: number }, bars: string, pitch?: number): RhythmLevel {
+/** A lesson: its rhythm, and — for the games that sing it — its tune. */
+export function rhythmLesson(
+    id: string, title: string, detail: string, bpm: number, meter: { count: number; unit: number }, bars: string, pitches?: number[],
+): RhythmLevel {
     const beatsPerBar = meter.count * (4 / meter.unit);
-    const { notes, length } = parseBars(bars, beatsPerBar, pitch);
-    return { id, title, detail, bpm, beatsPerBar, meter, notes, length, source: { kind: 'lesson', mei: lessonMei(bars, meter) } };
+    const { notes, length } = parseBars(bars, beatsPerBar, pitches ?? LESSON_PITCH);
+    return { id, title, detail, bpm, beatsPerBar, meter, notes, length, source: { kind: 'lesson', mei: lessonMei(bars, meter, pitches) } };
 }
 
 /** The lesson ladder: one idea each, in order. */
 export const LESSONS: RhythmLevel[] = [
-    lesson('halves', 'Hold on', 'Half notes: hold for two beats, let go for two.', 84, { count: 4, unit: 4 },
+    rhythmLesson('halves', 'Hold on', 'Half notes: hold for two beats, let go for two.', 84, { count: 4, unit: 4 },
         'h hr | h hr | h hr | h hr | h hr | h hr | h hr | h hr'),
-    lesson('quarters', 'One beat each', 'Quarter notes, one beat long, with a breath between.', 84, { count: 4, unit: 4 },
+    rhythmLesson('quarters', 'One beat each', 'Quarter notes, one beat long, with a breath between.', 84, { count: 4, unit: 4 },
         'q qr q qr | q qr q qr | q q q qr | q q q qr | q qr q qr | q q q qr | q q q q | h hr'),
-    lesson('longs', 'The long one', 'Whole notes and halves: four beats, then two.', 88, { count: 4, unit: 4 },
+    rhythmLesson('longs', 'The long one', 'Whole notes and halves: four beats, then two.', 88, { count: 4, unit: 4 },
         'w | h hr | w | h h | w | h hr | h h | w'),
-    lesson('waltz', 'Waltz', 'Three beats to the bar: dotted halves, halves and quarters.', 100, { count: 3, unit: 4 },
+    rhythmLesson('waltz', 'Waltz', 'Three beats to the bar: dotted halves, halves and quarters.', 100, { count: 3, unit: 4 },
         'h. | h q | h. | q q qr | h. | h q | q q q | h.'),
-    lesson('eighths', 'Twice as fast', 'Eighth notes: two to a beat.', 76, { count: 4, unit: 4 },
+    rhythmLesson('eighths', 'Twice as fast', 'Eighth notes: two to a beat.', 76, { count: 4, unit: 4 },
         'e e q e e q | e e e e q qr | e e q e e q | e e e e h'),
-    lesson('dotted', 'The dot', 'A dot adds half: a dotted quarter lasts a beat and a half.', 80, { count: 4, unit: 4 },
+    rhythmLesson('dotted', 'The dot', 'A dot adds half: a dotted quarter lasts a beat and a half.', 80, { count: 4, unit: 4 },
         'q. e h | q. e q qr | q. e q. e | h hr | q. e h | q. e q qr | q. e q. e | w'),
 ];
 
@@ -127,10 +168,11 @@ export const LESSONS: RhythmLevel[] = [
  * A level from a piece: its top line (the melody — extractMelody, as in
  * Learn by ear), in beats from its first bar, up to `maxBars` bars. Each
  * note keeps its pitch and its id in the score, so the results can colour
- * the real notation.
+ * the real notation. The piece's other notes in those bars come back as the
+ * backing.
  */
 export function levelFromTimemap(timemap: TimemapData, maxBars: number): {
-    notes: RhythmNote[]; beatsPerBar: number; bars: number; length: number; bpm: number;
+    notes: RhythmNote[]; backing: RhythmNote[]; beatsPerBar: number; bars: number; length: number; bpm: number;
 } {
     const bounds = barBoundaries(timemap);
     const barCount = bounds.length - 1;
@@ -148,8 +190,20 @@ export function levelFromTimemap(timemap: TimemapData, maxBars: number): {
             id: n.id,
         }))
         .filter(n => n.dur > 0);
+    // Everything else in those bars: the accompaniment.
+    const melodyIds = new Set(notes.map(n => n.id));
+    const backing: RhythmNote[] = [];
+    for (const o of timemap.onsets) {
+        if (o.tick < start || o.tick >= end) continue;
+        for (const n of o.notes) {
+            if (n.id && melodyIds.has(n.id)) continue;
+            const dur = (Math.min(n.endTick, end) - o.tick) / TONE_PPQ;
+            if (dur > 0) backing.push({ start: (o.tick - start) / TONE_PPQ, dur, midi: n.midi, id: n.id });
+        }
+    }
     return {
         notes,
+        backing,
         beatsPerBar: barTicks / TONE_PPQ,
         bars,
         length: (end - start) / TONE_PPQ,

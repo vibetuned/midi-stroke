@@ -13,6 +13,8 @@
     "build:saxo": "node scripts/build-saxo-scores.mjs",
     "build:saxo-manifest": "node scripts/build-saxo-manifest.mjs",
     "build:course-manifest": "node scripts/build-course-manifest.mjs",
+    "build:piano-manifest": "node scripts/build-piano-manifest.mjs",
+    "build:game-sounds": "uv run scripts/build-game-sounds.py",
     "check:jazz": "node scripts/check-jazz-scales.mjs",
     "check:drums": "node scripts/check-drum-patterns.mjs",
     "check:tempo": "node scripts/check-tempo.mjs",
