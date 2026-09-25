@@ -29,7 +29,26 @@ A level is a line of notes, each a start and a length in beats. Rests are the ga
 - **Songs** come from the library. `levelFromTimemap` takes a piece's top line (the same melody
   extraction as By ear) for up to 12 bars, with each note's pitch and its id in the score. So any
   piece can become a level, and the results can colour its real notation. The first songs are
-  well-known one-line tunes from the saxophone library.
+  well-known one-line tunes from the saxophone library, and English folk tunes from its
+  `english_folk` collection (`FOLK_SONGS`, `CHOIR_FOLK_SONGS`).
+- **As written** (`writtenBars`). Verovio's timemap plays a repeat a second time (the copies'
+  ids end `-rend2`), and a repeat back to the start used to take the count-in bar the viewers add
+  with it: in *Yankee Doodle*, a silent beat in the middle of the tune. A level keeps the first
+  time through only, so it is the bars its notation shows, and `barLines` says where each begins.
+  (The viewers now give such a score a start-repeat on its first bar of music, see
+  `ensureCountInMeasure`, so their playback no longer replays the count-in either.)
+- **Counting** (`pulseOf`, `countingOf`). A level's beat is its `pulse`: a quarter, except in
+  eighth metres. 6/8 is counted in dotted quarters when they go at 50 a minute or more, and in
+  eighths ("in six") when slower. *Pop Goes the Weasel* at ♪ = 120 is conducted in six. The beats
+  are laid bar by bar from the bar lines:
+  - a pickup is counted back from the bar line after it, so an eighth before a bar of 2/4 is the
+    second half of a beat that begins before the tune;
+  - a strain that ends on a short bar, followed by a pickup that makes the bar up, is beaten
+    straight through the double bar, as a conductor would;
+  - the count-in is a bar less the pickup's beats, and a bar more when that would be under three
+    ("one two one", in on two).
+
+  The HUD shows the tempo as counted: ♩ = 96, ♪ = 120, ♩. = 72 (`tempoMark`).
 - **My pieces** are MEI files people add. A file is checked for a playable melody, then kept on the
   device as an uploaded collection of the piano library (`opfs:piano/My_pieces/…`). So it stays in
   the Games list, opens in the piano app, and can be removed from either. Without OPFS it lasts the
@@ -85,8 +104,14 @@ folds back.
 
 - **Input:** space (or Enter), a touch or a click, or any MIDI key. With a chord, the first key down
   presses and the last key up releases.
-- **Sound:** one bar of count-in, a click on every beat (accented on the downbeat), and the note
-  sounds for exactly as long as it's held. For a song, that's the note's own pitch.
+- **Sound:** a bar counted in, a click on every beat as the metre counts it (accented on the
+  downbeat), and the note sounds for exactly as long as it's held. For a song, that's the note's
+  own pitch. The arcs keep a quarter turn per quarter note, with a tick per counted beat.
+- **English folk tunes:** *God Save the King*, *Pop Goes the Weasel*, *Ham Frolick*, *Aire de
+  l'Opéra françoise* and *Auld Lang Syne*: the ones whose quickest note can still be held (a
+  sixteenth at ♩ = 100, 150 ms). *Yankee Doodle*, *Camptown Races*, *The Drunken Sailor*,
+  *Ronda* and *The British Grenadiers* have quicker ones, down to a 32nd at 94 ms, and are left
+  to the Conductor.
 - **Misses:** a strike that never comes is a miss once its window has passed. A note held too long
   is released with a missed let-go.
 - **Rendering:** Pixi. The course is drawn once; the probe, its trail, the tether and the glow are
@@ -102,6 +127,7 @@ folds back.
 
 Conduct the choir, a beat at a time. Every pitch of the tune has its singer, standing low to high,
 the way the keys of a piano run. **Each hold of the button is one beat, whatever the notes.**
+In 6/8 the beat is an eighth or a dotted quarter, as the tune goes (§2, Counting).
 While you hold, the song moves on at the piece's tempo: whoever has a note in that beat sings it,
 and the piano plays its part. Two eighths are two singers inside one hold; a half note is the
 same singer over two holds, who keeps singing through the lift between them. A ring round the
@@ -121,8 +147,8 @@ down a lane per singer, and you pressed and released as each arrived. That was t
 again. The point was for the song to depend on your beat.
 
 - **Judging, per beat** (`beatResult`, `choirBeats`):
-  - **The press** is judged against where the beat falls: for the first, the downbeat the
-    one-bar count-in leads to; after that, one beat after the previous press. So a pause is
+  - **The press** is judged against where the beat falls: for the first, the beat the count-in
+    leads to; after that, one beat after the previous press. So a pause is
     simply a late entry, and the song's stretch is the sum of the entries.
   - **The let-go** is judged against the ring closing, allowing a finger's lift (`LIFT`, 50 ms)
     so the next press can land on time. Letting go right on the ring is just as good.
@@ -140,7 +166,8 @@ again. The point was for the song to depend on your beat.
   - The bar's beats as dots over the choir.
   - The tempo you are conducting at ("yours 76") next to the piece's in the HUD.
   - The conductor, seen from behind. The baton moves with **your** beats: it lands on the ictus
-    of the pattern as you press (down, in, out, up in 4/4; down, out, up in 3/4), travels to the
+    of the pattern as you press (down, in, out, up in 4/4; down, out, up in 3/4; in six, two
+    in, two out and up), travels to the
     next while you hold, and waits there. It beats by itself only during the count-in. The left
     hand reaches out to whoever sings.
   - A word pops up only for a beat that was not perfect ("Cut short", "Held too long", "Late
@@ -176,6 +203,11 @@ again. The point was for the song to depend on your beat.
   - **Songs** are six folk songs from *first two-hand exercises*: *Hänschen klein*, *Summ, summ,
     summ*, *Kuckuck*, *Hänsel und Gretel*, *Schlaf, Kindchen*, *Gubben Noak*. Each has five
     singers and 12–16 piano notes.
+  - **English folk tunes**, a cappella: all ten of the saxophone library's `english_folk`
+    collection. They are single lines, so the choir sings alone, with six to eleven singers. The
+    quick notes are the choir's (a hold is still one beat), so the fast tunes the Slingshot leaves
+    out are here: *The British Grenadiers* has 32nds inside its beats. Each beat lasts 0.43–0.75 s
+    as written; *Pop Goes the Weasel* and *Ham Frolick* are conducted in six.
   - **My pieces** work here too.
 - **Names and grades are DOM**, laid over the canvas, not Pixi text. With a text label made and
   dropped for every grade, Pixi's shared texture pool was handed a texture it did not know as the
@@ -184,34 +216,57 @@ again. The point was for the song to depend on your beat.
   two, and with the labels moved to DOM it no longer happens. The Slingshot's pop-ups, alone on
   their canvas, survived the same test.
 
-## 6. Rhythm echo (`games/echo.ts`, `components/games/EchoGame.tsx`, `EchoResults.tsx`, `MessageStrip.tsx`)
+## 6. Rhythm echo (`games/echo.ts`, `components/games/EchoGame.tsx`, `EchoResults.tsx`, `DefenceLog.tsx`)
 
-Relay a canon. A star sings a line and you are the second voice, a bar or two behind. Every note
-the star sends flies down to a **satellite** halfway to Earth and reaches it just as your voice
-should sing it. Hold (space, a touch, any MIDI key) as it arrives and let go as it ends: the
-satellite beams it down for as long as you hold, and your note sounds. Relayed right, the two
-voices are the canon. It is judged press and release, as the Slingshot is, so length counts, not
-just when.
+Sing the second voice of a canon by defending the cities from it: a musical *Missile Command*,
+with a good ending. A star sings a line and you are the second voice, a bar or two behind. Each of
+the star's notes falls as a bolt of plasma on the **city** of its pitch, one city for every pitch
+of your voice (`citiesOf`), low on the left. The **satellite**, at the left, watches a line across
+the sky, the negative event horizon, and every bolt crosses it just as your note should start.
+Hold (space, a touch, any MIDI key) as it crosses and let go as its tail does: the city's turret
+fires at the crossing, burning the bolt away as it passes, and your note sounds for as long as you
+hold. Defended right, the two voices are the canon. It is judged press and release, as the
+Slingshot is, so length counts, not just when.
 
-The first version was call and answer: tap a rhythm back a bar later, with the signal fading on
-its way down to make it harder. Only its canons were liked; the fading felt artificial, and taps
-ignored how long a note lasts. So now every level is a canon, nothing fades, and notes are held.
+It has had three shapes. The first was call and answer: tap a rhythm back a bar later, with the
+signal fading on its way down to make it harder. Only its canons were liked; the fading felt
+artificial, and taps ignored how long a note lasts. The second relayed the canon through a
+satellite halfway to Earth, a message written along the bottom (a green tremolo for a note that
+got through, a quarter rest for one lost, a tofu box for one garbled). The third, this one, keeps
+its canons and its holds, and makes what goes wrong visible where it happens.
 
-- **The signals** (`packetsOf`): each of your notes is a packet sent a canon's distance before it
-  is due, so it reaches the satellite exactly on time. Its head is the note's start and its tail
-  its length, so the spacing of the heads is the rhythm, seen. The next one to relay is drawn
-  bolder and pulses when it arrives. What passes the satellite unsent fades on the way.
-- **Empty circles** are the star's last notes, the free ending your voice does not imitate. They
-  fly hollow and just pass: nothing to relay.
-- **The satellite** beams green to Earth while you hold, and red once you hold past the note's
-  end. Earth's dish flashes with what arrived.
-- **The message** is the strip along the bottom (`MessageStrip`): a mark for every note relayed,
-  where it falls (`messageOf`):
-  - a **green tremolo** when it got through, Perfect or Good;
-  - a **quarter rest** when it was lost: let go too soon, or never sent;
-  - a **tofu box**, the empty box of a missing character, when it was garbled: held too long.
-- **Sound.** The star is a bright FM tone in a reverb; your voice is a warm, close triangle at
-  your note's pitch, for as long as you hold.
+- **The bolts** (`packetsOf`): each of your notes is a bolt the star sings a canon's distance
+  before it is due, so its head crosses the horizon exactly on time. Its head is the note's start
+  and its trail the note's length, so the spacing of the heads is the rhythm, seen. Each flies in
+  a straight line from the star to its city's turret, coloured by the city, and the next one to
+  defend is drawn bolder.
+- **The sight.** For the next bolt the satellite draws a sight on the horizon where it will cross,
+  which closes over its last beat and a half and locks, blinking the satellite's lamp, as it
+  crosses.
+- **The turret** fires a beam from its roof to that point while you hold. What crosses the line
+  while it fires is gone; a press that is Good or better catches the head whatever the few
+  milliseconds say.
+- **What goes wrong** (`outcomeOf`):
+  - **intercepted** when the note was Perfect or Good: a green burst at the horizon;
+  - **the city** when it was never fired on or let go too soon: what got past burns orange on its
+    way down and lands with the meteoroid's thud, and flames rise from the city, more for every
+    hit;
+  - **the turret** when it was held too long: the beam reddens with the heat once the tail has
+    passed, and flames rise from the turret.
+- **The shield dome** charges as you go, "12 to go" by the HUD, the last five called out. It goes
+  up as your part ends (`domeAt`), and from then on every bolt ends on it. The star's last notes,
+  the free ending your voice doesn't imitate, fall **hollow** and burst harmlessly on the dome with
+  a bell. (A hollow bolt that comes before the dome is up fades at the horizon; in two of the Kunz
+  canons one does, in the last bar.)
+- **The ending** is always good: once the last bolt is down, the dome holds, the fires go out, the
+  lights come on in every window and fireworks go up over the cities. Then the results.
+- **Sound.** The star is *Space Voices'* whistle, far away; your voice, the turrets', its hums,
+  close, at your note's pitch, for as long as you hold. The plasma lands with the meteoroid strike
+  from the Groove's kit, pitched down; an overheated turret hisses; the dome is charged with a
+  chord.
+- **The picture** is Pixi, like the others: the ground, the cities and the horizon drawn once;
+  the bolts, beams, sight, dome, flames and fireworks each frame. Flames and smoke are particles.
+  City names and the horizon's label are DOM, as the Conductor's are.
 - **Levels.**
   - **Lessons** are nine canons, one idea each: halves and wholes a bar behind, quarters, rests,
     long notes, *Frère Jacques* as a round two bars behind, eighths, dotted rhythms, 3/4, and
@@ -227,10 +282,11 @@ ignored how long a note lasts. So now every level is a canon, nothing fades, and
   - **Adding more** (the plan is all 200): drop the MEI files in `public/piano/kunz_op14/` and
     run `npm run build:piano-manifest`, which adds them to `piano_files.json`, keeping its order.
   - **My pieces** are accepted when they are canons.
-- **Results**: what got through, was lost or came out garbled; the grades; a tip; the message as
-  Earth received it; the canon as two lanes (the star's voice above, yours below, each note as
-  written with how long you actually sent it over it); and the canon written out, your voice
-  coloured note by note. **Play both voices on the piano →** opens it.
+- **Results**: the bolts intercepted, the ones that reached a city and the turrets that
+  overheated; the grades; a tip; the defence bar by bar (`DefenceLog`: a green burst, flames on a
+  house, flames on a turret); the canon as two lanes (the star's voice above, yours below, each
+  note as written with how long you actually fired over it); and the canon written out, your
+  voice coloured note by note. **Play both voices on the piano →** opens it.
 
 ## 7. Groove Builder (`games/groove.ts`, `components/games/GrooveGame.tsx`, `GrooveResults.tsx`)
 
@@ -292,7 +348,7 @@ from libraries that weigh 1.6 GB.
 |---|---|---|
 | Slingshot | the held note: a sonar ping at the note's pitch, a take-off rumble under it | *Nasa Space Pad* (Tim Steemson), NASA recordings |
 | Conductor | the choir: six sustained notes, G♯3–D5 | *The Spellsinger* |
-| Rhythm echo | the star: a whistle; Earth: hums | *Space Voices* |
+| Rhythm echo | the star: a whistle; the turrets: hums; plasma landing on a city: the Groove's meteoroid strike | *Space Voices*; InSight on Mars |
 | Groove Builder | the kit | Perseverance and InSight on Mars (NASA/JPL-Caltech) |
 
 - **Built, not copied** (`npm run build:game-sounds`, a uv script with librosa): the source

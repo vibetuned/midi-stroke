@@ -10,18 +10,48 @@
  * one quarter rest per staff (same shape as the generated files — Verovio
  * sizes a measure by its content, so the timemap reports it as 192 ticks).
  * A notes-free first measure is treated as an already-present count-in and
- * the document is left untouched.
+ * none is added.
+ *
+ * Either way, a repeat back to the start is made to begin at the first bar
+ * of music, not at the count-in (repeatFromFirstBar).
  *
  * Uses only DOM level 2 APIs so it works with any XML DOM implementation.
- * Mutates the document in place; returns true when a measure was injected.
+ * Mutates the document in place; returns true when it changed it (a
+ * count-in injected, or a repeat's start set) — so it must be serialised again.
  */
+/**
+ * A repeat that goes back to the start of the piece goes back to its first
+ * bar of music. Verovio repeats from the very first measure — the count-in —
+ * so the timemap (and all playback) would sit through the count-in's rest
+ * again in the middle of the piece. So when the score's first repeat sign
+ * closes a repeat that nothing opened, `first` opens it: a start-repeat bar
+ * line there, as many editions print it.
+ */
+function repeatFromFirstBar(meiDoc: Document, first: Element): boolean {
+    const measures = meiDoc.getElementsByTagName('measure');
+    for (let i = 0; i < measures.length; i++) {
+        const m = measures.item(i)!;
+        const left = m.getAttribute('left'), right = m.getAttribute('right');
+        if (left === 'rptstart' || right === 'rptstart') return false;
+        if (left === 'rptend' || left === 'rptboth' || right === 'rptend' || right === 'rptboth') {
+            first.setAttribute('left', 'rptstart');
+            return true;
+        }
+    }
+    return false;
+}
+
 export function ensureCountInMeasure(meiDoc: Document): boolean {
     // DOMParser reports XML errors as a <parsererror> document, not a throw.
     if (meiDoc.getElementsByTagName('parsererror').length > 0) return false;
 
     const firstMeasure = meiDoc.getElementsByTagName('measure').item(0);
     if (!firstMeasure) return false;
-    if (firstMeasure.getElementsByTagName('note').length === 0) return false;
+    if (firstMeasure.getElementsByTagName('note').length === 0) {
+        const music = meiDoc.getElementsByTagName('measure').item(1);
+        return music ? repeatFromFirstBar(meiDoc, music) : false;
+    }
+    repeatFromFirstBar(meiDoc, firstMeasure);
 
     const ns = meiDoc.documentElement.namespaceURI;
     const countIn = meiDoc.createElementNS(ns, 'measure');

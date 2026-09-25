@@ -81,7 +81,7 @@ tk.setOptions({ header: 'none', footer: 'none', breaks: 'auto', pageWidth: 2000,
 }
 
 // ------------------------------------------------ 2. songs
-for (const song of E.SONGS) {
+for (const song of [...E.SONGS, ...E.FOLK_SONGS]) {
   const mei = readFileSync(join(ROOT, 'public', song.songKey), 'utf8');
   const dom = new DOMParser().parseFromString(mei, 'text/xml');
   E.ensureCountInMeasure(dom);
@@ -99,6 +99,14 @@ for (const song of E.SONGS) {
   const svg = tk.renderToSVG(1, {});
   const missing = lv.notes.filter(n => !svg.includes(`id="${n.id}"`));
   eq(`2. "${song.title}": every note of the level is in its bars' notation`, missing.length, 0);
+  if (E.FOLK_SONGS.includes(song)) {
+    // A repeat back to the start goes back to the first bar, not to the count-in the viewers add.
+    const countInId = [...tm.measureTicks.entries()].sort((a, b) => a[1] - b[1])[0][0];
+    ok(`2. "${song.title}": the count-in is not played again at a repeat`, ![...tm.measureTicks.keys()].some(k => k.startsWith(`${countInId}-rend`)));
+    // The Slingshot holds every note: the quickest must still be a hold (a sixteenth at 100).
+    const quickest = Math.min(...lv.notes.map(n => n.dur)) * 60 / lv.bpm;
+    ok(`2. "${song.title}": no note too quick to hold`, quickest >= 0.149, `${Math.round(quickest * 1000)} ms`);
+  }
   tk.select({});
   console.log(`   ${song.title}: ${lv.bars} bars of ${lv.beatsPerBar} beats, ${lv.notes.length} notes, ♩ = ${Math.round(lv.bpm)}`);
 }
@@ -247,8 +255,33 @@ const svgOf = (mei, measureRange) => {
   eq('7. two eighths: two notes in one hold', E.choirBeats(byId('runs'))[0].starts.length, 2);
   eq('7. a dotted quarter carries into the next beat, and the eighth starts inside it', E.choirBeats(byId('dotted')).slice(0, 2).map(b => [b.starts, b.held]), [[[0], null], [[1], 0]]);
   eq('7. the note sounding at a point of the song, or none in a rest', [E.noteAt(byId('first-voices'), 1.5), E.noteAt(byId('first-voices'), 2.5)], [0, null]);
-  const short = E.choirBeats({ notes: [{ start: 0, dur: 1.5 }], length: 1.5 });
+  const short = E.choirBeats({ notes: [{ start: 0, dur: 1.5 }], length: 1.5, beatsPerBar: 4 });
   eq('7. a short last beat is only as long as it is', short.map(b => b.length), [1, 0.5]);
+  // 6/8: counted in eighths, or in dotted quarters when quick.
+  eq('7. the counted beat: quarters in 4/4 and 2/4, eighths in 3/8 and a slow 6/8, dotted quarters in a quick 6/8 or 12/8',
+    [E.pulseOf({ count: 4, unit: 4 }, 100), E.pulseOf({ count: 2, unit: 4 }, 60), E.pulseOf({ count: 3, unit: 8 }, 100), E.pulseOf({ count: 6, unit: 8 }, 60), E.pulseOf({ count: 6, unit: 8 }, 120), E.pulseOf({ count: 12, unit: 8 }, 90)],
+    [1, 1, 0.5, 0.5, 1.5, 1.5]);
+  const jig = { notes: [{ start: 0, dur: 1 }, { start: 1, dur: 0.5 }, { start: 1.5, dur: 1 }, { start: 2.5, dur: 0.5 }], length: 3 };
+  eq('7. a bar of 6/8 in two: two holds, each a quarter and an eighth', E.choirBeats({ ...jig, beatsPerBar: 3, pulse: 1.5 }).map(b => [b.start, b.length, b.starts, b.held]), [[0, 1.5, [0, 1], null], [1.5, 1.5, [2, 3], null]]);
+  eq('7. …and in six: six holds, the quarters over two', E.choirBeats({ ...jig, beatsPerBar: 3, pulse: 0.5 }).map(b => [b.starts, b.held]), [[[0], null], [[], 0], [[1], null], [[2], null], [[], 2], [[3], null]]);
+  eq('7. the tempo as it is counted', [E.tempoMark(96), E.tempoMark(60, 0.5), E.tempoMark(108, 1.5)], ['♩ = 96', '♪ = 120', '♩. = 72']);
+  {
+    // Beats laid on the bar lines, a pickup counted back from the one after it.
+    const c = (barLines, length, beatsPerBar = 2, pulse = 1) => E.countingOf({ beatsPerBar, length, barLines, pulse });
+    const eighthUp = c([0, 0.5, 2.5], 4.5);
+    eq('7. an eighth before a bar of 2/4: its beat starts an eighth early, then a beat on every bar line', eighthUp.beats.map(b => [b.start, b.inBar, b.bar]), [[-0.5, 1, 1], [0.5, 0, 2], [1.5, 1, 2], [2.5, 0, 3], [3.5, 1, 3]]);
+    eq('7. …counted in "one two one", in on two', [eighthUp.countIn, [-3, -2, -1].map(k => eighthUp.inBar(k))], [3, [0, 1, 0]]);
+    const quarterUp = c([0, 1, 4], 7, 3);
+    eq('7. a quarter before a bar of 3/4: "one two", in on three', [quarterUp.beats[0].start, quarterUp.beats[0].inBar, quarterUp.countIn], [0, 2, 5]);
+    eq('7. no pickup: a bar counted in — two of 2/4', [c(undefined, 8, 4).countIn, c(undefined, 6, 3).countIn, c(undefined, 4, 2).countIn, c(undefined, 6, 3, 0.5).countIn], [4, 3, 4, 6]);
+    eq('7. an eighth before a bar of 6/8 in six: the pickup is a beat, five counted in', [c([0, 0.5], 3.5, 3, 0.5).beats[0].start, c([0, 0.5], 3.5, 3, 0.5).countIn], [0, 5]);
+    const strains = c([0, 1, 3, 5, 5.5, 7.5], 9.5);
+    eq('7. a strain ending on a one-beat bar, the next with an eighth pickup: the beats restart on its bar line, one of them short', strains.beats.map(b => [b.start, b.length]), [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 0.5], [5.5, 1], [6.5, 1], [7.5, 1], [8.5, 1]]);
+    const through = c([0, 0.5, 2.5, 4, 4.5, 6.5], 8.5);
+    eq('7. …ending on a bar and a half, the pickup making it up: beaten straight through the double bar', through.beats.map(b => [b.start, b.inBar, b.bar]), [[-0.5, 1, 1], [0.5, 0, 2], [1.5, 1, 2], [2.5, 0, 3], [3.5, 1, 3], [4.5, 0, 5], [5.5, 1, 5], [6.5, 0, 6], [7.5, 1, 6]]);
+    const beats = E.choirBeats({ notes: [{ start: 0, dur: 0.5 }, { start: 0.5, dur: 1 }, { start: 1.5, dur: 1 }], length: 2.5, beatsPerBar: 2, barLines: [0, 0.5] });
+    eq('7. conducting it: the first hold has the pickup in its second half, the next begins on the bar line', beats.map(b => [b.start, b.starts]), [[-0.5, [0]], [0.5, [1]], [1.5, [2]]]);
+  }
   const g = r => [r.press, r.release];
   eq('7. the first beat comes in against the count-in', g(E.beatResult(0.03, -E.LIFT)), ['perfect', 'perfect']);
   eq('7. after that, against a beat after the last press: on it, a little late, a pause', [0.02, 0.08, 0.4].map(e => E.beatResult(e, -E.LIFT).press), ['perfect', 'good', 'miss']);
@@ -286,6 +319,31 @@ const svgOf = (mei, measureRange) => {
     eq(`7. "${song.title}": every note of the tune is in its bars' notation`, lv.notes.filter(n => !svg.includes(`id="${n.id}"`)).length, 0);
     console.log(`   ${song.title}: ${lv.bars} bars, ${lv.notes.length} notes for ${singers.length} singers, ${lv.backing.length} for the piano`);
   }
+  for (const song of E.CHOIR_FOLK_SONGS) {
+    const { dom, mei, tm } = loadPiece(song.songKey);
+    const lv = E.levelFromTimemap(tm, E.SONG_LEVEL_BARS);
+    const sig = dom.getElementsByTagName('meterSig').item(0);
+    const pulse = E.pulseOf({ count: Number(sig.getAttribute('count')), unit: Number(sig.getAttribute('unit')) }, lv.bpm);
+    const level = { ...lv, pulse };
+    const beats = E.choirBeats(level);
+    const meter = E.countingOf(level);
+    const singers = E.singersOf(lv.notes, E.choirShift(lv.notes));
+    const beatSec = pulse * 60 / lv.bpm;
+    ok(`7. "${song.title}": a tune for the choir`, lv.notes.length >= 12, String(lv.notes.length));
+    eq(`7. "${song.title}": a single line — the choir sings alone`, lv.backing.length, 0);
+    ok(`7. "${song.title}": no more singers than a choir has rows for`, singers.length >= 3 && singers.length <= 12, String(singers.length));
+    ok(`7. "${song.title}": a beat a conductor can hold (0.4 to 1 s)`, beatSec >= 0.4 && beatSec <= 1, `${beatSec.toFixed(2)} s`);
+    ok(`7. "${song.title}": whole bars of beats`, Number.isInteger(lv.beatsPerBar / pulse));
+    ok(`7. "${song.title}": every downbeat on a bar line`, beats.filter(b => b.inBar === 0).every(b => lv.barLines.some(t => Math.abs(b.start - t) < 1e-6)));
+    ok(`7. "${song.title}": every full bar beaten from its bar line`, lv.barLines.every((t, i) => Math.abs((lv.barLines[i + 1] ?? lv.length) - t - lv.beatsPerBar) > 1e-6 || beats.some(b => Math.abs(b.start - t) < 1e-6 && b.inBar === 0)));
+    ok(`7. "${song.title}": the beats, end to end`, beats.every((b, k) => k === 0 || Math.abs(beats[k - 1].start + beats[k - 1].length - b.start) < 1e-6) && Math.abs(beats.at(-1).start + beats.at(-1).length - lv.length) < 1e-6);
+    ok(`7. "${song.title}": every note begins in exactly one beat`, lv.notes.every((_, i) => beats.filter(b => b.starts.includes(i)).length === 1));
+    const svg = svgOf(mei, `2-${lv.bars + 1}`);
+    eq(`7. "${song.title}": every note of the tune is in its bars' notation`, lv.notes.filter(n => !svg.includes(`id="${n.id}"`)).length, 0);
+    const pickup = lv.barLines.length > 1 && lv.barLines[1] < lv.beatsPerBar ? lv.barLines[1] : 0;
+    const short = beats.filter(b => b.length < pulse - 1e-6).length;
+    console.log(`   ${song.title}: ${lv.bars} bars${pickup ? ` (a pickup of ${pickup})` : ''}${short ? `, ${short} short beats` : ''}, ${lv.notes.length} notes for ${singers.length} singers, ${E.tempoMark(lv.bpm, pulse)} (${beats.length} beats, ${meter.countIn} counted in)`);
+  }
 }
 
 // ------------------------------------------------ 8. Rhythm echo
@@ -305,18 +363,27 @@ const svgOf = (mei, measureRange) => {
   eq('8. the lessons: a bar behind, then a round two bars behind, and two bars behind to finish', E.CANON_LESSONS.map(l => l.distance), [1, 1, 1, 1, 2, 1, 1, 1, 2]);
   eq('8. Frère Jacques: 32 notes, a round at two bars', (l => [l.answers.length, l.distance, l.bars])(E.CANON_LESSONS.find(l => l.id === 'frere-jacques')), [32, 2, 10]);
 
-  // What reaches Earth.
+  // What happened to each bolt.
   const r = (press, release, pe, re) => ({ press, release, pressError: pe, releaseError: re });
-  eq('8. perfect and good get through', [E.messageOf(r('perfect', 'perfect', 0, 0)), E.messageOf(r('good', 'perfect', 0.08, 0))], ['received', 'received']);
-  eq('8. let go too soon, or never sent: lost', [E.messageOf(r('perfect', 'ok', 0, -0.18)), E.messageOf(r('miss', 'miss', null, null)), E.messageOf(r('perfect', 'miss', 0, -0.4))], ['lost', 'lost', 'lost']);
-  eq('8. held too long, or on until the game let go: garbled', [E.messageOf(r('perfect', 'ok', 0, 0.18)), E.messageOf(r('good', 'miss', 0.06, null))], ['garbled', 'garbled']);
+  eq('8. perfect and good are intercepted', [E.outcomeOf(r('perfect', 'perfect', 0, 0)), E.outcomeOf(r('good', 'perfect', 0.08, 0))], ['intercepted', 'intercepted']);
+  eq('8. let go too soon, or never fired: down on the city', [E.outcomeOf(r('perfect', 'ok', 0, -0.18)), E.outcomeOf(r('miss', 'miss', null, null)), E.outcomeOf(r('perfect', 'miss', 0, -0.4))], ['city', 'city', 'city']);
+  eq('8. held too long, or on until the game let go: the turret overheats', [E.outcomeOf(r('perfect', 'ok', 0, 0.18)), E.outcomeOf(r('good', 'miss', 0.06, null))], ['turret', 'turret']);
   {
     const all = E.summarizeEcho(Array.from({ length: 6 }, () => r('perfect', 'perfect', 0.01, -0.01)));
-    eq('8. everything through: counted, and the tip says so', [all.received, all.lost, all.garbled, /second voice/.test(E.echoTip(all) ?? '')], [6, 0, 0, true]);
+    eq('8. everything intercepted: counted, and the tip says so', [all.intercepted, all.city, all.turret, /second voice/.test(E.echoTip(all) ?? '')], [6, 0, 0, true]);
     const early = E.summarizeEcho(Array.from({ length: 6 }, () => r('perfect', 'good', 0, -0.1)));
-    ok('8. letting go early every time gets the tip about holding until each note has passed', /let go .* early/.test(E.echoTip(early) ?? ''), E.echoTip(early));
+    ok('8. letting go early every time gets the tip about firing until the tail has crossed', /let go .* early.*tail/.test(E.echoTip(early) ?? ''), E.echoTip(early));
     const long = E.summarizeEcho(Array.from({ length: 6 }, () => r('perfect', 'good', 0, 0.1)));
-    ok('8. …and holding on, the one about garbled messages', /garbled/.test(E.echoTip(long) ?? ''), E.echoTip(long));
+    ok('8. …and holding on, the one about the turrets overheating', /overheat/.test(E.echoTip(long) ?? ''), E.echoTip(long));
+    const hits = E.summarizeEcho([r('perfect', 'perfect', 0, 0), r('miss', 'miss', null, null), r('perfect', 'perfect', 0, 0), r('miss', 'miss', null, null)]);
+    ok('8. two bolts never fired on: they reached the cities', /2 bolts reached the cities/.test(E.echoTip(hits) ?? ''), E.echoTip(hits));
+  }
+  {
+    // The cities: one a pitch of your voice, lowest on the left; the dome as your part ends.
+    const fj = E.CANON_LESSONS.find(l => l.id === 'frere-jacques');
+    eq('8. Frère Jacques: seven cities, G3 to A4, one per pitch of your voice', E.citiesOf(fj).map(c => c.name), ['G', 'C', 'D', 'E', 'F', 'G', 'A']);
+    ok('8. …the dome charged as the last note of your voice ends: the end of the round', E.domeAt(fj) === fj.bars * fj.beatsPerBar, String(E.domeAt(fj)));
+    ok('8. every bolt carries its pitch', E.CANON_LESSONS.every(l => E.packetsOf(l).every(p => typeof p.midi === 'number')));
   }
 
   // The library's canons, from the catalog — every one there is checked.
@@ -340,6 +407,9 @@ const svgOf = (mei, measureRange) => {
     const hollow = packets.filter(p => p.answer === null);
     ok(`8. "${song.title}": a signal for every note of your voice, on time`, level.answers.every((a, k) => packets.some(p => p.answer === k && Math.abs(p.arrive - a.start) < 1e-9)));
     ok(`8. "${song.title}": the hollow ones are the star's free ending`, hollow.every(p => p.emit >= (canon.bars - canon.distance - 2) * canon.beatsPerBar), hollow.map(p => p.emit).join(' '));
+    // (One that comes a little sooner fades at the horizon: the dome is not up yet.)
+    ok(`8. "${song.title}": they reach the horizon in your last bar or after, as the dome goes up`, hollow.every(p => p.arrive >= E.domeAt(level) - canon.beatsPerBar - 1e-9), `${hollow.map(p => p.arrive).join(' ')} vs ${E.domeAt(level)}`);
+    ok(`8. "${song.title}": a city for every pitch, and not too many for the ground`, E.citiesOf(level).length >= 3 && E.citiesOf(level).length <= 12, String(E.citiesOf(level).length));
     const svg = svgOf(mei, `2-${canon.bars + 1}`);
     eq(`8. "${song.title}": every note of your voice is in the notation`, canon.answers.filter(a => !svg.includes(`id="${a.id}"`)).length, 0);
     console.log(`   ${song.title}: ${canon.bars} bars, ${canon.distance} behind, ${canon.answers.length} notes to relay, ${hollow.length} hollow, imitation ${(canon.imitation * 100).toFixed(0)} %`);

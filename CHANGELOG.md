@@ -6,6 +6,50 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
+## Unreleased
+
+### Games
+
+- **Rhythm echo is now a musical Missile Command, with a good ending**
+  ([src/components/games/EchoGame.tsx](src/components/games/EchoGame.tsx)). The star's notes
+  fall as plasma bolts, each on the city of its pitch (one city per pitch of your voice). A
+  satellite at the left watches the negative event horizon, which every bolt crosses just as your
+  note should start: hold to fire the city's turret at it and let go as its tail crosses.
+  - A bolt let go too soon, or never fired on, falls on its city, and flames rise from it.
+  - One held on too long overheats the turret, and flames rise there.
+  - A countdown runs to the shield dome, charged as your part ends; the star's last notes then
+    burst harmlessly on it, the fires go out, the lights come on and fireworks go up.
+  - The results log every bolt bar by bar: intercepted, reached a city, turret overheated
+    ([src/components/games/DefenceLog.tsx](src/components/games/DefenceLog.tsx), replacing the
+    message strip). The canons, their judging and the *Space Voices* sounds stay; the plasma
+    lands with the meteoroid strike from the Groove's kit.
+- **English folk tunes** in the Slingshot and the Conductor, from the saxophone library's new
+  `english_folk` collection: five in the Slingshot, the ones whose quickest note can still be held
+  ([src/games/rhythm.ts](src/games/rhythm.ts)), and all ten in the Conductor, sung a cappella
+  ([src/games/choir.ts](src/games/choir.ts)).
+- **Counted as the metre counts** (`countingOf`, `pulseOf`): 6/8 in eighths, or in dotted quarters
+  when the tune is quick. The beats are laid on the bar lines, a pickup counted back from the bar
+  after it, and the count-in leads up to the pickup. The Conductor beats in six with its own
+  baton pattern, and both games show the tempo as counted (♪ = 120, ♩. = 72).
+- **Song levels follow the bars as written** (`writtenBars`): Verovio's timemap plays repeats a
+  second time, so a level that crossed one ran on past the bars its notation showed.
+
+### Scores
+
+- **A repeat back to the start no longer replays the count-in.** Verovio repeats from the very
+  first measure, which is the count-in the viewers add, so playback sat through its rest again in
+  the middle of the piece: seven of the ten new English folk tunes did. A score whose first repeat
+  sign closes a repeat now gets a start-repeat bar line on its first bar of music
+  ([src/utils/mei.ts](src/utils/mei.ts)).
+
+### Development
+
+- **One manifest builder** for every library: `node scripts/build-manifest.mjs <piano|saxo|drums>`
+  ([scripts/build-manifest.mjs](scripts/build-manifest.mjs)) keeps the manifest's order, drops
+  files that are gone and adds new ones. It replaces the piano and saxophone builders; the
+  saxophone one had stopped working when `@tonejs/midi` was removed. `npm run
+  build:saxo-manifest` and `build:piano-manifest` call it.
+
 ## 0.0.4 — 2026-09-25
 
 Games. A new tab of four short rhythm games that need no instrument — a key, a touch or a pad —

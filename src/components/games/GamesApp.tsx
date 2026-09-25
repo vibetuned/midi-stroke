@@ -5,8 +5,8 @@ import { ensureCountInMeasure, ensureNoteIds } from '../../utils/mei';
 import { OPFS_PREFIX, deleteOpfsSong, isOpfsSupported, listOpfsSongs, saveOpfsSong } from '../../utils/opfs';
 import { removeAccompaniment } from '../../utils/accompaniment';
 import { extractTimemap, type TimemapData } from '../../utils/timemap';
-import { LESSONS, SONGS, SONG_LEVEL_BARS, levelFromTimemap, type RhythmLevel } from '../../games/rhythm';
-import { CHOIR_LESSONS, CHOIR_SONGS, summarizeConductor } from '../../games/choir';
+import { FOLK_SONGS, LESSONS, SONGS, SONG_LEVEL_BARS, levelFromTimemap, pulseOf, type RhythmLevel } from '../../games/rhythm';
+import { CHOIR_FOLK_SONGS, CHOIR_LESSONS, CHOIR_SONGS, summarizeConductor } from '../../games/choir';
 import { CANON_LESSONS, canonFromTimemap, canonsFrom, summarizeEcho, type EchoLevel } from '../../games/echo';
 import { GROOVES, grooveFromTimemap, summarizeGroove, type GrooveLevel, type Take } from '../../games/groove';
 import { summarize, type NoteResult } from '../../games/judge';
@@ -51,26 +51,28 @@ type Screen =
     | { kind: 'groove'; level: GrooveLevel; run: number }
     | { kind: 'groove-results'; level: GrooveLevel; played: GrooveLevel; takes: Take[] };
 
-const GAMES: Record<Game, { icon: string; title: string; card: string; how: string; lessons: string; songs: string; songDetail: string }> = {
+const GAMES: Record<Game, { icon: string; title: string; card: string; how: string; lessons: string; songs: string; songDetail: string; folk: string; folkDetail: string }> = {
     slingshot: {
         icon: '🪐', title: 'Slingshot', card: 'Hold to orbit, let go to fling. How long you hold is the note.',
         how: 'Hold while a note sounds, let go when it ends.', lessons: 'Lessons — one idea each',
         songs: 'Songs — the rhythm of real pieces', songDetail: 'Its melody, from the saxophone library',
+        folk: 'English folk tunes', folkDetail: 'The tune, from the saxophone library',
     },
     conductor: {
         icon: '🎼', title: 'Conductor', card: 'A singer for every note of the tune, and you conduct them a beat at a time. Hold too long and they run out of breath; let go early and they stop.',
         how: 'Hold for one beat, let go as the ring closes.', lessons: 'Lessons — the choir learns a tune',
         songs: 'Folk songs — the choir sings, the piano plays along', songDetail: 'The tune for the choir, its left hand on the piano',
+        folk: 'English folk tunes — a cappella', folkDetail: 'The choir alone: the quick notes are theirs, the beat is yours',
     },
     echo: {
-        icon: '📡', title: 'Rhythm echo', card: 'A star sings a canon and you are its second voice: catch each note at your satellite and hold it, to send it on to Earth.',
-        how: 'Hold each note as it reaches the satellite; let go as it ends.', lessons: 'Lessons — canons, one idea each',
-        songs: '', songDetail: '',
+        icon: '🛡', title: 'Rhythm echo', card: 'A star sings a canon, and its notes fall as plasma on the cities below. Hold to fire as each crosses the horizon and let go as it ends: you are its second voice.',
+        how: 'Hold as each bolt crosses the horizon; let go as its tail does.', lessons: 'Lessons — canons, one idea each',
+        songs: '', songDetail: '', folk: '', folkDetail: '',
     },
     groove: {
         icon: '🥁', title: 'Groove Builder', card: 'Kick, snare, hi-hat: build a groove one part at a time, like a looper. What you play is what it keeps.',
         how: 'Play each part once round the wheel; it keeps playing as you played it.', lessons: 'Grooves — from the drum library',
-        songs: '', songDetail: '',
+        songs: '', songDetail: '', folk: '', folkDetail: '',
     },
 };
 /** Best results are kept per game, level and speed. */
@@ -89,12 +91,18 @@ type GrooveEntry = typeof GROOVES[number];
 /** "Für_Elise-2.mei" → "Für Elise 2" */
 const titleOf = (fileName: string) => fileName.replace(/\.mei$/i, '').replace(/[_-]+/g, ' ').trim() || 'My piece';
 
-/** A score's metre, in quarter-note beats a bar, and its pulse (a dotted quarter in 6/8, 12/8). */
-function meterOf(dom: Document): { beatsPerBar: number; pulse: number } {
+/** A score's time signature. */
+function timeSignatureOf(dom: Document): { count: number; unit: number } {
     const sig = dom.getElementsByTagName('meterSig').item(0);
     const def = dom.getElementsByTagName('scoreDef').item(0);
     const count = parseInt(sig?.getAttribute('count') ?? def?.getAttribute('meter.count') ?? '4', 10) || 4;
     const unit = parseInt(sig?.getAttribute('unit') ?? def?.getAttribute('meter.unit') ?? '4', 10) || 4;
+    return { count, unit };
+}
+
+/** A score's metre, in quarter-note beats a bar, and its pulse (a dotted quarter in 6/8, 12/8). */
+function meterOf(dom: Document): { beatsPerBar: number; pulse: number } {
+    const { count, unit } = timeSignatureOf(dom);
     return { beatsPerBar: count * 4 / unit, pulse: unit === 8 && count % 3 === 0 ? 1.5 : 1 };
 }
 
@@ -162,9 +170,11 @@ export const GamesApp: React.FC<{
     };
 
     /** A piece as a line of notes: its melody, the opening bars, the rest of it as the backing. */
-    const rhythmLevelFor = (song: SongEntry, { mei, timemap }: Prepared): RhythmLevel | null => {
+    const rhythmLevelFor = (song: SongEntry, { mei, dom, timemap }: Prepared): RhythmLevel | null => {
         const lv = levelFromTimemap(timemap, SONG_LEVEL_BARS);
         if (lv.notes.length < 2) return null;
+        // Counted as its metre counts: 6/8 in eighths, or in dotted quarters when it goes fast.
+        const pulse = pulseOf(timeSignatureOf(dom), lv.bpm);
         return {
             id: `song:${song.songKey}`,
             title: song.title,
@@ -172,6 +182,8 @@ export const GamesApp: React.FC<{
             bpm: Math.round(lv.bpm),
             beatsPerBar: lv.beatsPerBar,
             meter: { count: lv.beatsPerBar, unit: 4 },
+            ...(pulse !== 1 && { pulse }),
+            barLines: lv.barLines,
             notes: lv.notes,
             length: lv.length,
             backing: lv.backing,
@@ -306,6 +318,7 @@ export const GamesApp: React.FC<{
 
     const info = GAMES[game];
     const songList: SongEntry[] = game === 'conductor' ? CHOIR_SONGS : SONGS;
+    const folkList: SongEntry[] = game === 'conductor' ? CHOIR_FOLK_SONGS : FOLK_SONGS;
     const busy = !toolkit || loading !== null;
     const toLevels = () => setScreen({ kind: 'levels' });
 
@@ -407,6 +420,15 @@ export const GamesApp: React.FC<{
                                                 <LevelRow
                                                     key={s.songKey} n={i + 1} title={s.title}
                                                     detail={loading === s.songKey ? 'Opening…' : info.songDetail}
+                                                    best={getBest(bestKey(`song:${s.songKey}`))?.stars ?? null}
+                                                    onPlay={() => void openSong(s)} disabled={busy}
+                                                />
+                                            ))}
+                                            <h3 style={{ ...sectionStyle, marginTop: '1.2rem' }}>{info.folk}</h3>
+                                            {folkList.map((s, i) => (
+                                                <LevelRow
+                                                    key={s.songKey} n={i + 1} title={s.title}
+                                                    detail={loading === s.songKey ? 'Opening…' : info.folkDetail}
                                                     best={getBest(bestKey(`song:${s.songKey}`))?.stars ?? null}
                                                     onPlay={() => void openSong(s)} disabled={busy}
                                                 />

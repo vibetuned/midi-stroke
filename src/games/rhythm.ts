@@ -1,6 +1,5 @@
 import type { TimemapData } from '../utils/timemap';
 import { TONE_PPQ } from '../utils/timemap';
-import { barBoundaries } from '../utils/loopRange';
 import { extractMelody } from '../utils/earTraining';
 
 /**
@@ -36,6 +35,19 @@ export interface RhythmLevel {
     beatsPerBar: number;
     /** Beat unit of the time signature, for the notation. */
     meter: { count: number; unit: number };
+    /**
+     * The beat as it is counted and conducted, in quarter notes: 1 unless
+     * the metre says otherwise — in 6/8 an eighth (0.5), or a dotted
+     * quarter (1.5) when the tune goes fast enough to feel two in a bar
+     * (pulseOf).
+     */
+    pulse?: number;
+    /**
+     * Where each bar begins, in quarter notes from the level's start, as
+     * written: a song's first bar may be a pickup, and a strain may end or
+     * begin with a short one. Without it, bars of beatsPerBar from 0.
+     */
+    barLines?: number[];
     notes: RhythmNote[];
     /** Beats, first downbeat to the level's end. */
     length: number;
@@ -165,49 +177,75 @@ export const LESSONS: RhythmLevel[] = [
 // ------------------------------------------------------------- songs
 
 /**
+ * The bars of a piece as written, in ticks: where each is in the timemap,
+ * and where it falls once the repeats are left out. Verovio's timemap plays
+ * a repeat a second time (the copies' ids end "-rend2") — and a repeat that
+ * goes back to the start takes the count-in bar the viewers add with it. A
+ * level follows the notation, so it keeps the first time through only. The
+ * count-in itself is left out, as barBoundaries leaves it out.
+ */
+export function writtenBars(timemap: TimemapData): Array<{ from: number; to: number; at: number }> {
+    const starts = [...timemap.measureTicks.entries()].sort((a, b) => a[1] - b[1]);
+    const out: Array<{ from: number; to: number; at: number }> = [];
+    let at = 0;
+    starts.forEach(([id, from], i) => {
+        const to = starts[i + 1]?.[1] ?? timemap.totalTicks;
+        if (i === 0 && starts.length > 1) return;
+        if (/-rend\d+$/.test(id) || to <= from) return;
+        out.push({ from, to, at });
+        at += to - from;
+    });
+    return out;
+}
+
+/**
  * A level from a piece: its top line (the melody — extractMelody, as in
- * Learn by ear), in beats from its first bar, up to `maxBars` bars. Each
- * note keeps its pitch and its id in the score, so the results can colour
- * the real notation. The piece's other notes in those bars come back as the
- * backing.
+ * Learn by ear), in beats from its first bar, up to `maxBars` bars as
+ * written (writtenBars). Each note keeps its pitch and its id in the score,
+ * so the results can colour the real notation. The piece's other notes in
+ * those bars come back as the backing, and `barLines` says where each bar
+ * begins (a first bar shorter than the rest is a pickup).
  */
 export function levelFromTimemap(timemap: TimemapData, maxBars: number): {
-    notes: RhythmNote[]; backing: RhythmNote[]; beatsPerBar: number; bars: number; length: number; bpm: number;
+    notes: RhythmNote[]; backing: RhythmNote[]; beatsPerBar: number; bars: number; length: number; bpm: number; barLines: number[];
 } {
-    const bounds = barBoundaries(timemap);
-    const barCount = bounds.length - 1;
-    const bars = Math.min(maxBars, barCount);
-    const start = bounds[0];
-    const end = bounds[bars];
+    const all = writtenBars(timemap);
+    const kept = all.slice(0, maxBars);
+    const end = kept.length ? kept[kept.length - 1].at + kept[kept.length - 1].to - kept[kept.length - 1].from : 0;
     // The bar length of a full bar (the first may be a pickup).
-    const barTicks = barCount > 1 ? bounds[2] - bounds[1] : bounds[1] - bounds[0];
-    const notes = extractMelody(timemap, 1)
-        .filter(n => n.tick >= start && n.tick < end)
-        .map(n => ({
-            start: (n.tick - start) / TONE_PPQ,
-            dur: (Math.min(n.endTick, end) - n.tick) / TONE_PPQ,
-            midi: n.midi,
-            id: n.id,
-        }))
-        .filter(n => n.dur > 0);
+    const barTicks = all.length > 1 ? all[1].to - all[1].from : all.length ? all[0].to - all[0].from : TONE_PPQ * 4;
+    /** A tick of the timemap, as written — or null outside the kept bars. */
+    const place = (tick: number): number | null => {
+        const bar = kept.find(b => tick >= b.from && tick < b.to);
+        return bar ? bar.at + tick - bar.from : null;
+    };
+    const notes: RhythmNote[] = [];
+    for (const n of extractMelody(timemap, 1)) {
+        const at = place(n.tick);
+        if (at === null) continue;
+        const dur = (Math.min(at + n.endTick - n.tick, end) - at) / TONE_PPQ;
+        if (dur > 0) notes.push({ start: at / TONE_PPQ, dur, midi: n.midi, id: n.id });
+    }
     // Everything else in those bars: the accompaniment.
     const melodyIds = new Set(notes.map(n => n.id));
     const backing: RhythmNote[] = [];
     for (const o of timemap.onsets) {
-        if (o.tick < start || o.tick >= end) continue;
+        const at = place(o.tick);
+        if (at === null) continue;
         for (const n of o.notes) {
             if (n.id && melodyIds.has(n.id)) continue;
-            const dur = (Math.min(n.endTick, end) - o.tick) / TONE_PPQ;
-            if (dur > 0) backing.push({ start: (o.tick - start) / TONE_PPQ, dur, midi: n.midi, id: n.id });
+            const dur = (Math.min(at + n.endTick - o.tick, end) - at) / TONE_PPQ;
+            if (dur > 0) backing.push({ start: at / TONE_PPQ, dur, midi: n.midi, id: n.id });
         }
     }
     return {
         notes,
         backing,
         beatsPerBar: barTicks / TONE_PPQ,
-        bars,
-        length: (end - start) / TONE_PPQ,
+        bars: kept.length,
+        length: end / TONE_PPQ,
         bpm: timemap.tempo?.initial?.bpm ?? 96,
+        barLines: kept.map(b => b.at / TONE_PPQ),
     };
 }
 
@@ -219,6 +257,113 @@ export const SONGS: Array<{ songKey: string; title: string; instrument: 'saxo' |
     { songKey: 'saxo/public_domain/014_Skandinavisches_Volkslied_-_Gubben_Noak.mei', title: 'Gubben Noak', instrument: 'saxo' },
     { songKey: 'saxo/public_domain/Scarborough Fair.mei', title: 'Scarborough Fair', instrument: 'saxo' },
 ];
+
+/** A tune from the English folk collection of the saxophone library. */
+export const folkSong = (file: string, title: string) => ({ songKey: `saxo/english_folk/${file}.mei`, title, instrument: 'saxo' as const });
+
+/**
+ * English folk tunes for the Slingshot: the ones whose quickest notes can
+ * still be held one by one (a sixteenth at 100 is the quickest).
+ */
+export const FOLK_SONGS = [
+    folkSong('1770_God Save the King. BC.02', 'God Save the King'),
+    folkSong('1875_Pop Goes the Weasel  WES.044', 'Pop Goes the Weasel'),
+    folkSong('1795_Ham Frolick. VWMLa.166', 'Ham Frolick'),
+    folkSong("1825_Aire de l'Opera Francoise JBut.485", "Aire de l'Opéra françoise"),
+    folkSong('1834_Auld Lang Syne. BF12.25', 'Auld Lang Syne'),
+];
+
+/**
+ * The beat of a metre, as it is counted, in quarter notes (see
+ * RhythmLevel.pulse). Compound metres (6/8, 9/8, 12/8) count dotted
+ * quarters when those go at 50 a minute or more, and eighths — "in six" —
+ * when slower; other eighth metres count eighths. The rest count quarters,
+ * as the lessons do.
+ */
+export function pulseOf(meter: { count: number; unit: number }, bpm: number): number {
+    if (meter.unit !== 8) return 1;
+    if (meter.count % 3 === 0 && meter.count > 3 && bpm / 1.5 >= 50) return 1.5;
+    return 0.5;
+}
+
+/** "♩ = 96", or in 6/8 "♪ = 120", "♩. = 72": the counted beat and its tempo, from quarters a minute. */
+export function tempoMark(bpm: number, pulse = 1): string {
+    const note = pulse === 0.5 ? '♪' : pulse === 1.5 ? '♩.' : '♩';
+    return `${note} = ${Math.round(bpm / pulse)}`;
+}
+
+/** A beat of a level, as it is counted. */
+export interface CountedBeat {
+    /** Quarter notes from the level's start (the first may be before it: see countingOf). */
+    start: number;
+    /** Quarter notes: the pulse, or less at the end of a short bar. */
+    length: number;
+    /** Where it is in its bar, 0 for the downbeat. */
+    inBar: number;
+    /** The written bar it begins in, from 1. */
+    bar: number;
+}
+
+/** How a level is counted: its beats, laid on its bar lines. */
+export interface Counting {
+    /** The beat, in quarter notes. */
+    pulse: number;
+    /** Beats in a full bar. */
+    beatsPerBar: number;
+    /**
+     * Every beat, bar by bar from each bar line. A pickup is counted back
+     * from the bar line after it, so an eighth before a bar of 2/4 is the
+     * second half of a beat that begins before the level does.
+     */
+    beats: CountedBeat[];
+    /** Beats to count in before the first: a bar, less the pickup's beats; a bar more when that is under three. */
+    countIn: number;
+    /** Where the k-th beat is in its bar — counting on before the first (the count-in, k < 0) and after the last. */
+    inBar(k: number): number;
+    bars: number;
+}
+
+export function countingOf(level: Pick<RhythmLevel, 'beatsPerBar' | 'length' | 'pulse' | 'barLines'>): Counting {
+    const eps = 1e-6;
+    const pulse = level.pulse ?? 1;
+    const barQ = level.beatsPerBar > 0 ? level.beatsPerBar : level.length;
+    const beatsPerBar = Math.max(1, Math.round(barQ / pulse));
+    const written = level.barLines ?? Array.from({ length: Math.max(1, Math.ceil(level.length / barQ - eps)) }, (_, b) => b * barQ);
+    const endOf = (lines: number[], b: number) => (b + 1 < lines.length ? lines[b + 1] : level.length);
+    // A strain that ends on a short bar and a next one whose pickup makes it up (a bar and a half of
+    // 2/4, then an eighth): counted as one bar, as a conductor beats through the double bar.
+    const lines = written.filter((from, b) => !(b >= 2 && from - written[b - 1] < barQ - eps && endOf(written, b) - from < barQ - eps
+        && endOf(written, b) - written[b - 1] <= barQ + eps));
+    /** The written bar a point is in, from 1. */
+    const barAt = (pos: number) => Math.max(1, written.filter(t => t <= pos + eps).length);
+    const beats: CountedBeat[] = [];
+    let pickupBeats = 0;
+    lines.forEach((from, b) => {
+        const to = endOf(lines, b);
+        if (to <= from + eps) return;
+        const n = Math.ceil((to - from) / pulse - eps);
+        if (b === 0 && lines.length > 1 && to - from < barQ - eps) {
+            // A pickup: its beats end on the bar line, as the bar's last ones.
+            pickupBeats = n;
+            for (let k = n; k >= 1; k--) beats.push({ start: to - k * pulse, length: pulse, inBar: Math.max(0, beatsPerBar - k), bar: 1 });
+            return;
+        }
+        for (let k = 0; k < n; k++) {
+            const start = from + k * pulse;
+            beats.push({ start, length: Math.min(pulse, to - start), inBar: k, bar: barAt(start) });
+        }
+    });
+    let countIn = beatsPerBar - pickupBeats;
+    while (countIn < 3) countIn += beatsPerBar;
+    const wrap = (i: number) => ((i % beatsPerBar) + beatsPerBar) % beatsPerBar;
+    const inBar = (k: number) => {
+        if (beats.length === 0) return wrap(k);
+        if (k < 0) return wrap(beats[0].inBar + k);
+        if (k >= beats.length) return wrap(beats[beats.length - 1].inBar + k - beats.length + 1);
+        return beats[k].inBar;
+    };
+    return { pulse, beatsPerBar, beats, countIn, inBar, bars: written.filter(t => t < level.length - eps).length || 1 };
+}
 
 /** Bars a song level covers: the whole piece when it is short, else the opening. */
 export const SONG_LEVEL_BARS = 12;

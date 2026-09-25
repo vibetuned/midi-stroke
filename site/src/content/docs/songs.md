@@ -44,7 +44,9 @@ Earlier versions required every score to start with a special "measure zero"
 count-in). **That's no longer needed**: if the first measure of an imported
 score contains actual notes, the app injects the count-in measure
 automatically at load time, for single files and ZIP imports alike. Scores
-that already have a notes-free first measure load unchanged.
+that already have a notes-free first measure keep it. If the first repeat of a
+score goes back to the start, the app marks its first bar with a start-repeat
+bar line, so a repeat never plays the count-in again.
 
 Beyond that, any MEI that Verovio can render works — including scores
 exported from MusicXML converters. Ties, pickup measures, meter changes and

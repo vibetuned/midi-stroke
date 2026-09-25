@@ -70,7 +70,7 @@ export const ConductorResults: React.FC<{
                     </div>
                     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', display: 'block' }} role="img" aria-label="How long every beat was held">
                         <rect x={pad} y={y(0.07)} width={W - 2 * pad} height={y(-0.07) - y(0.07)} fill="rgba(74,222,128,0.08)" />
-                        {beats.map((b, k) => b.start % level.beatsPerBar === 0 && (
+                        {beats.map((b, k) => b.inBar === 0 && (
                             <line key={`b${k}`} x1={x(k)} x2={x(k)} y1={8} y2={H - 8} stroke="rgba(255,255,255,0.1)" />
                         ))}
                         <line x1={pad} x2={W - pad} y1={H / 2} y2={H / 2} stroke="rgba(255,255,255,0.35)" />
@@ -98,7 +98,7 @@ export const ConductorResults: React.FC<{
                 <Notation
                     mei={level.source.mei}
                     measureRange={level.source.kind === 'song' ? level.source.measureRange : undefined}
-                    bars={Math.round(level.length / level.beatsPerBar)}
+                    bars={beats[beats.length - 1]?.bar ?? 1}
                     colors={colors}
                     caption="The tune you conducted, as written. Each note is coloured by the beats it sounds in."
                 />

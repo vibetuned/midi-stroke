@@ -1,10 +1,11 @@
 import { PRESS, RELEASE, grade, noteGrade, summarize, type Grade, type NoteResult, type Summary, type Windows } from './judge';
-import { rhythmLesson, tune, type RhythmLevel, type RhythmNote } from './rhythm';
+import { countingOf, folkSong, rhythmLesson, tune, type CountedBeat, type RhythmLevel, type RhythmNote } from './rhythm';
 
 /**
  * The Conductor — conduct the choir, a beat at a time. Every pitch of the
  * tune has its singer, standing low to high like the keys of a piano. Each
- * hold of the button is one beat, whatever the notes: while you hold, the
+ * hold of the button is one beat (in 6/8 an eighth, or a dotted quarter
+ * when the tune is quick: RhythmLevel.pulse), whatever the notes: while you hold, the
  * song moves on at the piece's tempo and whoever has a note in that beat
  * sings it — two eighths, two singers; a half note, the same singer over
  * two holds. A ring on the singer fills as the beat goes by: let go as it
@@ -104,6 +105,24 @@ export const CHOIR_SONGS: Array<{ songKey: string; title: string; instrument: 'p
     { songKey: 'piano/first_two_hand_exercises/014_Skandinavisches_Volkslied_-_Gubben_Noak.mei', title: 'Gubben Noak', instrument: 'piano' },
 ];
 
+/**
+ * English folk tunes, sung a cappella: a single line, so the choir alone.
+ * The choir sings the quick notes itself — a hold is still one beat — so
+ * the fast tunes the Slingshot leaves out are here.
+ */
+export const CHOIR_FOLK_SONGS = [
+    folkSong('1770_God Save the King. BC.02', 'God Save the King'),
+    folkSong('1834_Auld Lang Syne. BF12.25', 'Auld Lang Syne'),
+    folkSong('1953_Drunken Sailor,The. FTB.148', 'The Drunken Sailor'),
+    folkSong('1875_Pop Goes the Weasel  WES.044', 'Pop Goes the Weasel'),
+    folkSong('1875_Yankee Doodle WES.057', 'Yankee Doodle'),
+    folkSong('1875_Camptown Races WES.046', 'Camptown Races'),
+    folkSong('1795_Ham Frolick. VWMLa.166', 'Ham Frolick'),
+    folkSong('1810_British Grenadiers. RH.171', 'The British Grenadiers'),
+    folkSong('1820_Ronda. ST.06', 'Ronda'),
+    folkSong("1825_Aire de l'Opera Francoise JBut.485", "Aire de l'Opéra françoise"),
+];
+
 // ------------------------------------------------------------- the choir
 
 export interface Singer {
@@ -143,12 +162,8 @@ export function singersOf(notes: RhythmNote[], shift = 0): Singer[] {
 
 // ------------------------------------------------------------- conducting, a beat at a time
 
-/** A beat of the level, and what the tune does in it. */
-export interface ChoirBeat {
-    /** Beats from the first downbeat. */
-    start: number;
-    /** Its length in beats: 1, or less for a short last beat. */
-    length: number;
+/** A beat of the level (as countingOf lays them on its bar lines), and what the tune does in it. */
+export interface ChoirBeat extends CountedBeat {
     /** Tune notes that begin in this beat, in order. */
     starts: number[];
     /** The tune note already sounding as the beat begins (begun in an earlier beat), or null. */
@@ -158,16 +173,15 @@ export interface ChoirBeat {
 /** Every beat of a level, the rests included: a conductor beats through them too. */
 export function choirBeats(level: RhythmLevel): ChoirBeat[] {
     const eps = 1e-6;
-    const count = Math.max(1, Math.ceil(level.length - eps));
-    return Array.from({ length: count }, (_, k) => {
-        const start = k, end = Math.min(k + 1, level.length);
+    return countingOf(level).beats.map(beat => {
+        const end = beat.start + beat.length;
         const starts: number[] = [];
         let held: number | null = null;
         level.notes.forEach((n, i) => {
-            if (n.start >= start - eps && n.start < end - eps) starts.push(i);
-            else if (n.start < start - eps && n.start + n.dur > start + eps) held = i;
+            if (n.start >= beat.start - eps && n.start < end - eps) starts.push(i);
+            else if (n.start < beat.start - eps && n.start + n.dur > beat.start + eps) held = i;
         });
-        return { start, length: end - start, starts, held };
+        return { ...beat, starts, held };
     });
 }
 

@@ -5,9 +5,9 @@ import { useMidiNotes } from '../../hooks/useMidi';
 import { heardAt, heardNow, scheduleNow } from '../../games/clock';
 import { getLatency } from '../../games/latency';
 import { PRESS, noteGrade, type Grade, type NoteResult } from '../../games/judge';
-import type { RhythmLevel, RhythmNote } from '../../games/rhythm';
+import { countingOf, tempoMark, type RhythmLevel, type RhythmNote } from '../../games/rhythm';
 import { HOLD, LIFT, beatResult, choirBeats, choirShift, noteAt, singersOf, type Singer } from '../../games/choir';
-import { GRADE_HEX } from './ink';
+import { GRADE_HEX, mix, voiceColor } from './ink';
 import { SOUNDS, preload, sampler } from './sounds';
 
 /**
@@ -33,28 +33,13 @@ const MAX_LIFT = 0.35;
 const SKIN = [0xf1c27d, 0xe0ac69, 0xc68642, 0x8d5524, 0xffdbac, 0xd9a07a];
 const HAIR = [0x2c1b10, 0x6b3e26, 0xd9a441, 0x1c1c1c, 0xa33b20, 0x9ca3af, 0x4a2c1a];
 
-/** A voice's colour: low voices deep violet, through teal and green, to gold for the highest. */
-function voiceColor(height: number): number {
-    const h = (265 - height * 225) / 360, s = 0.72, l = 0.6;
-    const f = (n: number) => {
-        const k = (n + h * 12) % 12;
-        const a = s * Math.min(l, 1 - l);
-        return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))));
-    };
-    return (f(0) << 16) | (f(8) << 8) | f(4);
-}
-
-/** Two colours mixed, `t` of the way from a to b. */
-function mix(a: number, b: number, t: number): number {
-    const c = (sh: number) => Math.round(((a >> sh) & 255) * (1 - t) + ((b >> sh) & 255) * t);
-    return (c(16) << 16) | (c(8) << 8) | c(0);
-}
-
 /** The conductor's beat patterns — where the baton lands on each beat (x, y down). */
 function beatPattern(beats: number): Array<[number, number]> {
     if (beats === 4) return [[0, 1], [-1, 0.55], [1, 0.6], [0.15, -0.9]];
     if (beats === 3) return [[0, 1], [1, 0.55], [0.15, -0.9]];
     if (beats === 2) return [[0, 1], [0.15, -0.9]];
+    // In six: down, two to the left, across, two to the right, up.
+    if (beats === 6) return [[0, 1], [-0.55, 0.75], [-1, 0.55], [0.7, 0.6], [1.15, 0.55], [0.15, -0.9]];
     return Array.from({ length: Math.max(1, Math.round(beats)) }, (_, k) => (k % 2 === 0 ? [0, 1] : [0.15, -0.9]) as [number, number]);
 }
 
@@ -135,7 +120,11 @@ export const ConductorGame: React.FC<{
     const namesRef = useRef<HTMLDivElement>(null);
     const popLayerRef = useRef<HTMLDivElement>(null);
     const bpm = level.bpm * tempoScale;
-    const beatSec = 60 / bpm;
+    /** A quarter note, which the level's positions count; and the beat, which you conduct (an eighth or a dotted quarter in 6/8). */
+    const quarterSec = 60 / bpm;
+    const meter = useMemo(() => countingOf(level), [level]);
+    const { pulse } = meter;
+    const beatSec = quarterSec * pulse;
     const beats = useMemo(() => choirBeats(level), [level]);
     const shift = useMemo(() => choirShift(level.notes), [level]);
     const singers = useMemo(() => singersOf(level.notes, shift), [level, shift]);
@@ -253,10 +242,13 @@ export const ConductorGame: React.FC<{
             volume: -15,
         }).toDestination();
         audio.current = { choir: voice, piano, tick, nodes: [...nodes, click, accent, tick, piano] };
-        // One bar counted in at the piece's tempo; the first beat comes in on the next one.
+        // A bar counted in at the piece's tempo (up to the pickup, if it has one); the first beat comes in on the next one.
         const t0 = scheduleNow() + LEAD_SECONDS;
-        for (let k = 0; k < level.beatsPerBar; k++) (k === 0 ? accent : click).triggerAttackRelease(k === 0 ? 'C7' : 'G6', 0.02, t0 + k * beatSec);
-        p.downbeat = t0 + level.beatsPerBar * beatSec;
+        for (let k = 0; k < meter.countIn; k++) {
+            const down = meter.inBar(k - meter.countIn) === 0;
+            (down ? accent : click).triggerAttackRelease(down ? 'C7' : 'G6', 0.02, t0 + k * beatSec);
+        }
+        p.downbeat = t0 + meter.countIn * beatSec;
         p.started = true;
         setHud(h => ({ ...h, started: true }));
     };
@@ -277,7 +269,7 @@ export const ConductorGame: React.FC<{
                 return;
             }
         } else {
-            entry = heard - (p.presses[p.presses.length - 1] + beats[p.k - 1].length * beatSec);
+            entry = heard - (p.presses[p.presses.length - 1] + beats[p.k - 1].length * quarterSec);
         }
         p.holding = true;
         p.holder = holder;
@@ -287,14 +279,14 @@ export const ConductorGame: React.FC<{
         p.pos = beats[p.k].start;
         soundAt(p.pos);
         // The ring closes a beat from now: tick then.
-        audio.current?.tick.triggerAttackRelease('E6', 0.03, Tone.now() + beats[p.k].length * beatSec);
+        audio.current?.tick.triggerAttackRelease('E6', 0.03, Tone.now() + beats[p.k].length * quarterSec);
     };
 
     function release(heard: number, holder: string | number | null) {
         const p = play.current;
         if (!p.holding || holder !== p.holder) return;
         const k = p.k, b = beats[k];
-        const hold = (heard - p.pressAt) - b.length * beatSec;
+        const hold = (heard - p.pressAt) - b.length * quarterSec;
         const r = beatResult(p.entry, hold);
         const early = hold + LIFT < -HOLD.good, late = hold + LIFT > HOLD.good;
         const entry = p.entry ?? 0;
@@ -453,14 +445,16 @@ export const ConductorGame: React.FC<{
             let lastCountIn = 0;
             let landedAt = -1;
             let landedBeat = -1;
-            const pattern = beatPattern(level.beatsPerBar);
+            const pattern = beatPattern(meter.beatsPerBar);
+            /** Where the baton lands for the k-th beat (count-in beats are negative). */
+            const landing = (k: number) => pattern[meter.inBar(k) % pattern.length];
 
             app.ticker.add(() => {
                 if (app.screen.width !== W || app.screen.height !== H) relayout();
                 const p = play.current;
                 const heard = heardNow();
                 const wall = performance.now();
-                const target = p.k < beats.length ? beats[p.k].length * beatSec : beatSec;
+                const target = p.k < beats.length ? beats[p.k].length * quarterSec : beatSec;
 
                 // The song moves on while a beat is held, at the piece's tempo — up to the end of the beat.
                 let progress = 0, over = 0;
@@ -499,8 +493,8 @@ export const ConductorGame: React.FC<{
 
                 // The bar's beats, over the choir: done, and the one being held filling.
                 counter.clear();
-                const bpb = level.beatsPerBar;
-                const inBar = Math.min(p.k, beats.length - 1) % bpb;
+                const bpb = meter.beatsPerBar;
+                const inBar = meter.inBar(Math.min(p.k, beats.length - 1));
                 const barLeft = W / 2 - ((bpb - 1) / 2) * 34;
                 const cyC = Math.max(58, headY - 110 * sc);
                 for (let i = 0; i < bpb; i++) {
@@ -591,15 +585,14 @@ export const ConductorGame: React.FC<{
                 const ms = Math.max(0.6, Math.min(1.2, H / 700));
                 const cx = W / 2, base = H;
                 const sR = { x: cx + 44 * ms, y: base - 50 * ms }, sL = { x: cx - 44 * ms, y: base - 50 * ms };
-                const idx = (m: number) => ((m % pattern.length) + pattern.length) % pattern.length;
-                let from = pattern[idx(p.k)], to = from, ph = 0, bounce = 0, poised = 0;
+                let from = landing(p.k), to = from, ph = 0, bounce = 0, poised = 0;
                 if (counting) {
                     // The count-in: the baton beats the piece's tempo by itself.
-                    const bt = countT / beatSec + level.beatsPerBar;
+                    const bt = countT / beatSec;
                     const kb = Math.floor(bt);
-                    from = pattern[idx(kb)]; to = pattern[idx(kb + 1)]; ph = bt - kb; bounce = 0.55;
+                    from = landing(kb); to = landing(kb + 1); ph = bt - kb; bounce = 0.55;
                 } else if (p.holding) {
-                    from = pattern[idx(p.k)]; to = pattern[idx(p.k + 1)]; ph = progress; bounce = 0.55;
+                    from = landing(p.k); to = landing(p.k + 1); ph = progress; bounce = 0.55;
                 } else {
                     // Poised over the next beat, ready to strike it.
                     poised = 0.25;
@@ -664,7 +657,7 @@ export const ConductorGame: React.FC<{
         a?.nodes.forEach(node => node.dispose());
     }, []);
 
-    const bars = Math.ceil(beats.length / level.beatsPerBar);
+    const bar = beats[Math.min(hud.done, beats.length - 1)].bar;
     return (
         <div
             style={{ position: 'relative', flex: 1, minHeight: 0, touchAction: 'none', userSelect: 'none' }}
@@ -681,7 +674,7 @@ export const ConductorGame: React.FC<{
             <div style={hudStyle}>
                 <span style={{ fontWeight: 700 }}>{level.title}</span>
                 <span style={{ color: '#9a9aa8' }}>
-                    ♩ = {Math.round(bpm)}{hud.yourBpm > 0 ? ` · yours ${hud.yourBpm}` : ''} · bar {Math.min(bars, Math.floor(hud.done / level.beatsPerBar) + 1)}/{bars}
+                    {tempoMark(bpm, pulse)}{hud.yourBpm > 0 ? ` · yours ${hud.yourBpm}` : ''} · bar {bar}/{meter.bars}
                 </span>
                 {hud.combo > 1 && <span style={{ color: '#4ade80', fontWeight: 700 }}>×{hud.combo}</span>}
                 <span style={{ flex: 1 }} />
@@ -695,7 +688,7 @@ export const ConductorGame: React.FC<{
                         note sings it. Let go as the ring closes and press again straight away. Let go early and the singer is cut
                         off; hold on and they run out of breath. The song follows you.
                     </div>
-                    <div style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Press to start — one bar counts you in, then come in on one</div>
+                    <div style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Press to start — a bar is counted in, then come in on the next beat</div>
                 </div>
             )}
             {hud.started && hud.countIn > 0 && <div style={{ ...centerStyle, justifyContent: 'flex-end', paddingBottom: '22vh', fontSize: '4.5rem', fontWeight: 800 }}>{hud.countIn}</div>}

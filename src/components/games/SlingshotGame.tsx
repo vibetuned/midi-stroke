@@ -6,7 +6,7 @@ import { heardAt, heardNow, scheduleNow } from '../../games/clock';
 import { getLatency } from '../../games/latency';
 import { PRESS, RELEASE, grade, noteGrade, type Grade, type NoteResult } from '../../games/judge';
 import { angleAt, buildCourse, idealPosition, onOrbit, tangent, type Course, type Point } from '../../games/slingshot/course';
-import { LESSON_PITCH, noteShape, type RhythmLevel } from '../../games/rhythm';
+import { LESSON_PITCH, countingOf, noteShape, tempoMark, type RhythmLevel } from '../../games/rhythm';
 import { drawNote } from './noteGlyph';
 import { SOUNDS, heldSampler, heldSynth, preload, type HeldVoice } from './sounds';
 
@@ -51,6 +51,9 @@ export const SlingshotGame: React.FC<{
     const hostRef = useRef<HTMLDivElement>(null);
     const bpm = level.bpm * tempoScale;
     const beat = 60 / bpm;
+    /** How the level is counted: its beat (an eighth or a dotted quarter in 6/8), its bars, its pickup. */
+    const [meter] = useState(() => countingOf(level));
+    const { pulse } = meter;
     const [course] = useState<Course>(() => buildCourse(level.notes, { beat }));
     const play = useRef<Play>({ started: false, finished: false, downbeat: 0, i: 0, holding: false, pressError: null, results: [], fling: null, combo: 0 });
     const [hud, setHud] = useState({ started: false, countIn: 0, combo: 0, done: 0 });
@@ -100,15 +103,18 @@ export const SlingshotGame: React.FC<{
         const voice = await heldSampler([{ set: SOUNDS.slingshot, volume: -4 }, { set: SOUNDS.slingshotTexture, volume: -15 }], space)
             ?? heldSynth(new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.7, release: 0.12 }, volume: -8 }).toDestination());
         audio.current = { click, accent, voice, space };
-        // One bar counted in, then every beat to the end.
+        // A bar counted in (up to the pickup, if there is one), then every beat to the end — as the
+        // metre counts it: eighths, or dotted quarters, in 6/8. `downbeat` is the level's start.
         const t0 = scheduleNow() + LEAD_SECONDS;
-        const countIn = level.beatsPerBar;
-        p.downbeat = t0 + countIn * beat;
-        const beats = countIn + Math.ceil(level.length);
-        for (let k = 0; k <= beats; k++) {
-            const down = ((k - countIn) % level.beatsPerBar + level.beatsPerBar) % level.beatsPerBar === 0;
-            (down ? accent : click).triggerAttackRelease(down ? 'C7' : 'G6', 0.02, t0 + k * beat);
-        }
+        const first = meter.beats[0]?.start ?? 0;
+        const from = first - meter.countIn * pulse;
+        p.downbeat = t0 - from * beat;
+        const clicks = [
+            ...Array.from({ length: meter.countIn }, (_, k) => ({ start: from + k * pulse, inBar: meter.inBar(k - meter.countIn) })),
+            ...meter.beats,
+            { start: level.length, inBar: meter.inBar(meter.beats.length) },
+        ];
+        for (const c of clicks) (c.inBar === 0 ? accent : click).triggerAttackRelease(c.inBar === 0 ? 'C7' : 'G6', 0.02, t0 + (c.start - from) * beat);
         p.started = true;
         setHud(h => ({ ...h, started: true }));
     };
@@ -227,13 +233,13 @@ export const SlingshotGame: React.FC<{
                 const color = judgedAs ? GRADE_COLOR[judgedAs] : ACCENT;
                 g.clear();
                 g.circle(o.cx, o.cy, r).stroke({ width: 1, color: 0xffffff, alpha: 0.08 });
-                // The note's arc: a quarter turn a beat.
+                // The note's arc: a quarter turn a quarter note.
                 const sweep = o.dir * o.beats * Math.PI / 2;
                 const steps = Math.max(8, Math.ceil(o.beats * 18));
                 line(g, Array.from({ length: steps + 1 }, (_, k) => at(o, r, o.entry + sweep * k / steps)),
                     { width: 5, color, alpha: judgedAs ? 0.85 : 0.35, cap: 'round' });
                 // A tick on every beat inside the note…
-                for (let k = 1; k < o.beats; k++) {
+                for (let k = pulse; k < o.beats - 1e-6; k += pulse) {
                     const a = o.entry + o.dir * k * Math.PI / 2;
                     line(g, [at(o, r - 7, a), at(o, r + 7, a)], { width: 2, color, alpha: 0.6 });
                 }
@@ -392,7 +398,8 @@ export const SlingshotGame: React.FC<{
 
                 // The count-in, big, before the first downbeat — React only
                 // hears about it when the number changes.
-                const left = p.started && t < 0 ? Math.ceil(-t / beat) : 0;
+                const toFirst = (meter.beats[0]?.start ?? 0) * beat - t;
+                const left = p.started && toFirst > 0 ? Math.ceil(toFirst / (pulse * beat) - 1e-6) : 0;
                 if (left !== lastCountIn) {
                     lastCountIn = left;
                     setHud(hh => ({ ...hh, countIn: left }));
@@ -424,7 +431,7 @@ export const SlingshotGame: React.FC<{
             <div ref={hostRef} style={{ position: 'absolute', inset: 0 }} />
             <div style={hudStyle}>
                 <span style={{ fontWeight: 700 }}>{level.title}</span>
-                <span style={{ color: '#9a9aa8' }}>♩ = {Math.round(bpm)} · {hud.done}/{level.notes.length}</span>
+                <span style={{ color: '#9a9aa8' }}>{tempoMark(bpm, pulse)} · {hud.done}/{level.notes.length}</span>
                 {hud.combo > 1 && <span style={{ color: '#4ade80', fontWeight: 700 }}>×{hud.combo}</span>}
                 <span style={{ flex: 1 }} />
                 <button onClick={e => { e.stopPropagation(); onQuit(); }} onPointerDown={e => e.stopPropagation()} style={quitStyle}>✕ Quit</button>

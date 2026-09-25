@@ -39,7 +39,10 @@ single timemap the app derives:
 Scores don't need a count-in measure: at load time the app injects a
 one-beat rest measure (`n="0"`, one rest per staff) into any MEI whose first
 measure contains notes — the engraving of that measure doubles as the sticky
-clef strip.
+clef strip. When a score's first repeat goes back to the start, its first bar
+of music is given a start-repeat bar line: Verovio repeats from the very first
+measure, so playback would otherwise sit through the count-in's rest again in
+the middle of the piece.
 
 ## Local development
 
