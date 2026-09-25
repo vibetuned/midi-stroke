@@ -12,6 +12,7 @@ import { ensureCountInMeasure, ensureNoteIds } from '../../utils/mei';
 import * as PIXI from 'pixi.js';
 import { LoopRangeSelector } from '../LoopRangeSelector';
 import { placeMeasures } from '../../utils/placeMeasures';
+import { expandRepeats } from '../../utils/expandRepeats';
 
 interface MeasureData {
     id: string;
@@ -379,9 +380,11 @@ export const PianoScoreView: React.FC = () => {
                     let meiData = data;
                     try {
                         xmlDoc = new DOMParser().parseFromString(data, "text/xml");
+                        // A score with repeats is read with them written out (utils/expandRepeats.ts).
+                        const expanded = expandRepeats(xmlDoc);
                         const countIn = ensureCountInMeasure(xmlDoc);
                         const ids = ensureNoteIds(xmlDoc);
-                        if (countIn || ids) {
+                        if (expanded || countIn || ids) {
                             meiData = new XMLSerializer().serializeToString(xmlDoc);
                             console.log('Injected count-in measure (score had none)');
                         }

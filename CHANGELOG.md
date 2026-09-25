@@ -41,6 +41,18 @@ the way. Install channels and downloads:
 
 ### Scores
 
+- **Repeats are written out as a score loads**
+  ([src/utils/expandRepeats.ts](src/utils/expandRepeats.ts)), in the piano, saxophone and drums
+  views and the games, so a score people bring reads straight through too: repeat bar lines, and
+  first and second endings, each time through with its own ending. A copied bar gets its own ids,
+  and repeat signs become double bars at the joins. D.C., D.S., segno and coda marks are left as
+  written.
+- **The library's scores read straight through again**: the English folk tunes and *Scarborough
+  Fair* came in with their repeats, where the library writes them out. `npm run expand-repeats`
+  ([scripts/expand-repeats.mjs](scripts/expand-repeats.mjs)) bakes the same step into the files,
+  and checks each result against Verovio playing the original (the same notes at the same times)
+  before saving it. The loop-range checks now fail while any score in `public/` has a repeat
+  sign.
 - **The scrolling score follows repeats**
   ([src/utils/placeMeasures.ts](src/utils/placeMeasures.ts)): at a repeat sign the page jumps
   back and plays the bars again, in the piano, saxophone and drums views. Each bar used to run to

@@ -44,6 +44,7 @@ export * from ${JSON.stringify(join(ROOT, 'src/games/echo.ts'))};
 export * from ${JSON.stringify(join(ROOT, 'src/games/groove.ts'))};
 export { extractTimemap } from ${JSON.stringify(join(ROOT, 'src/utils/timemap.ts'))};
 export { ensureCountInMeasure, ensureNoteIds } from ${JSON.stringify(join(ROOT, 'src/utils/mei.ts'))};
+export { expandRepeats } from ${JSON.stringify(join(ROOT, 'src/utils/expandRepeats.ts'))};
 `);
 await build({ entryPoints: [join(outDir, 'entry.ts')], bundle: true, format: 'esm', outfile: join(outDir, 'b.mjs'), logLevel: 'warning' });
 const E = await import(pathToFileURL(join(outDir, 'b.mjs')).href);
@@ -84,6 +85,7 @@ tk.setOptions({ header: 'none', footer: 'none', breaks: 'auto', pageWidth: 2000,
 for (const song of [...E.SONGS, ...E.FOLK_SONGS]) {
   const mei = readFileSync(join(ROOT, 'public', song.songKey), 'utf8');
   const dom = new DOMParser().parseFromString(mei, 'text/xml');
+  E.expandRepeats(dom);
   E.ensureCountInMeasure(dom);
   E.ensureNoteIds(dom);
   const prepared = new XMLSerializer().serializeToString(dom);
@@ -194,6 +196,7 @@ for (const level of [...E.LESSONS, { title: 'legato', notes: [{ start: 0, dur: 1
 // ------------------------------------------------ shared: a piece, prepared as the games prepare it
 const loadPiece = (songKey) => {
   const dom = new DOMParser().parseFromString(readFileSync(join(ROOT, 'public', songKey), 'utf8'), 'text/xml');
+  E.expandRepeats(dom);
   E.ensureCountInMeasure(dom);
   E.ensureNoteIds(dom);
   const mei = new XMLSerializer().serializeToString(dom);

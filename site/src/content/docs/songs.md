@@ -48,6 +48,11 @@ that already have a notes-free first measure keep it. If the first repeat of a
 score goes back to the start, the app marks its first bar with a start-repeat
 bar line, so a repeat never plays the count-in again.
 
+Repeats are written out as a score loads, so the page reads straight through
+and bars on the page are bars as played: repeat bar lines, and first and
+second endings, each time through with its own ending. A score with D.C.,
+D.S., segno or coda marks keeps them as written.
+
 Beyond that, any MEI that Verovio can render works — including scores
 exported from MusicXML converters. Ties, pickup measures, meter changes and
 irregular bars are all handled by the synchronization engine.

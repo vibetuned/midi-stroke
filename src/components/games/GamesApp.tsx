@@ -21,6 +21,7 @@ import { ConductorResults } from './ConductorResults';
 import { EchoResults } from './EchoResults';
 import { GrooveResults } from './GrooveResults';
 import { LatencyCalibration } from './LatencyCalibration';
+import { expandRepeats } from '../../utils/expandRepeats';
 
 /**
  * Games: rhythm, away from the instrument. For anyone — no instrument needed,
@@ -161,6 +162,7 @@ export const GamesApp: React.FC<{
         if (!toolkit) return null;
         const dom = new DOMParser().parseFromString(text, 'text/xml');
         if (dom.getElementsByTagName('parsererror').length > 0 || dom.getElementsByTagName('note').length === 0) return null;
+        expandRepeats(dom);
         ensureCountInMeasure(dom);
         ensureNoteIds(dom);
         const mei = new XMLSerializer().serializeToString(dom);

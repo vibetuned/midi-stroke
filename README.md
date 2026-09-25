@@ -204,7 +204,7 @@ The application is built on a web stack trying to be optimized for low-latency a
 * **Accompaniment (piano, saxo):** attach a recording to a piece (a backing track, a band, a teacher). Line it up once on its waveform, and it plays along in Rhythm mode, loops included.
 * **Loop a passage:** drag the two handles on the minimap to choose bars. They loop in Rhythm and Practice, and By ear they choose the passage to learn.
 * **Your kit's pad map (Drums):** each note a drum controller sends is assigned to a kit voice. The map starts as General MIDI and you can teach it any module's notes by hitting the pads.
-* **Bring Your Own Scores:** load a single MEI file, or **import a ZIP of MEI scores** as a permanent on-device collection (stored in the browser's OPFS, offline-capable, delete anytime). Scores need no special preparation — the one-beat count-in measure (`n="0"`) is injected automatically at load time if missing.
+* **Bring Your Own Scores:** load a single MEI file, or **import a ZIP of MEI scores** as a permanent on-device collection (stored in the browser's OPFS, offline-capable, delete anytime). Scores need no special preparation — the one-beat count-in measure (`n="0"`) is injected automatically at load time if missing, and repeats (repeat bar lines, first and second endings) are written out as the score loads, so it reads straight through.
 
 ![Song picker with ZIP import](docs/screenshots/song-selector.png)
 * **Scale Generator (Piano):** technique exercises in all 24 keys engraved on demand — scales, intervals, triads, arpeggios and cadences with conservatory fingering — plus key-aware graying of the virtual keyboard.
@@ -264,6 +264,7 @@ npm run build:saxo               # derive saxo scores from piano MEI (drop bass,
 npm run build:saxo-manifest      # bring public/saxo_files.json up to date with public/saxo/ (run after adding songs)
 npm run build:course-manifest    # regenerate the theory course manifest from public/courses/
 npm run build:piano-manifest     # bring public/piano_files.json up to date with public/piano/ (run after adding scores, e.g. Kunz canons)
+npm run expand-repeats           # write out the repeats of every score under public/ that still has them (run after adding scores)
 npm run build:game-sounds        # cut the games' sounds (public/games/sounds/) from the sample libraries in ../sounds (needs uv and ffmpeg)
 node scripts/build-keysig-assets.mjs  # re-engrave the circle-of-fifths key-signature assets (src/assets/keySignatures.ts)
 npm run check:jazz               # validate the saxo jazz generator (range, engraving vs MIDI, bebop downbeats)

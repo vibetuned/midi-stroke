@@ -44,6 +44,16 @@ of music is given a start-repeat bar line: Verovio repeats from the very first
 measure, so playback would otherwise sit through the count-in's rest again in
 the middle of the piece.
 
+Repeats are written out, so the page reads straight through. The viewers and
+the games do it as a score loads (`src/utils/expandRepeats.ts`), so a score
+people bring may have repeat bar lines and first and second endings; D.C.,
+D.S., segno and coda marks are left as written, for a reader to follow. The
+bundled library's scores come written out already: after adding scores, run
+`npm run expand-repeats` (`scripts/expand-repeats.mjs`), which bakes the same
+step into the files and checks each result against Verovio playing the
+original, the same notes at the same times. `npm run check:loop` fails while
+any score in `public/` still has a repeat sign.
+
 ## Local development
 
 ```sh
