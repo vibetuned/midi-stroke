@@ -91,16 +91,29 @@ export function grooveFromTimemap(timemap: TimemapData, beatsPerBar: number, pul
 
 /** Grooves from the drum library, easiest first, each at a tempo that suits it. */
 export const GROOVES: Array<{ songKey: string; title: string; detail: string; bpm: number }> = [
+    { songKey: 'drums/200_machine_drum_patterns/SkaMeasureA.mei', title: 'Ska', detail: 'The plainest beat there is: kick on one and three, snare on two and four.', bpm: 112 },
     { songKey: 'drums/200_machine_drum_patterns/Rock4MeasureA.mei', title: 'Rock', detail: 'Kick on every beat, snare on two and four, hi-hat in eighths.', bpm: 96 },
+    { songKey: 'drums/200_machine_drum_patterns/Disco2MeasureA.mei', title: 'Disco', detail: 'Four on the floor, the cowbell with it, and the hi-hat only on the ands.', bpm: 116 },
     { songKey: 'drums/200_machine_drum_patterns/Rock1MeasureA.mei', title: 'Rock ballad', detail: 'The kick sneaks in ahead of beat three.', bpm: 84 },
+    { songKey: 'drums/200_machine_drum_patterns/Rock3MeasureA.mei', title: 'Hard rock', detail: 'Kicks on the ands of three and four.', bpm: 104 },
     { songKey: 'drums/200_machine_drum_patterns/Twist1MeasureA.mei', title: 'Twist', detail: 'A snare that answers itself.', bpm: 104 },
     { songKey: 'drums/200_machine_drum_patterns/Pop1MeasureA.mei', title: 'Pop', detail: 'A kick at the very end of the bar.', bpm: 96 },
+    { songKey: 'drums/200_machine_drum_patterns/Pop4MeasureA.mei', title: 'Pop, pushed', detail: 'A second snare on the last sixteenth of beat two.', bpm: 92 },
+    { songKey: 'drums/200_machine_drum_patterns/RhythmBlues1MeasureA.mei', title: 'Rhythm & blues', detail: 'Kicks on the ands, and a snare that pushes into the next bar.', bpm: 96 },
     { songKey: 'drums/200_machine_drum_patterns/Reggae2MeasureA.mei', title: 'One drop', detail: 'Reggae: the kick waits for beat three, the hi-hat skips.', bpm: 76 },
+    { songKey: 'drums/200_machine_drum_patterns/Reggae4MeasureA.mei', title: 'Reggae lilt', detail: 'The hi-hat swings in triplets; the kick waits for three and four.', bpm: 76 },
     { songKey: 'drums/200_machine_drum_patterns/Funk1MeasureA.mei', title: 'Funk', detail: 'Kicks on the sixteenths.', bpm: 88 },
+    { songKey: 'drums/200_machine_drum_patterns/Funk8MeasureA.mei', title: 'Open-hat funk', detail: 'The snare on the ands of two and four, the open hat on every beat.', bpm: 92 },
+    { songKey: 'drums/200_machine_drum_patterns/RhythmBlues3MeasureA.mei', title: 'Off the beat', detail: 'Six kicks, five of them between the beats.', bpm: 88 },
+    { songKey: 'drums/200_machine_drum_patterns/Pop2MeasureA.mei', title: 'Syncopation', detail: 'Kick and snare trade off around the beat: the snare on the last sixteenth of one.', bpm: 100 },
     { songKey: 'drums/200_machine_drum_patterns/BossaNova1MeasureA.mei', title: 'Bossa nova', detail: 'The rim plays the clave.', bpm: 92 },
     { songKey: 'drums/200_machine_drum_patterns/Afro-Cuban1MeasureA.mei', title: 'Afro-Cuban', detail: 'A hi-hat with a skip in it.', bpm: 96 },
+    { songKey: 'drums/200_machine_drum_patterns/Afro-Cuban2MeasureA.mei', title: 'Afro-Cuban toms', detail: 'Five parts: the toms join in on three and four.', bpm: 92 },
     { songKey: 'drums/200_machine_drum_patterns/Cha-ChaMeasureA.mei', title: 'Cha-cha', detail: 'Cowbell, kick, and toms that talk.', bpm: 100 },
     { songKey: 'drums/200_machine_drum_patterns/Shuffle1MeasureA.mei', title: 'Shuffle', detail: 'Twelve-eight: three to a beat.', bpm: 132 },
+    { songKey: 'drums/200_machine_drum_patterns/Swing2MeasureA.mei', title: 'Swing', detail: 'Twelve-eight, and the hi-hat swings: ding, ding-a, ding, ding-a.', bpm: 120 },
+    { songKey: 'drums/200_machine_drum_patterns/Blues1MeasureA.mei', title: 'Slow blues', detail: 'Every triplet on the hi-hat: twelve to the bar.', bpm: 90 },
+    { songKey: 'drums/200_machine_drum_patterns/Funk15MeasureA.mei', title: 'Triplet funk', detail: 'Quarter-note triplets on the hi-hat: three to every two beats.', bpm: 90 },
     { songKey: 'drums/200_machine_drum_patterns/Samba1MeasureA.mei', title: 'Samba', detail: 'Six parts. The kick never stops.', bpm: 92 },
 ];
 

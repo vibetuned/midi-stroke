@@ -32,6 +32,7 @@ export * from ${JSON.stringify(join(ROOT, 'src/utils/loopRange.ts'))};
 export { extractMelody, callTimemap } from ${JSON.stringify(join(ROOT, 'src/utils/earTraining.ts'))};
 export { extractTimemap } from ${JSON.stringify(join(ROOT, 'src/utils/timemap.ts'))};
 export { ensureCountInMeasure, ensureNoteIds } from ${JSON.stringify(join(ROOT, 'src/utils/mei.ts'))};
+export { placeMeasures } from ${JSON.stringify(join(ROOT, 'src/utils/placeMeasures.ts'))};
 `);
 await build({ entryPoints: [join(outDir, 'entry.ts')], bundle: true, format: 'esm', outfile: join(outDir, 'b.mjs'), logLevel: 'warning' });
 const E = await import(pathToFileURL(join(outDir, 'b.mjs')).href);
@@ -104,6 +105,33 @@ eq('4. …at the tempo in force there', call.tempo.marks[0].bpm, 120);
   eq('5. …strictly increasing', b.every((t, i) => i === 0 || t > b[i - 1]), true);
   eq('5. …the first at or before the first note', b[0] <= real.onsets[0].tick, true);
   eq('5. …the last at the end of the piece', b[b.length - 1], real.totalTicks);
+}
+
+// ------------------------------------------------ 6. the page, as played
+// The scrolling views follow the playhead through the measures as played: a
+// repeat's second time (Verovio's "-rend2" copies) on the bars it repeats.
+{
+  const placed = file => {
+    const mei = readFileSync(join(ROOT, 'public', file), 'utf8');
+    const dom = new DOMParser().parseFromString(mei, 'text/xml');
+    E.ensureCountInMeasure(dom);
+    E.ensureNoteIds(dom);
+    tk.loadData(dom.toString());
+    const tm = E.extractTimemap(tk, dom);
+    // The page: the measures in document order, 100 units each (as drawn, ids as Verovio keeps them).
+    const drawn = [...tm.measureTicks.keys()].filter(id => !/-rend\d+$/.test(id)).sort((a, b) => tm.measureTicks.get(a) - tm.measureTicks.get(b)).map((id, i) => ({ id, x: i * 100, width: 100 }));
+    return { tm, drawn, ...E.placeMeasures(drawn, tm) };
+  };
+  const yd = placed('saxo/english_folk/1875_Yankee Doodle WES.057.mei');
+  const bar = 2 * 192;
+  eq('6. Yankee Doodle: played end to end, to the end of the piece', yd.played.every((m, i) => i === 0 || m.startTick === yd.played[i - 1].endTick) && yd.played.at(-1).endTick === yd.tm.totalTicks, true);
+  eq('6. …no bar lasts longer than a bar — the one before the repeat used to last the whole repeat', Math.max(...yd.played.slice(1).map(m => m.endTick - m.startTick)), bar);
+  eq('6. …twice through each strain: 32 bars played on 16 drawn, plus the count-in', [yd.played.length, yd.drawn.length], [33, 17]);
+  const back = yd.played.map((m, i) => (i > 0 && m.x < yd.played[i - 1].x ? i : -1)).filter(i => i >= 0);
+  eq('6. …the page jumps back at each repeat sign: to bar 1, then to the second strain', back.map(i => yd.played[i].x / 100), [1, 9]);
+  eq('6. …and the page order, for dragging, is each bar its first time through', yd.written.map(m => m.endTick - m.startTick).slice(1), Array(16).fill(bar));
+  const cz = placed('piano/first_two_hand_exercises/001_Czerny_Carl_-_Op_824_-_Nr_1.mei');
+  eq('6. no repeats (Czerny): as played is as written', JSON.stringify(cz.played) === JSON.stringify(cz.written), true);
 }
 
 rmSync(outDir, { recursive: true, force: true });

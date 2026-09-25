@@ -11,6 +11,7 @@ import { extractTimemap, type TimemapData } from '../../utils/timemap';
 import { ensureCountInMeasure, ensureNoteIds } from '../../utils/mei';
 import * as PIXI from 'pixi.js';
 import { LoopRangeSelector } from '../LoopRangeSelector';
+import { placeMeasures } from '../../utils/placeMeasures';
 
 interface MeasureData {
     id: string;
@@ -87,6 +88,8 @@ export const PianoScoreView: React.FC = () => {
 
     // Extracted Measure Data
     const measureDataRef = useRef<MeasureData[]>([]);
+    /** The same measures in page order, each at its first time through: for dragging the page. */
+    const writtenDataRef = useRef<MeasureData[]>([]);
     const stickyWidthRef = useRef<number>(0);
     const totalWidthRef = useRef<number>(0);
     const scaleRef = useRef<number>(1);
@@ -234,7 +237,7 @@ export const PianoScoreView: React.FC = () => {
                         const targetGlobalX = (hitLineScreenX - newX) / scale;
 
                         // Fix 1: binary search instead of findIndex
-                        const mData = measureDataRef.current;
+                        const mData = writtenDataRef.current;
                         let targetTick = 0;
                         if (mData.length > 0) {
                             if (targetGlobalX <= mData[0].x) {
@@ -491,21 +494,14 @@ export const PianoScoreView: React.FC = () => {
             handBottomOverlayRef.current = null;
         }
 
-        // Measure start ticks come from the Verovio timemap — exact values that
-        // handle the n="0" count-in measure, pickups, meter changes and
-        // irregular bars. The SVG measure ids match the timemap ids because
-        // both come from the same loadData call. If an id is somehow missing,
-        // carry the previous tick forward (zero-length measure).
-        let runningTick = 0;
-        const startTicks = measures.map(m => {
-            const t = timemapData.measureTicks.get(m.id);
-            if (t !== undefined) runningTick = t;
-            return runningTick;
-        });
-
-        const mData: MeasureData[] = [];
-
-        measures.forEach((m, index) => {
+        // The measures on the page, placed in time (utils/placeMeasures.ts): as
+        // played, a repeat's second time on the bars it repeats, for following
+        // the playhead; as written, for finding the time at a place on the page.
+        // Measure ticks come from the Verovio timemap: exact values that handle
+        // the n="0" count-in measure, pickups, meter changes and irregular bars.
+        // The SVG measure ids match the timemap ids because both come from the
+        // same loadData call.
+        const drawn = measures.map((m, index) => {
             const bbox = measureBBoxes[index];
 
             // Slurs/ties are rendered inside the measure where they start, so a
@@ -518,17 +514,12 @@ export const PianoScoreView: React.FC = () => {
             const width = nextBBox
                 ? Math.max(1, (nextBBox.left - svgOuterBBox.left) - x)
                 : bbox.width;
-
-            mData.push({
-                id: m.id,
-                x,
-                width,
-                startTick: startTicks[index],
-                endTick: index + 1 < startTicks.length ? startTicks[index + 1] : timemapData.totalTicks
-            });
+            return { id: m.id, x, width };
         });
+        const { played: mData, written } = placeMeasures(drawn, timemapData);
 
         measureDataRef.current = mData;
+        writtenDataRef.current = written;
 
         stickyWidthRef.current = mData[0].width + 25;
         totalWidthRef.current = svgOuterBBox.width;

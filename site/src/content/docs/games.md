@@ -101,8 +101,9 @@ Every hit lands on a step, like on a drum machine, and **what you play is what y
 on the wrong step stays wrong for the rest of the song, and a missed one stays missing. The step
 playing lights up its column of pads as the groove goes round.
 
-- **Grooves** come from the drum library, easiest first: rock, pop, reggae, funk, bossa nova,
-  Afro-Cuban, cha-cha, a shuffle, and a six-part samba.
+- **Grooves** come from the drum library, 24 of them, easiest first: ska, rock, disco, twist,
+  pop, rhythm & blues, reggae, funk, bossa nova, Afro-Cuban, cha-cha, a shuffle, swing and a slow
+  blues in 12/8, a triplet funk, and a six-part samba.
 - **After a run**, the groove is shown as a step sequencer, the same grid as the drums app, with
   every hit on its step, every wrong one, and every one missing. **Play it on the drums →** opens
   the beat in the drums app.

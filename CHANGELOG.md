@@ -23,6 +23,11 @@ the way. Install channels and downloads:
     ([src/components/games/DefenceLog.tsx](src/components/games/DefenceLog.tsx), replacing the
     message strip). The canons, their judging and the *Space Voices* sounds stay; the plasma
     lands with the meteoroid strike from the Groove's kit.
+- **13 more grooves** in the Groove Builder, 24 in all, easiest first
+  ([src/games/groove.ts](src/games/groove.ts)): ska, disco, hard rock, a pushed pop, rhythm &
+  blues, a reggae lilt with the hi-hat in triplets, open-hat funk, kicks off the beat,
+  syncopation, Afro-Cuban with toms, swing and a slow blues in 12/8, and a triplet funk on a
+  24-step wheel.
 - **English folk tunes** in the Slingshot and the Conductor, from the saxophone library's new
   `english_folk` collection: five in the Slingshot, the ones whose quickest note can still be held
   ([src/games/rhythm.ts](src/games/rhythm.ts)), and all ten in the Conductor, sung a cappella
@@ -36,6 +41,12 @@ the way. Install channels and downloads:
 
 ### Scores
 
+- **The scrolling score follows repeats**
+  ([src/utils/placeMeasures.ts](src/utils/placeMeasures.ts)): at a repeat sign the page jumps
+  back and plays the bars again, in the piano, saxophone and drums views. Each bar used to run to
+  the next bar on the page, so the one before a repeat sign lasted the whole repeated section and
+  the page crawled across it while the repeat played. Scores with repeats were rare in the
+  library until the English folk tunes, which all have them.
 - **A repeat back to the start no longer replays the count-in.** Verovio repeats from the very
   first measure, which is the count-in the viewers add, so playback sat through its rest again in
   the middle of the piece: seven of the ten new English folk tunes did. A score whose first repeat

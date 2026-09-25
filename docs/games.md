@@ -324,9 +324,14 @@ what you play is what the groove keeps.
   hits. The tip names the part that went most wrong: wrong steps first ("the kick landed on the
   wrong step once, and those hits stayed in the groove"), then missing hits, then a lean ahead of
   or behind the beat, taken from the median.
-- **Grooves** are one-bar charts from `drums/200_machine_drum_patterns`, easiest first: rock,
-  rock ballad, twist, pop, reggae one drop, funk, bossa nova, Afro-Cuban, cha-cha, a 12/8
-  shuffle, and a six-part samba. Each has a tempo chosen for it, because the charts state none.
+- **Grooves** are 24 one-bar charts from `drums/200_machine_drum_patterns`, easiest first: ska,
+  rock, disco, rock ballad, hard rock, twist, pop and a pushed pop, rhythm & blues, reggae (one
+  drop, and a lilt with the hi-hat in triplets), funk, open-hat funk, kicks off the beat,
+  syncopation, bossa nova, Afro-Cuban with and without toms, cha-cha, and in 12/8 a shuffle, a
+  swing and a slow blues; then a triplet funk (quarter-note triplets, 24 steps) and a six-part
+  samba. Each has a tempo chosen for it, because the charts state none, and no part asks for more
+  than about six taps a second. None of the 24 is a copy of another, and none uses the cymbal,
+  which the Mars kit leaves to the synthesized one.
   `grooveFromTimemap` turns the chart's notes into parts through the same pitch-and-notehead map
   as the drums app (`padForScoreNote`).
   - **Order:** kick, then snare, clap and rim, then hi-hats, ride and cymbal, then percussion and
