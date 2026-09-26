@@ -1,6 +1,6 @@
 ---
 title: Saxo
-description: Single-voice melodic training for wind controllers, with a live fingering chart, breath meter, mirror view and a jazz scale generator — built for the TravelSax.
+description: Single-voice melodic training for wind controllers, with a live fingering chart, breath meter, mirror view, a jazz scale generator and the Jazzomat's 653 jazz licks — built for the TravelSax.
 ---
 
 The saxo app is single-voice melodic training for **wind controllers**,
@@ -125,3 +125,33 @@ own stats:
 Playback is **straight, not swung**: scoring follows the engraved rhythm, so
 swinging the eighths would be marked as wrong notes. Swing them once you are
 off the trainer.
+
+## Jazz licks
+
+The song picker's **🎷 Jazz licks** entry is the vocabulary of the masters, to
+practise: the **653 most common patterns** of eminent players, found by the
+[Jazzomat Research Project](https://jazzomat.hfm-weimar.de/pattern_history/) in
+the Weimar Jazz Database — phrases like the bebop dominant descent, C B B♭ A G F E
+over C7, that the players came back to again and again.
+
+Every lick comes with how it is usually played, measured from its instances in
+the database's solos: its most common **rhythm**, and where in the bar it
+starts; the **chords** it is most often played over (lick #10 runs over
+Cm7 → F7 → B♭maj7, a ii–V–I); how often it is played exactly so; how many
+times in how many solos; who played it most; and the earliest recording.
+
+- **Pick a lick** from the list — each shown with its notes and chords over C
+  — and filter by kind (scale runs, leaps and steps, chromatic, arpeggios),
+  shape, length or player.
+- **Set the key** on the circle of fifths: the root of the chord the lick is
+  played over, in concert or written pitch, for alto, tenor, soprano or
+  baritone.
+- **Choose the rhythm**: *as played*, or even quarters, eighths, triplets or
+  sixteenths, with or without the chord symbols.
+- **One key, or round the circle** of fourths — all twelve, each in a new bar.
+
+The lick is spelled from its chords (B♮ between C and B♭ over C7), with no key
+signature since the keys change, and kept inside your horn's keyed range. The
+50 most common licks are also in the library, as the **jazz licks**
+collection — and in the piano library, with the chords as shells in the left
+hand.

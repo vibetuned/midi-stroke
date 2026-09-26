@@ -8,6 +8,35 @@ the way. Install channels and downloads:
 
 ## Unreleased
 
+### Jazz
+
+- **Jazz licks** for the saxophone ([docs/jazz-licks.md](docs/jazz-licks.md)): the 653 most common
+  patterns of eminent players, as measured by the Jazzomat Research Project's Pattern History
+  Explorer in the Weimar Jazz Database. Every instance was found again in the database's solos,
+  so each lick comes with its usual rhythm and place in the bar, its usual chords (a ii–V, say),
+  who played it most and first ([scripts/build-jazz-licks.py](scripts/build-jazz-licks.py),
+  [public/jazz/jazzomat-licks.json](public/jazz/jazzomat-licks.json), ODbL).
+  - A **🎷 Jazz licks** entry in the Saxo song picker
+    ([src/components/saxo/JazzLickBuilder.tsx](src/components/saxo/JazzLickBuilder.tsx)): filter by
+    kind, shape, length or player; set the key (concert or written), horn and rhythm — as played,
+    or even quarters, eighths, triplets or sixteenths — with or without chord symbols, in one key
+    or round the circle of fourths. Spelled from the chords, in the horn's keyed range
+    ([src/utils/jazzLicks.ts](src/utils/jazzLicks.ts)).
+  - The same **🎷 Jazz licks** entry in the Piano song picker: the lick in the right hand at concert
+    pitch, the chords in the left — held as shells (root, third, seventh) or broken in arpeggios,
+    eighths up root, fifth, seventh and tenth.
+  - The 50 most common in the saxophone and piano libraries as **jazz licks**, round the circle as
+    played; the piano's with the chords as shells in the left hand.
+  - Credited in [public/jazz/CREDITS.md](public/jazz/CREDITS.md), the data, the builder and the
+    scores; `npm run check:licks` reads every lick back through Verovio in 25 keys.
+- **The Weimar Jazz Database's 456 solos as scores** for local use (`npm run build:jazz-scores`,
+  [scripts/build-jazz-scores.py](scripts/build-jazz-scores.py)): for the saxophone in alto written
+  pitch, for the piano with the database's bass line (or the chord roots) in the left hand, both
+  with chord symbols, packed as ZIPs the apps import. Kept out of the bundle: the solos are the
+  players' improvisations.
+- The database's chord symbols read as a chart writes them: `A79#` is A7♯9, `Db7913` D♭13,
+  `6911#` 6/9♯11 ([scripts/wjazzd_chords.py](scripts/wjazzd_chords.py)).
+
 ### Games
 
 - **Rhythm echo is now a musical Missile Command, with a good ending**

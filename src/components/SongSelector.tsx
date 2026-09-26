@@ -7,6 +7,7 @@ import { removeAccompaniment, removeAccompanimentsUnder } from '../utils/accompa
 import { useAccompaniments } from '../hooks/useAccompaniment';
 import { ScaleBuilder } from './ScaleBuilder';
 import { JazzScaleBuilder } from './saxo/JazzScaleBuilder';
+import { JazzLickBuilder } from './saxo/JazzLickBuilder';
 import { DrumPatternBuilder } from './drums/DrumPatternBuilder';
 
 // Must match the server's slug rule for instruments/categories (server/src/app.ts).
@@ -16,6 +17,9 @@ const NEW_CATEGORY = '__new__';
 // conservatory scale generator, saxo the jazz one; the other instruments have
 // no generator and never show the entry.
 const SCALES_PATH = '__scales__';
+// The saxophone's and the piano's second generator: the Jazzomat licks.
+const LICKS_PATH = '__licks__';
+const LICKS = { title: 'Jazz Licks', label: '🎷 Jazz licks', sub: '653 patterns · Jazzomat' };
 
 const GENERATORS: Record<string, { title: string; label: string; sub: string }> = {
     piano: { title: 'Scale Generator', label: '🎼 Scale generator', sub: 'scales · arpeggios · cadences' },
@@ -383,6 +387,12 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                                     <div style={subLabelStyle}>{generator.sub}</div>
                                 </button>
                             )}
+                            {(instrument === 'saxo' || instrument === 'piano') && (
+                                <button onClick={() => setSelectedPath(LICKS_PATH)} style={collectionButtonStyle(selectedPath === LICKS_PATH)}>
+                                    <div style={{ fontSize: '0.9rem', fontWeight: selectedPath === LICKS_PATH ? 600 : 400 }}>{LICKS.label}</div>
+                                    <div style={subLabelStyle}>{LICKS.sub}</div>
+                                </button>
+                            )}
                             {availablePaths.length === 0 && !generator && <Empty>No collections found.</Empty>}
                             {availablePaths.map(p => {
                                 const isActive = p === selectedPath;
@@ -416,7 +426,12 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                         </div>
 
                         {/* Piece list — or the exercise builder for the generator entry */}
-                        {selectedPath === SCALES_PATH && generator ? (
+                        {selectedPath === LICKS_PATH && (instrument === 'saxo' || instrument === 'piano') ? (
+                            <div style={detailStyle}>
+                                <h3 style={sectionTitleStyle}>{LICKS.title}</h3>
+                                <JazzLickBuilder onStart={setSelectedSong} instrument={instrument} />
+                            </div>
+                        ) : selectedPath === SCALES_PATH && generator ? (
                             <div style={detailStyle}>
                                 <h3 style={sectionTitleStyle}>{generator.title}</h3>
                                 {instrument === 'saxo' ? <JazzScaleBuilder onStart={setSelectedSong} />

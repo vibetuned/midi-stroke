@@ -143,6 +143,10 @@ Exercises are laid out on the **real keyed range** of the horn (written B♭3–
 
 ![Generated bebop exercise in the score view](docs/screenshots/jazz-exercise.png)
 
+#### Jazz licks — [docs/jazz-licks.md](docs/jazz-licks.md)
+
+The vocabulary of the masters, to practise: the **653 most common patterns** of eminent players, as measured by the Jazzomat Research Project in the Weimar Jazz Database. Each lick comes with how it is usually played — its most common rhythm and place in the bar, over its most common chords (lick #10 runs over Cm7 → F7 → B♭maj7) — and who played it most and first. Pick one, filter by kind, shape, length or player, set the key, horn and rhythm (as played, or even quarters, eighths, triplets, sixteenths), and play it in one key or **round the circle of fourths**, spelled from the chords, in your horn's range. The builder is on the piano too, with the lick in the right hand and the chords in the left, held as **shells** or broken in **arpeggios** (1-5-7-10 in eighths). The 50 most common are also in the saxophone and piano libraries.
+
 ### 🎼 Theory — [docs/theory-app.md](docs/theory-app.md)
 
 A **train & practice course player**: each course module pairs lesson videos with fill-in-the-blank worksheet exercises rendered as real engraved scores. Instead of playing along with a transport, you *write* music — entering notes from the clickable virtual piano, the circle-of-fifths wheel, or a MIDI keyboard — then check your work, reveal the model answer, or listen to either. Courses (Elementary rudiments, Notation, …) live as content under `public/courses/`, with per-exercise progress and watched-video tracking persisted locally. Exercise types cover interval ear-tests, primary triads and inversions, cadence writing, passing/auxiliary notes, dominant sevenths and more.
@@ -165,6 +169,7 @@ A **train & practice course player**: each course module pairs lesson videos wit
 | [docs/drums-patterns.md](docs/drums-patterns.md) | The Drums pattern generator: the 16-step sequencer, the Euclidean/Bernoulli/LFSR/Markov/automata engines, pink-noise dynamics, and the percussion engraving. |
 | [docs/saxo-app.md](docs/saxo-app.md) | The Saxo app: design, offline score pipeline, transposition, fingering chart, TravelSax input. |
 | [docs/saxo-scales.md](docs/saxo-scales.md) | The Saxo jazz scale generator: transposition/tessitura, the bebop and modern-jazz scales, patterns and enclosures, engraving and enharmonics. |
+| [docs/jazz-licks.md](docs/jazz-licks.md) | Jazz licks: the Jazzomat Research Project's 653 patterns, how each is usually played (rhythm, chords) from the Weimar Jazz Database, the lick builder and the library's lick scores. |
 | [docs/theory-app.md](docs/theory-app.md) | The Theory app: course/module content model, worksheet exercise engine, video player, input instruments. |
 
 ---
@@ -210,6 +215,7 @@ The application is built on a web stack trying to be optimized for low-latency a
 * **Scale Generator (Piano):** technique exercises in all 24 keys engraved on demand — scales, intervals, triads, arpeggios and cadences with conservatory fingering — plus key-aware graying of the virtual keyboard.
 * **Pattern Generator (Drums):** a 16-step sequencer where you set how many hits each voice plays, and Euclidean, Bernoulli, shift-register, Markov or cellular-automaton engines place them — with pink-noise accents and bar-to-bar variation.
 * **Jazz Scale Generator (Saxo):** bebop scales, melodic-minor modes, symmetrical and blues scales in any concert key, engraved in written pitch for your horn across its full keyed range — with digital patterns, triad pairs, chromatic enclosures and jazz articulation.
+* **Jazz Licks (Saxo and Piano):** the 653 most common patterns of eminent players (Jazzomat Research Project, Weimar Jazz Database), each with its usual rhythm and chords, in any key or round the circle — on the piano with the chords as shells or arpeggios in the left hand.
 * **Theory Courses:** video lessons paired with fill-in-the-blank score exercises, answered from piano, circle of fifths, or MIDI input.
 * **Playback, in sound or in MIDI:** hear any piece or generated exercise — ▶ Listen in each builder auditions what you just built, and the transport can sound the score as it scrolls. Playback runs on the app's own instrument, or sends note-on/note-off to a MIDI output for your synth or DAW (drums go out as General MIDI pads on channel 10).
 * **Instrument-appropriate sound:** the piano sampler for piano and theory, a reed synth for saxo, and a synthesized twelve-voice kit for drums — the drums app downloads nothing and works offline.
@@ -266,8 +272,12 @@ npm run build:course-manifest    # regenerate the theory course manifest from pu
 npm run build:piano-manifest     # bring public/piano_files.json up to date with public/piano/ (run after adding scores, e.g. Kunz canons)
 npm run expand-repeats           # write out the repeats of every score under public/ that still has them (run after adding scores)
 npm run build:game-sounds        # cut the games' sounds (public/games/sounds/) from the sample libraries in ../sounds (needs uv and ffmpeg)
+npm run build:jazz-scores        # the Weimar Jazz Database's solos (jazztube/wjazzd.db) as saxophone and piano MEI, plus importable ZIPs, in jazztube/mei/ (needs uv)
+npm run build:jazz-licks         # the Jazzomat's 653 patterns with their usual rhythm and chords, from jazztube/wjazzd.db → public/jazz/jazzomat-licks.json (needs uv)
+npm run build:jazz-lick-scores   # the 50 most common licks as saxophone and piano scores (public/*/jazz_licks/), manifests updated
 node scripts/build-keysig-assets.mjs  # re-engrave the circle-of-fifths key-signature assets (src/assets/keySignatures.ts)
 npm run check:jazz               # validate the saxo jazz generator (range, engraving vs MIDI, bebop downbeats)
+npm run check:licks              # validate the jazz licks: every lick, every key, intervals, range, rhythm and chords read back through Verovio
 npm run check:drums              # validate the drums pattern generator (hit counts, Euclidean references, engraving)
 npm run check:tempo              # validate reading a score's tempo (every MEI encoding, change positions, the slider maths)
 npm run check:ear                # validate Learn by ear against its acceptance criteria

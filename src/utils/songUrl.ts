@@ -1,5 +1,6 @@
 import { parseScaleUrl, scaleDataUrl } from './scaleGen';
 import { jazzDataUrl, parseJazzUrl } from './jazzScaleGen';
+import { lickMeiForUrl } from './jazzLicks';
 import { drumDataUrl, parseDrumUrl } from './drumPatternGen';
 import { OPFS_PREFIX, readOpfsSong } from './opfs';
 
@@ -80,6 +81,10 @@ export function resolveSongUrl(selectedSong: string): string {
 export async function loadSongText(selectedSong: string): Promise<string> {
     if (selectedSong.startsWith(OPFS_PREFIX)) {
         return readOpfsSong(selectedSong);
+    }
+    // A saxophone lick: written out from the Jazzomat licks, fetched as needed (utils/jazzLicks.ts).
+    if (selectedSong.startsWith('lick:')) {
+        return lickMeiForUrl(selectedSong);
     }
     const path = resolveSongUrl(selectedSong);
     const response = await fetch(path);

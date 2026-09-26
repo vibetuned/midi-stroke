@@ -16,6 +16,9 @@
     "build:piano-manifest": "node scripts/build-manifest.mjs piano",
     "expand-repeats": "node scripts/expand-repeats.mjs",
     "build:game-sounds": "uv run scripts/build-game-sounds.py",
+    "build:jazz-scores": "uv run scripts/build-jazz-scores.py --zip",
+    "build:jazz-licks": "uv run scripts/build-jazz-licks.py",
+    "build:jazz-lick-scores": "node scripts/build-jazz-lick-scores.mjs",
     "check:jazz": "node scripts/check-jazz-scales.mjs",
     "check:drums": "node scripts/check-drum-patterns.mjs",
     "check:tempo": "node scripts/check-tempo.mjs",
@@ -23,7 +26,8 @@
     "check:loop": "node scripts/check-loop-range.mjs",
     "check:pads": "node scripts/check-drum-map.mjs",
     "check:accompaniment": "node scripts/check-accompaniment.mjs",
-    "check:games": "node scripts/check-games.mjs"
+    "check:games": "node scripts/check-games.mjs",
+    "check:licks": "node scripts/check-jazz-licks.mjs"
   },
   "dependencies": {
     "@types/d3": "^7.4.3",

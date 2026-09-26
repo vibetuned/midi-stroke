@@ -120,3 +120,24 @@ key/form. As a practice guide, the virtual keyboard **grays out keys foreign
 to the exercise's key** (they stay playable):
 
 ![Scale exercise with foreign keys grayed out](/screenshots/scale-game.png)
+
+## Jazz licks
+
+The song picker's **🎷 Jazz licks** entry has the 653 most common patterns of
+eminent jazz players, from the Jazzomat Research Project's measurements of the
+Weimar Jazz Database — each with how it is usually played: its rhythm, the
+chords it goes over (lick #10 runs over Cm7 → F7 → B♭maj7), who played it most
+and first. The lick goes in the right hand; the left plays its chords, either
+
+- as **shells** — root, third and seventh, held; or
+- as **arpeggios** — eighth notes up root, fifth, seventh and tenth, all
+  through each chord.
+
+Filter the list by kind, shape, length or player; set the key on the circle of
+fifths and the rhythm (as played, or even quarters, eighths, triplets or
+sixteenths); play it in one key or round the circle of fourths. The same builder
+is on the saxophone.
+
+The **jazz licks** collection in the library is the 50 most common, ready to
+play: round the circle from C, as the players played them, with shells in the
+left hand.

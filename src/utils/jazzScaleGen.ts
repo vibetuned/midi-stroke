@@ -712,3 +712,7 @@ export function defaultJazzSpec(): JazzSpec {
 }
 
 export { rootText as jazzRootText };
+
+/** The spelling machinery, for the lick builder (jazzLicks.ts): roots, transposition, letters. */
+export type { Root as JazzRoot };
+export { parseRoot, rootPc, rootText, rootPretty, spellAs, pitchMidi, letterAt, toWritten, toConcert, simplifyRoot, centreAlter };
