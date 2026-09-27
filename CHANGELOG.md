@@ -6,7 +6,17 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
-## Unreleased
+## 0.0.5 — 2026-09-27
+
+Real drummers, and the masters' vocabulary. The drums app gains the 1,150 performances of Magenta's
+Groove MIDI Dataset — ten drummers on an electronic kit, grooves of up to twenty minutes and fills
+of a bar or two — each put on a grid the way a drummer would write it down, swung or straight as
+played, with ghost notes and accents. Longer drum scores now play through, scrolling under the
+cursor, and the step grid rolls: it never moves, and each column turns to the next bar as the
+playhead leaves it. The saxophone and the piano get the Jazzomat's 653 jazz licks, each with its
+usual rhythm and chords, in any key or round the circle. Rhythm echo becomes a musical Missile
+Command with a good ending, the Groove Builder has 24 grooves, English folk tunes join the
+Slingshot and the Conductor, and scores with repeats, uploaded ones included, read straight through.
 
 ### Drums
 
