@@ -35,6 +35,9 @@ export type PlaybackTarget = 'off' | 'audio' | string; // a string is a MIDI por
 export const PLAYBACK_VELOCITY = 0.78;
 const MIDI_VELOCITY = 100;
 
+/** A note's loudness for the audio sink: its own @vel when the score gives one (a groove's ghost notes), else the default. */
+const audioVelocity = (vel?: number) => (vel ? Math.max(0.05, Math.min(1, vel / 127)) : PLAYBACK_VELOCITY);
+
 /**
  * The app's current instrument, as playback needs it. `useAudio` registers
  * one when it builds the engine, so playback borrows the very voice the
@@ -144,9 +147,9 @@ export function playTimemap(data: TimemapData, opts: PlayOptions): PlaybackHandl
             const at = seconds(onset.tick);
             const dur = Math.max(0.05, seconds(n.endTick) - at);
             if (target === 'audio') {
-                events.push({ at, fire: audioTime => voice?.note(n.midi, dur, audioTime, PLAYBACK_VELOCITY, n.head) });
+                events.push({ at, fire: audioTime => voice?.note(n.midi, dur, audioTime, audioVelocity(n.vel), n.head) });
             } else {
-                const on = midiBytes(n.midi + transpose, n.head, drums, NOTE_ON, MIDI_VELOCITY);
+                const on = midiBytes(n.midi + transpose, n.head, drums, NOTE_ON, n.vel ?? MIDI_VELOCITY);
                 const off = midiBytes(n.midi + transpose, n.head, drums, NOTE_OFF, 0);
                 if (!on || !off) continue;
                 events.push({ at, fire: (_a, wallMs) => port?.send(on, wallMs) });
@@ -228,9 +231,9 @@ export function schedulePlayback(data: TimemapData, opts: {
             for (const n of onset.notes) {
                 const dur = Math.max(0.05, (n.endTick - onset.tick) * spt);
                 if (target === 'audio') {
-                    voice?.note(n.midi, dur, time, PLAYBACK_VELOCITY, n.head);
+                    voice?.note(n.midi, dur, time, audioVelocity(n.vel), n.head);
                 } else if (sender) {
-                    const on = midiBytes(n.midi + transpose, n.head, drums, NOTE_ON, MIDI_VELOCITY);
+                    const on = midiBytes(n.midi + transpose, n.head, drums, NOTE_ON, n.vel ?? MIDI_VELOCITY);
                     const off = midiBytes(n.midi + transpose, n.head, drums, NOTE_OFF, 0);
                     if (!on || !off) continue;
                     // The transport callback runs inside the audio lookahead,

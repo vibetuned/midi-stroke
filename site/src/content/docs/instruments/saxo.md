@@ -134,6 +134,8 @@ practise: the **653 most common patterns** of eminent players, found by the
 the Weimar Jazz Database — phrases like the bebop dominant descent, C B B♭ A G F E
 over C7, that the players came back to again and again.
 
+![The jazz lick builder](/screenshots/jazz-licks.png)
+
 Every lick comes with how it is usually played, measured from its instances in
 the database's solos: its most common **rhythm**, and where in the bar it
 starts; the **chords** it is most often played over (lick #10 runs over

@@ -6,6 +6,7 @@ import { describeScaleUrl } from '../utils/scaleGen';
 import { describeJazzUrl } from '../utils/jazzScaleGen';
 import { describeLickUrl } from '../utils/jazzLicks';
 import { describeDrumUrl } from '../utils/drumPatternGen';
+import { describeGrooveUrl } from '../utils/grooveMidi';
 import { SongMarqueeButton } from './SongMarqueeButton';
 
 interface SongFile {
@@ -47,7 +48,7 @@ export const SongNavigator: React.FC<SongNavigatorProps> = ({ onChangeRequest })
     const isLocal = selectedSong.startsWith('blob:');
     // Server URLs carry percent-encoded names; show them decoded.
     let songName = describeScaleUrl(selectedSong) ?? describeJazzUrl(selectedSong) ?? describeLickUrl(selectedSong)
-        ?? describeDrumUrl(selectedSong) ?? selectedSong.split('/').pop() ?? selectedSong;
+        ?? describeDrumUrl(selectedSong) ?? describeGrooveUrl(selectedSong) ?? selectedSong.split('/').pop() ?? selectedSong;
     try {
         songName = decodeURIComponent(songName);
     } catch { /* keep raw name */ }

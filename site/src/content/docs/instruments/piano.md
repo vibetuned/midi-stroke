@@ -133,6 +133,8 @@ and first. The lick goes in the right hand; the left plays its chords, either
 - as **arpeggios** — eighth notes up root, fifth, seventh and tenth, all
   through each chord.
 
+![The jazz lick builder on the piano: lick #10 with arpeggios in the left hand](/screenshots/piano-licks.png)
+
 Filter the list by kind, shape, length or player; set the key on the circle of
 fifths and the rhythm (as played, or even quarters, eighths, triplets or
 sixteenths); play it in one key or round the circle of fourths. The same builder

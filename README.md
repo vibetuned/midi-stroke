@@ -109,7 +109,7 @@ Generated exercises play like any piece — same modes, tempo control and per-ex
 
 ### 🥁 Drums — [docs/drums-app.md](docs/drums-app.md)
 
-Finger-drumming training built for the **Yamaha FGDP-50**. Looping rhythm patterns on a percussion staff, with MEI-to-pad MIDI mapping and a step-sequencer grid that tracks the playhead column by column. Pads play a **synthesized drum kit** — twelve one-shot voices, velocity-sensitive, with a hi-hat that chokes and a limiter on the bus — rather than the piano sampler.
+Finger-drumming training built for the **Yamaha FGDP-50**. Looping rhythm patterns on a percussion staff, and whole grooves that play through, with MEI-to-pad MIDI mapping and a step-sequencer grid that tracks the playhead column by column — never moving, each column turning to the next bar as the playhead leaves it. Pads play a **synthesized drum kit** — twelve one-shot voices, velocity-sensitive, with a hi-hat that chokes and a limiter on the bus — rather than the piano sampler.
 
 ![Drums app](docs/screenshots/drums.png)
 
@@ -124,6 +124,14 @@ The engines are the standard ones, each answering *given k hits, which of the 16
 The result is engraved as a real percussion score — two layers, kick stems down, beamed per beat, accents marked — and plays like any other piece, with the app's own step grid reading it back:
 
 ![A generated pattern in the score view](docs/screenshots/drum-pattern-play.png)
+
+#### Grooves — [docs/drums-grooves.md](docs/drums-grooves.md)
+
+Real drummers' playing to read and play along with: the **1,150 performances of Magenta's Groove MIDI Dataset** — ten drummers on an electronic kit, playing to a click in 18 styles, grooves of up to twenty minutes and fills of a bar or two. Each is put on a grid the way a drummer would write it down: the drummer's own time against the click taken out, then each beat on the simplest grid that holds its hits — eighths, sixteenths, triplets — and the groove's feel kept from beat to beat, so a shuffle stays in triplets and a funk groove in sixteenths. Ghost notes come out in brackets, accents marked, the ride on the top line and the hi-hat foot below the staff. Filter by style, tempo, length, feel or drummer; a long take comes in parts of 32 bars. A groove plays through and stops, the score scrolling under the cursor; a fill loops like a pattern.
+
+![The Grooves browser](docs/screenshots/drum-grooves.png)
+
+![A funk groove playing: ghost notes in brackets, the hi-hat foot below the staff, the step grid already showing the next bar behind the cursor](docs/screenshots/drum-groove-play.png)
 
 ### 🎷 Saxo — [docs/saxo-app.md](docs/saxo-app.md)
 
@@ -147,6 +155,8 @@ Exercises are laid out on the **real keyed range** of the horn (written B♭3–
 
 The vocabulary of the masters, to practise: the **653 most common patterns** of eminent players, as measured by the Jazzomat Research Project in the Weimar Jazz Database. Each lick comes with how it is usually played — its most common rhythm and place in the bar, over its most common chords (lick #10 runs over Cm7 → F7 → B♭maj7) — and who played it most and first. Pick one, filter by kind, shape, length or player, set the key, horn and rhythm (as played, or even quarters, eighths, triplets, sixteenths), and play it in one key or **round the circle of fourths**, spelled from the chords, in your horn's range. The builder is on the piano too, with the lick in the right hand and the chords in the left, held as **shells** or broken in **arpeggios** (1-5-7-10 in eighths). The 50 most common are also in the saxophone and piano libraries.
 
+![The jazz lick builder: lick #10 round the circle, with its usual chords](docs/screenshots/jazz-licks.png)
+
 ### 🎼 Theory — [docs/theory-app.md](docs/theory-app.md)
 
 A **train & practice course player**: each course module pairs lesson videos with fill-in-the-blank worksheet exercises rendered as real engraved scores. Instead of playing along with a transport, you *write* music — entering notes from the clickable virtual piano, the circle-of-fifths wheel, or a MIDI keyboard — then check your work, reveal the model answer, or listen to either. Courses (Elementary rudiments, Notation, …) live as content under `public/courses/`, with per-exercise progress and watched-video tracking persisted locally. Exercise types cover interval ear-tests, primary triads and inversions, cadence writing, passing/auxiliary notes, dominant sevenths and more.
@@ -167,6 +177,7 @@ A **train & practice course player**: each course module pairs lesson videos wit
 | [docs/learn-by-ear.md](docs/learn-by-ear.md) | The By ear mode (piano and saxo): additive call-and-response dictation, the veil, passages, the assessment, and the decisions behind it. |
 | [docs/drums-app.md](docs/drums-app.md) | The Drums app and how it differs from Piano. |
 | [docs/drums-patterns.md](docs/drums-patterns.md) | The Drums pattern generator: the 16-step sequencer, the Euclidean/Bernoulli/LFSR/Markov/automata engines, pink-noise dynamics, and the percussion engraving. |
+| [docs/drums-grooves.md](docs/drums-grooves.md) | Grooves: the Groove MIDI Dataset's recordings, putting a human performance on a grid, the notation, playing through, the scrolling score and the rolling step grid. |
 | [docs/saxo-app.md](docs/saxo-app.md) | The Saxo app: design, offline score pipeline, transposition, fingering chart, TravelSax input. |
 | [docs/saxo-scales.md](docs/saxo-scales.md) | The Saxo jazz scale generator: transposition/tessitura, the bebop and modern-jazz scales, patterns and enclosures, engraving and enharmonics. |
 | [docs/jazz-licks.md](docs/jazz-licks.md) | Jazz licks: the Jazzomat Research Project's 653 patterns, how each is usually played (rhythm, chords) from the Weimar Jazz Database, the lick builder and the library's lick scores. |
@@ -214,6 +225,7 @@ The application is built on a web stack trying to be optimized for low-latency a
 ![Song picker with ZIP import](docs/screenshots/song-selector.png)
 * **Scale Generator (Piano):** technique exercises in all 24 keys engraved on demand — scales, intervals, triads, arpeggios and cadences with conservatory fingering — plus key-aware graying of the virtual keyboard.
 * **Pattern Generator (Drums):** a 16-step sequencer where you set how many hits each voice plays, and Euclidean, Bernoulli, shift-register, Markov or cellular-automaton engines place them — with pink-noise accents and bar-to-bar variation.
+* **Grooves (Drums):** the 1,150 performances of Magenta's Groove MIDI Dataset (CC BY 4.0), put on a grid — straight or swung as played — and written out with ghost notes and accents; grooves play through, fills loop.
 * **Jazz Scale Generator (Saxo):** bebop scales, melodic-minor modes, symmetrical and blues scales in any concert key, engraved in written pitch for your horn across its full keyed range — with digital patterns, triad pairs, chromatic enclosures and jazz articulation.
 * **Jazz Licks (Saxo and Piano):** the 653 most common patterns of eminent players (Jazzomat Research Project, Weimar Jazz Database), each with its usual rhythm and chords, in any key or round the circle — on the piano with the chords as shells or arpeggios in the left hand.
 * **Theory Courses:** video lessons paired with fill-in-the-blank score exercises, answered from piano, circle of fifths, or MIDI input.
@@ -275,6 +287,7 @@ npm run build:game-sounds        # cut the games' sounds (public/games/sounds/) 
 npm run build:jazz-scores        # the Weimar Jazz Database's solos (jazztube/wjazzd.db) as saxophone and piano MEI, plus importable ZIPs, in jazztube/mei/ (needs uv)
 npm run build:jazz-licks         # the Jazzomat's 653 patterns with their usual rhythm and chords, from jazztube/wjazzd.db → public/jazz/jazzomat-licks.json (needs uv)
 npm run build:jazz-lick-scores   # the 50 most common licks as saxophone and piano scores (public/*/jazz_licks/), manifests updated
+npm run build:groove             # the Groove MIDI Dataset (groove/, MIDI only) → public/groove/: its MIDI files and an index with each take's bars and swing
 node scripts/build-keysig-assets.mjs  # re-engrave the circle-of-fifths key-signature assets (src/assets/keySignatures.ts)
 npm run check:jazz               # validate the saxo jazz generator (range, engraving vs MIDI, bebop downbeats)
 npm run check:licks              # validate the jazz licks: every lick, every key, intervals, range, rhythm and chords read back through Verovio
@@ -283,6 +296,8 @@ npm run check:tempo              # validate reading a score's tempo (every MEI e
 npm run check:ear                # validate Learn by ear against its acceptance criteria
 npm run check:loop               # validate the minimap bar range (snapping, labels, by-ear passages)
 npm run check:pads               # validate the drum pad map (GM default, remapping, every bundled chart)
+npm run check:groove             # validate the grooves: every take on the grid, written out and read back through Verovio hit for hit
+npm run check:grid               # validate the drums step grid (every bundled chart as before, the rolling columns, the grooves' grids)
 npm run check:accompaniment      # validate lining a recording up with a score (offset, tempo, peaks, storage rules)
 npm run check:games              # validate the rhythm games (lessons, song levels, judging, the Slingshot's course, the choir, canons, grooves, calibration)
 ```

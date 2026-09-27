@@ -17,7 +17,7 @@
  * node checks can run it.
  */
 
-import { PAD_TO_VOICE, type DrumVoiceKey } from './drumPads';
+import { PAD_TO_VOICE, padForScoreNote, type DrumVoiceKey } from './drumPads';
 
 export type DrumMap = Readonly<Record<number, DrumVoiceKey>>;
 
@@ -81,6 +81,19 @@ export function voiceInfo(key: DrumVoiceKey): DrumVoiceInfo {
 /** The voice a controller note plays, if it is assigned. */
 export function voiceForInput(map: DrumMap, note: number): DrumVoiceKey | undefined {
     return map[note];
+}
+
+/**
+ * Where a score's drum note is scored: the place its voice is notated. For the
+ * app's own positions that is where the note is written; a ride on the top
+ * line scores with the cymbals, and the hi-hat foot with the hi-hat, since
+ * they are those drums — the same rule practice mode waits by
+ * (inputAnswersPad). Undefined for a note no pad plays.
+ */
+export function drumScorePosition(midi: number, head?: string): number | undefined {
+    const pad = padForScoreNote(midi, head);
+    const voice = pad === undefined ? undefined : PAD_TO_VOICE[pad];
+    return voice ? voiceInfo(voice).scorePitch : undefined;
 }
 
 /** Where a controller note is notated, if it is assigned. */

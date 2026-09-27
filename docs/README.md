@@ -13,5 +13,5 @@ Release history lives in [../CHANGELOG.md](../CHANGELOG.md).
 - **[saxo-app.md](saxo-app.md)** — the Saxo app: single-voice wind-controller trainer (TravelSax),
   left/right split layout, offline MEI adaptation pipeline (drop bass clef, flatten chords,
   transpose for E♭ alto), full-key saxophone fingering display, breath meter, and input calibration.
-- **[screenshots/](screenshots/)** — app screenshots used by the main README.
+- **[screenshots/](screenshots/)** — app screenshots used by the main README and the site (`npm run build` in `site/` copies them to `site/public/screenshots/`).
 </content>

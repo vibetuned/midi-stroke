@@ -12,8 +12,10 @@ export interface TimemapOnset {
      *  the note ends — ties merged, so a held note spans its full written length.
      *  `head` carries @head.shape when the source MEI was supplied: drum voices
      *  share staff positions (snare and rim shot are both c5), so the notehead
-     *  is the only thing that tells them apart. */
-    notes: Array<{ midi: number; staff: number; endTick: number; head?: string; id?: string }>;
+     *  is the only thing that tells them apart; `fill` (@head.fill) tells a
+     *  tambourine from a cowbell. `vel` is the note's @vel, when the score
+     *  gives its dynamics note by note (the grooves do: utils/grooveMidi.ts). */
+    notes: Array<{ midi: number; staff: number; endTick: number; head?: string; fill?: string; vel?: number; id?: string }>;
 }
 
 export interface TimemapData {
@@ -28,9 +30,11 @@ export interface TimemapData {
     /** The tempo the score itself states (utils/tempo.ts), read when the
      *  source MEI is supplied. `initial` is null when it states none. */
     tempo?: TempoMap;
+    /** The score's first meter, when the source MEI is supplied and states one. */
+    meter?: { count: number; unit: number };
 }
 
-interface RawNote { id: string; midi: number; staff: number; head?: string }
+interface RawNote { id: string; midi: number; staff: number; head?: string; fill?: string; vel?: number }
 
 /**
  * Extract the synchronization timeline from the currently loaded Verovio
@@ -46,7 +50,15 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
     // enclosing staff (or when parsing failed) default to staff 1.
     const staffOfNote = new Map<string, number>();
     const headOfNote = new Map<string, string>();
+    const fillOfNote = new Map<string, string>();
+    const velOfNote = new Map<string, number>();
+    let meter: { count: number; unit: number } | undefined;
     if (meiDoc) {
+        const sig = meiDoc.getElementsByTagName('meterSig').item(0);
+        const def = meiDoc.getElementsByTagName('scoreDef').item(0);
+        const count = Number(sig?.getAttribute('count') || def?.getAttribute('meter.count') || NaN);
+        const unit = Number(sig?.getAttribute('unit') || def?.getAttribute('meter.unit') || NaN);
+        if (count > 0 && unit > 0) meter = { count, unit };
         // DOM Level 2 only (as in utils/mei.ts), so this also runs on xmldom
         // in the node checks, not just the browser's DOMParser.
         const staffs = meiDoc.getElementsByTagName('staff');
@@ -61,6 +73,10 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
                 staffOfNote.set(id, n);
                 const head = noteEl.getAttribute('head.shape');
                 if (head) headOfNote.set(id, head);
+                const fill = noteEl.getAttribute('head.fill');
+                if (fill) fillOfNote.set(id, fill);
+                const vel = Number(noteEl.getAttribute('vel') || NaN);
+                if (vel > 0) velOfNote.set(id, vel);
             }
         }
     }
@@ -97,7 +113,7 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
                 if (v && v.pitch > 0) {
                     notes.push({
                         id, midi: v.pitch, staff: staffOfNote.get(id) ?? 1,
-                        head: headOfNote.get(id),
+                        head: headOfNote.get(id), fill: fillOfNote.get(id), vel: velOfNote.get(id),
                     });
                 }
             }
@@ -186,6 +202,8 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
                 staff: n.staff,
                 endTick: Math.max(endTickOf(n.id), raw.tick + 1),
                 head: n.head,
+                ...(n.fill ? { fill: n.fill } : {}),
+                ...(n.vel ? { vel: n.vel } : {}),
                 // Verovio's id for the note — the same id its SVG element
                 // carries, so a note can be found on the rendered page.
                 id: n.id,
@@ -204,5 +222,5 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
         tempo = readTempoMap(meiDoc, measureTicks, noteTicks);
     }
 
-    return { totalTicks, measureTicks, onsets, tempo };
+    return { totalTicks, measureTicks, onsets, tempo, ...(meter ? { meter } : {}) };
 }

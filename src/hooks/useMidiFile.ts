@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import * as Tone from 'tone';
 import { padForScoreNote } from '../utils/drumKit';
+import { drumScoreLoops } from '../utils/drumGrid';
 import type { TimemapData } from '../utils/timemap';
 import { isTrackActiveForHand, useGame } from '../context/game';
 
@@ -102,9 +103,13 @@ export const useMidiFile = () => {
     }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, setWaitingForNotes, setSongCompleted, waitingForNotesRef]);
 };
 
-// Hook to manage Drum Loop Duration and Limits
+// Hook to manage Drum Loop Duration and Limits. A pattern — up to
+// LOOP_MAX_BARS bars (utils/drumGrid.ts) — loops; anything longer, a groove, a
+// whole chart, plays through once and stops at the end, as a piece does on the
+// piano.
 export const useDrumsMidiFile = () => {
-    const { playSizeTicks, isPlaying, setPlayPosition, gameMode, seek, setSongCompleted } = useGame();
+    const { playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, seek, setSongCompleted, setWaitingForNotes, timemap } = useGame();
+    const loops = timemap ? drumScoreLoops(timemap) : true;
 
     const { waitingForNotesRef } = useGame();
 
@@ -131,7 +136,15 @@ export const useDrumsMidiFile = () => {
             // END OF SONG CHECK
             if (now >= playSizeTicks) {
                 setSongCompleted(true);
-                seek(144);
+                if (loops) {
+                    seek(144);
+                } else {
+                    Tone.getTransport().pause();
+                    setIsPlaying(false);
+                    Tone.getTransport().ticks = 0;
+                    setPlayPosition(0);
+                    setWaitingForNotes([]);
+                }
                 return;
             }
 
@@ -146,5 +159,5 @@ export const useDrumsMidiFile = () => {
         }, 50); // 50ms interval
 
         return () => clearInterval(interval);
-    }, [playSizeTicks, isPlaying, setPlayPosition, gameMode, seek, setSongCompleted, waitingForNotesRef]);
+    }, [playSizeTicks, isPlaying, setIsPlaying, setPlayPosition, gameMode, seek, setSongCompleted, setWaitingForNotes, waitingForNotesRef, loops]);
 };

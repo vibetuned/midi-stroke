@@ -4,7 +4,7 @@ import { useStats } from '../context/stats';
 import { useMidiNotes } from './useMidi';
 import { getMidiState, type MidiNote } from '../utils/midiInput';
 import { useDrumMap } from './useDrumMap';
-import { inputAnswersPad, inputScorePitch } from '../utils/drumMap';
+import { drumScorePosition, inputAnswersPad, inputScorePitch } from '../utils/drumMap';
 
 // Tolerance in ticks (approx 100ms at 120bpm is ~192 ticks, but depends on PPQ)
 // Let's assume standard PPQ 192 (Tone default).
@@ -194,7 +194,10 @@ export function useGameLogic() {
         const hitTime = playPosition;
         let hitSourceTick: number | null = null;
         // Drums: where the pad map says this note is notated; a note it does
-        // not assign matches nothing, and counts as a miss.
+        // not assign matches nothing, and counts as a miss. The score's notes
+        // are read the same way, by the drum each stands for — so the ride on
+        // the top line and the hi-hat foot score as the cymbal and the hi-hat.
+        // (For every position the libraries use, that is where it is written.)
         const noteToMatch =
             instrument === 'drums' ? inputScorePitch(drumMap, hit.note)
             : hit.note + inputOffset;
@@ -204,7 +207,7 @@ export function useGameLogic() {
                 // Onsets are tick-sorted — everything past the hit window is future.
                 if (onset.tick - TOLERANCE_TICKS > hitTime) break;
                 const match = onset.notes.some(n =>
-                    n.midi === noteToMatch
+                    (instrument === 'drums' ? drumScorePosition(n.midi, n.head) : n.midi) === noteToMatch
                     && isTrackActiveForHand(n.staff - 1, activeHand)
                     && hitTime >= onset.tick - TOLERANCE_TICKS && hitTime <= n.endTick);
                 if (match) { hitSourceTick = onset.tick; break; }

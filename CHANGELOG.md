@@ -8,6 +8,51 @@ the way. Install channels and downloads:
 
 ## Unreleased
 
+### Drums
+
+- **Grooves** ([docs/drums-grooves.md](docs/drums-grooves.md)): the 1,150 performances of
+  Magenta's Groove MIDI Dataset — ten drummers on a Roland TD-11 playing to a click, 18 styles,
+  13.6 hours: 503 grooves of up to twenty minutes, 647 fills of a bar or two — as drum scores to
+  read and play. The MIDI files ship unchanged in `public/groove/` with an index
+  (`npm run build:groove`, [scripts/build-groove.mjs](scripts/build-groove.mjs)), credited under
+  CC BY 4.0 in [public/groove/CREDITS.md](public/groove/CREDITS.md), the index, every score and
+  the browser.
+  - **Put on a grid** as it loads ([src/utils/grooveMidi.ts](src/utils/grooveMidi.ts)): the
+    drummer's own time against the click taken out (read from the hits around each beat, and the
+    hi-hat foot's lead on its own), then each beat on the simplest grid that holds its hits —
+    eighths, sixteenths, thirty-seconds, triplets, sextuplets — with the feel kept from beat to
+    beat, so a shuffle stays in triplets and a funk groove in sixteenths. Soft strokes have less
+    say, flams are one stroke, the barely touched are left out. Hits move 13 ms on average and
+    0.09 % of loud strokes are lost; as played, or forced straight or triplets.
+  - **Written as a drummer's chart**: hands up, feet down, beamed by the beat; ghost notes in
+    brackets, accents marked; the ride on the top line and the hi-hat foot below the staff, which
+    the pads sound (ride, pedal hi-hat) and score (with the cymbals, with the hi-hat). Every note
+    keeps its velocity, and playback sounds it.
+  - A **🥁 Grooves** entry in the Drums song picker
+    ([src/components/drums/GrooveBrowser.tsx](src/components/drums/GrooveBrowser.tsx)): beats,
+    fills or both, by style, tempo, length, feel or drummer; the grid; a long take in parts of 32
+    bars (or whole, up to 128); a preview, ▶ Listen, Start. `npm run check:groove` writes out all
+    1,150 and reads them back through Verovio hit for hit.
+- **Longer drum scores play through.** A pattern of up to four bars loops as before; a groove, a
+  part or a whole chart plays once and stops at the end, as a piece does on the piano
+  ([src/hooks/useMidiFile.ts](src/hooks/useMidiFile.ts)). A loop range still loops a passage.
+- **The drum score scrolls** when it is wider than the screen
+  ([src/components/drums/DrumsScoreView.tsx](src/components/drums/DrumsScoreView.tsx)): the cursor
+  stays put and the music comes to it, and dragging the page moves through it. A pattern that fits
+  stays centred.
+- **The step grid rolls, and never moves**
+  ([src/utils/drumGrid.ts](src/utils/drumGrid.ts),
+  [src/components/drums/VirtualDrums.tsx](src/components/drums/VirtualDrums.tsx)): it keeps its 16
+  (or 12, or 8) columns, and as the playhead leaves a column, the column turns to the same step of
+  the next bar — ahead of the cursor the rest of this bar, behind it the start of the next. It is
+  read from the timemap now instead of re-parsing the score, so it follows repeats written out,
+  generated patterns and uploaded scores, and picks 12 triplet columns by what is played rather
+  than by any tuplet in the file; `npm run check:grid` has every library chart on the grid exactly
+  as before. New rows for the ride (RD) and the hi-hat foot (HF).
+- **Rhythm mode reads a written drum as the drum it stands for**, as practice mode waits
+  ([src/utils/drumMap.ts](src/utils/drumMap.ts) `drumScorePosition`) — where the libraries write
+  a drum, exactly as before.
+
 ### Jazz
 
 - **Jazz licks** for the saxophone ([docs/jazz-licks.md](docs/jazz-licks.md)): the 653 most common
@@ -93,6 +138,15 @@ the way. Install channels and downloads:
   the middle of the piece: seven of the ten new English folk tunes did. A score whose first repeat
   sign closes a repeat now gets a start-repeat bar line on its first bar of music
   ([src/utils/mei.ts](src/utils/mei.ts)).
+
+### Docs
+
+- **Fresh screenshots** in the README and the site, taken in the app as it is now: the splash
+  with the Games card, every instrument, the pickers and generators, the grooves. New ones for
+  the **jazz lick builder** (saxophone and piano) and for **every game** on the site's games
+  page — the Slingshot, the Conductor, Rhythm echo with its shield dome, the Groove Builder.
+- The splash's **New Features** pill is on Piano, Drums and Saxo (Saxo's *Experimental* gives way
+  to it).
 
 ### Development
 

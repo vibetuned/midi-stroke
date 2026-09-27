@@ -1,11 +1,11 @@
 ---
 title: Drums
-description: Finger-drumming patterns on a percussion staff, built for the Yamaha FGDP-50, with a step-sequencer grid and a generator that writes patterns from classical rhythm algorithms.
+description: Finger-drumming patterns and real drummers' grooves on a percussion staff, built for the Yamaha FGDP-50, with a step-sequencer grid, a generator that writes patterns from classical rhythm algorithms, and the 1,150 performances of Magenta's Groove MIDI Dataset.
 ---
 
 The drums app trains rhythm patterns — short loops of one or two measures on
-a **percussion staff**, built for the **Yamaha FGDP-50** finger-drum pad
-(any GM-style pad controller works).
+a **percussion staff** — and whole grooves as real drummers played them, built
+for the **Yamaha FGDP-50** finger-drum pad (any GM-style pad controller works).
 
 ![Drums app](/screenshots/drums.png)
 
@@ -17,8 +17,10 @@ a **percussion staff**, built for the **Yamaha FGDP-50** finger-drum pad
   hits are matched back to the notated instrument through the pad map (below),
   and alternate pads for the same instrument (rimshot → snare, open → closed
   hi-hat) count as hits, in rhythm and practice mode alike.
-- **Patterns loop**: at the end of the pattern, playback wraps around with a
-  short lead-in — keep grooving.
+- **Patterns loop**: at the end of a pattern of up to four bars, playback wraps
+  around with a short lead-in — keep grooving. Anything longer, a groove or a
+  whole chart, plays through once and stops, and its score scrolls under the
+  cursor as the saxophone's does.
 
 ## How it sounds
 
@@ -52,10 +54,15 @@ pads were missing from the scoring table.
 
 ## The step-sequencer grid
 
-Below the staff, the pattern is also shown as a **grid**: one row per
+Below the staff, the music is also shown as a **grid**: one row per
 instrument, one column per subdivision (16 columns for sixteenth feels, 12
 for triplet/12-8 feels), with the playhead sweeping column by column. Same
 music, two notations — read the staff, verify with the grid.
+
+The grid never moves. As the playhead leaves a column, the column turns to the
+same step of the **next bar**: ahead of the cursor is the rest of this bar,
+behind it — faintly shaded — the start of the next. A pattern reads round and
+round, and a long groove reads as it goes, a beat ahead of your hands.
 
 
 :::tip[Pads work best on the desktop app]
@@ -110,3 +117,40 @@ the step grid reading them back:
 
 Every pattern has a seed, so the exercise you started is the one you come back
 to, and its stats accumulate like any other piece.
+
+## Grooves
+
+The song picker's **🥁 Grooves** entry is real drummers' playing, to read and
+play along with: the **1,150 performances** of
+[Magenta's Groove MIDI Dataset](https://magenta.tensorflow.org/datasets/groove) —
+ten drummers on an electronic kit, playing to a click, in 18 styles from rock
+and funk to jazz, Afro-Cuban and Brazilian: grooves of up to twenty minutes, and
+fills of a bar or two.
+
+A performance is not a score: every hit is a few milliseconds off the click, a
+drummer sits a little ahead of it or behind, a shuffle's eighths are somewhere
+between straight and triplets. So each one is **put on a grid** the way a
+drummer would write it down — the drummer's own time taken out, then each beat
+on the simplest grid that holds its hits, and the groove's feel kept from beat
+to beat, so a shuffle stays in triplets and a funk groove in sixteenths.
+Ghost notes come out in brackets and accents are marked; the ride is on the top
+line and the hi-hat foot below the staff, as on a drummer's chart.
+
+![The Grooves browser](/screenshots/drum-grooves.png)
+
+- **Find one** by style, tempo, length, feel (straight or swung) or drummer —
+  beats, fills or both.
+- **Choose the grid**: *as played*, or all *straight*, or all *triplets*.
+- **A long take comes in parts** of 32 bars, or whole up to 128 bars.
+- Preview it, **▶ Listen** to its first bars — ghost notes soft, accents loud —
+  and start it.
+
+A groove **plays through** and stops at the end, the score scrolling under the
+cursor; drag the page to move through it, or set a loop range to work on a
+passage. A fill loops like a pattern.
+
+![A funk groove playing](/screenshots/drum-groove-play.png)
+
+The dataset is Magenta's (Google), released under the
+[CC BY 4.0 licence](https://creativecommons.org/licenses/by/4.0/); the scores are
+the app's reading of the performances.

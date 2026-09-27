@@ -9,6 +9,8 @@ rhythm, and the songs are real pieces you can go on to play.
 
 ## Slingshot
 
+![The Slingshot: the probe whipping round an anchor, the notes ahead written on their anchors](/screenshots/game-slingshot.png)
+
 Hold to orbit, let go to fling. Press and hold **space** (or touch, or any MIDI key) as the probe
 reaches an anchor, and it whips around it, a quarter turn every beat. Let go at the white mark and
 it's flung to the next anchor. How long you hold *is* the note: a half note is half a circle, a
@@ -35,6 +37,8 @@ After each run you see how it went, with stars, accuracy, and a tip when you ten
 or rush. You also see **the rhythm written out, every note coloured by how you played it**.
 
 ## Conductor
+
+![The Conductor: a singer's ring filling as the beat goes by, the baton on the beat](/screenshots/game-conductor.png)
 
 Conduct the choir, one beat at a time. Every note of the tune has its own singer, standing low to
 high like the keys of a piano. Hold **space** (or touch, or any MIDI key) for one beat: a ring
@@ -64,6 +68,8 @@ shows the tempo you're conducting at against the piece's.
 
 ## Rhythm echo
 
+![Rhythm echo: plasma bolts falling on the cities, a turret firing as its bolt crosses the horizon](/screenshots/game-echo.png)
+
 Sing the second voice of a canon by defending the cities from it: a musical *Missile Command*,
 with a good ending. A star sings a line, and each of its notes falls as a bolt of plasma on the
 city of its pitch, one city for every note of your voice, low on the left. A satellite watches a
@@ -80,6 +86,8 @@ you hold. Defend them all and the two voices together are the canon.
   answer, burst harmlessly on it. Then the fires go out, the lights come on, and there are
   fireworks.
 
+![The shield dome charged: the star's last bolts burst on it](/screenshots/game-echo-dome.png)
+
 The results show what happened to every bolt, bar by bar: a green burst when it was intercepted,
 flames on a house when it reached its city, flames on a turret when it overheated.
 
@@ -90,6 +98,8 @@ flames on a house when it reached its city, flames on a turret when it overheate
 - **My pieces**: add a two-voice canon of your own, and the voice that follows is yours.
 
 ## Groove Builder
+
+![The Groove Builder: the hi-hat's turn, the kick and snare already locked in on the wheel](/screenshots/game-groove-builder.png)
 
 Build a drum groove one part at a time, like a looper. The groove is a wheel of pads, like a game
 of Simon: a ring for each part, and a pad for every step of the bar. A bar is counted in, then you

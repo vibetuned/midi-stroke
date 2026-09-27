@@ -9,6 +9,7 @@ import { ScaleBuilder } from './ScaleBuilder';
 import { JazzScaleBuilder } from './saxo/JazzScaleBuilder';
 import { JazzLickBuilder } from './saxo/JazzLickBuilder';
 import { DrumPatternBuilder } from './drums/DrumPatternBuilder';
+import { GrooveBrowser } from './drums/GrooveBrowser';
 
 // Must match the server's slug rule for instruments/categories (server/src/app.ts).
 const CATEGORY_RE = /^[a-z0-9][a-z0-9_-]*$/i;
@@ -20,6 +21,9 @@ const SCALES_PATH = '__scales__';
 // The saxophone's and the piano's second generator: the Jazzomat licks.
 const LICKS_PATH = '__licks__';
 const LICKS = { title: 'Jazz Licks', label: '🎷 Jazz licks', sub: '653 patterns · Jazzomat' };
+// The drums' second: the Groove MIDI Dataset's performances.
+const GROOVES_PATH = '__grooves__';
+const GROOVES = { title: 'Grooves', label: '🥁 Grooves', sub: '1,150 takes · Magenta' };
 
 const GENERATORS: Record<string, { title: string; label: string; sub: string }> = {
     piano: { title: 'Scale Generator', label: '🎼 Scale generator', sub: 'scales · arpeggios · cadences' },
@@ -136,7 +140,7 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
     useEffect(() => {
         if (isLoading) return;
         setSelectedPath(prev =>
-            (prev === SCALES_PATH || (prev && availablePaths.includes(prev)))
+            (prev === SCALES_PATH || prev === LICKS_PATH || prev === GROOVES_PATH || (prev && availablePaths.includes(prev)))
                 ? prev
                 : (availablePaths[0] ?? '')
         );
@@ -393,6 +397,12 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                                     <div style={subLabelStyle}>{LICKS.sub}</div>
                                 </button>
                             )}
+                            {instrument === 'drums' && (
+                                <button onClick={() => setSelectedPath(GROOVES_PATH)} style={collectionButtonStyle(selectedPath === GROOVES_PATH)}>
+                                    <div style={{ fontSize: '0.9rem', fontWeight: selectedPath === GROOVES_PATH ? 600 : 400 }}>{GROOVES.label}</div>
+                                    <div style={subLabelStyle}>{GROOVES.sub}</div>
+                                </button>
+                            )}
                             {availablePaths.length === 0 && !generator && <Empty>No collections found.</Empty>}
                             {availablePaths.map(p => {
                                 const isActive = p === selectedPath;
@@ -430,6 +440,11 @@ export const SongSelector: React.FC<SongSelectorProps> = ({ onDismiss }) => {
                             <div style={detailStyle}>
                                 <h3 style={sectionTitleStyle}>{LICKS.title}</h3>
                                 <JazzLickBuilder onStart={setSelectedSong} instrument={instrument} />
+                            </div>
+                        ) : selectedPath === GROOVES_PATH && instrument === 'drums' ? (
+                            <div style={detailStyle}>
+                                <h3 style={sectionTitleStyle}>{GROOVES.title}</h3>
+                                <GrooveBrowser onStart={setSelectedSong} />
                             </div>
                         ) : selectedPath === SCALES_PATH && generator ? (
                             <div style={detailStyle}>

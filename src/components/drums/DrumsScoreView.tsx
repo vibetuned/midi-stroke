@@ -20,6 +20,16 @@ interface MeasureData {
 // Fix 11: ordered loading steps used by the progress dots
 const LOADING_STEPS = ['Loading Score...', 'Rendering SVG...', 'Slicing Textures...'];
 
+/**
+ * A pattern fits the screen and sits centred, the cursor sweeping it. A score
+ * too wide for the screen — a groove, a whole chart — scrolls instead, like
+ * the saxo's: the cursor stays at this fraction of the width, the music comes
+ * to it, and dragging the page moves through it.
+ */
+const HIT_LINE = 0.12;
+/** Leave this much of the width free before a score counts as too wide. */
+const FIT_MARGIN = 40;
+
 // Fix 1: binary search helpers — O(log n) instead of O(n) findIndex
 function findMeasureAtTick(mData: MeasureData[], tick: number): number {
     let lo = 0, hi = mData.length - 1;
@@ -73,6 +83,8 @@ export const DrumsScoreView: React.FC = () => {
     const writtenDataRef = useRef<MeasureData[]>([]);
     const totalWidthRef = useRef<number>(0);
     const scaleRef = useRef<number>(1);
+    /** Too wide for the screen: the page scrolls under a fixed cursor. */
+    const scrollingRef = useRef<boolean>(false);
 
     // Initialize Pixi
     useEffect(() => {
@@ -106,8 +118,13 @@ export const DrumsScoreView: React.FC = () => {
                 app.stage.eventMode = 'static';
                 app.stage.hitArea = new PIXI.Rectangle(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
 
+                let dragStartX = 0;
+                let dragStartScrollX = 0;
+
                 app.stage.on('pointerdown', (e) => {
                     isDragging.current = true;
+                    dragStartX = e.global.x;
+                    dragStartScrollX = scrollContainer.x;
                     if (isPlayingRef.current) {
                         setIsPlaying(false);
                         Tone.getTransport().pause();
@@ -115,6 +132,8 @@ export const DrumsScoreView: React.FC = () => {
                         setIsPlaying(false);
                         Tone.getTransport().pause();
                     }
+                    // A scrolling page is dragged, not pointed at.
+                    if (scrollingRef.current) return;
                     const scale = scaleRef.current;
                     const scoreDisplayWidth = totalWidthRef.current * scale;
                     const offsetX = (window.innerWidth - scoreDisplayWidth) / 2;
@@ -129,7 +148,15 @@ export const DrumsScoreView: React.FC = () => {
                 app.stage.on('pointerout', endDrag);
 
                 app.stage.on('pointermove', (e) => {
-                    if (isDragging.current) {
+                    if (isDragging.current && scrollingRef.current) {
+                        // Drag the page; the bar under the cursor is where it goes.
+                        const scale = scaleRef.current;
+                        const screenW = app.screen.width;
+                        const hitLineX = screenW * HIT_LINE;
+                        const newX = Math.max(hitLineX - totalWidthRef.current * scale, Math.min(hitLineX, dragStartScrollX + e.global.x - dragStartX));
+                        scrollContainer.x = newX;
+                        seekToGlobalX((hitLineX - newX) / scale);
+                    } else if (isDragging.current) {
                         const scale = scaleRef.current;
                         const scoreDisplayWidth = totalWidthRef.current * scale;
                         const offsetX = (window.innerWidth - scoreDisplayWidth) / 2;
@@ -188,7 +215,10 @@ export const DrumsScoreView: React.FC = () => {
                         }
 
                         const scoreDisplayWidth = totalWidthRef.current * scale;
-                        const offsetX = (window.innerWidth - scoreDisplayWidth) / 2;
+                        // Scrolling: the music comes to a fixed cursor. Fitting: the page is centred and the cursor moves.
+                        const offsetX = scrollingRef.current
+                            ? app.screen.width * HIT_LINE - globalX * scale
+                            : (window.innerWidth - scoreDisplayWidth) / 2;
                         const targetCursorX = offsetX + globalX * scale;
 
                         // Fix 3: skip cursor redraw when position hasn't changed
@@ -199,7 +229,7 @@ export const DrumsScoreView: React.FC = () => {
                             lastCursorX = targetCursorX;
                         }
 
-                        // Keep the score centered (no-op once positioned)
+                        // Keep the score in place: centred, or scrolled to the cursor (no-op once there)
                         if (Math.abs(scrollContainerRef.current.x - offsetX) > 0.5) {
                             scrollContainerRef.current.x = offsetX;
                         }
@@ -373,6 +403,7 @@ export const DrumsScoreView: React.FC = () => {
         if (scrollContainerRef.current) {
             scrollContainerRef.current.scale.set(scaleFactor);
         }
+        scrollingRef.current = totalW * scaleFactor > appRef.current.screen.width - FIT_MARGIN;
 
         const targetY = (appRef.current.screen.height / scaleFactor - TEXTURE_HEIGHT) / 2;
 

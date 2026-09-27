@@ -84,6 +84,12 @@ eq('4. the low tom lists every note that plays it', E.notesForVoice(kit, 'tomLow
 eq('4. the kit sound follows the map too', E.voiceForInput(kit, 26), 'hatOpen');
 eq('4. unassigning a note silences it', E.voiceForInput(E.assignNote(kit, 26, null), 26), undefined);
 eq('4. the default is not touched by edits', E.voiceForInput(GM, 39), 'clap');
+// The grooves' two places (utils/grooveMidi.ts): the ride on the top line, the hi-hat foot below the staff.
+eq('4. a ride written on the top line plays the ride pad', E.padForScoreNote(77, 'x'), 51);
+eq('4. …and scores with the cymbals, where the ride pad does', E.drumScorePosition(77, 'x'), E.inputScorePitch(GM, 51));
+eq('4. the hi-hat foot plays the pedal hi-hat', E.padForScoreNote(62, 'x'), 44);
+eq('4. …and scores with the hi-hat', E.drumScorePosition(62, 'x'), E.inputScorePitch(GM, 42));
+eq('4. …and waits for the hi-hat in practice', E.inputAnswersPad(GM, 44, 42), true);
 
 // ------------------------------------------------ 5. storage
 eq('5. a map round-trips through storage', E.sameMap(E.parseDrumMap(E.serializeDrumMap(kit)), kit), true);
@@ -112,7 +118,9 @@ for (const file of charts) {
     const pad = E.padForScoreNote(n.midi, n.head);
     if (pad === undefined) continue;          // not a drum the app notates
     notes++;
-    const rhythm = E.inputScorePitch(GM, pad) === n.midi;
+    // Rhythm mode reads a written note as the drum it stands for (drumScorePosition),
+    // which for every place the charts write a drum is where it is written.
+    const rhythm = E.inputScorePitch(GM, pad) === n.midi && E.drumScorePosition(n.midi, n.head) === n.midi;
     const practice = E.inputAnswersPad(GM, pad, pad);
     if (!rhythm || !practice) unplayable.set(`${n.midi}/${n.head ?? '-'}`, (unplayable.get(`${n.midi}/${n.head ?? '-'}`) ?? 0) + 1);
     if (OLD[pad] === undefined) newlyScoring.add(E.PAD_TO_VOICE[pad]);

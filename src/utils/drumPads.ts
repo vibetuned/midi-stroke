@@ -28,17 +28,20 @@ export const PAD_TO_VOICE: Record<number, DrumVoiceKey> = {
  * Score pitch (+ notehead) → pad. Verovio renders drum notation as pitches, so
  * f4 is a kick and c5 a snare; voices that share a staff position are told
  * apart by the notehead, which is why `head` matters — a c5 with a slash head
- * is a rim shot, a g5 with a "+" is an open hi-hat.
+ * is a rim shot, a g5 with a "+" is an open hi-hat, an f5 with an x the ride
+ * (on the top line, as a drummer's chart has it: the grooves write it there,
+ * utils/grooveMidi.ts) and a d4 with an x, below the staff, the hi-hat foot.
  */
 export function padForScoreNote(midi: number, head?: string): number | undefined {
     switch (midi) {
+        case 62: return head === 'x' ? 44 : undefined;        // d4  hi-hat foot
         case 65: return 36;                                   // f4  bass drum
         case 64: return head === 'x' ? 39 : undefined;        // e4  clap
         case 69: return 43;                                   // a4  low tom
         case 72: return head === 'slash' ? 37 : 38;           // c5  rim shot / snare
         case 74: return 47;                                   // d5  mid tom
         case 76: return 48;                                   // e5  high tom
-        case 77: return head === 'diamond' ? 56 : 54;         // f5  cowbell / tambourine
+        case 77: return head === 'diamond' ? 56 : head === 'x' ? 51 : 54;   // f5  cowbell / ride / tambourine
         case 79: return head === '+' ? 46 : 42;               // g5  open / closed hi-hat
         case 81: return 49;                                   // a5  cymbal
         default: return undefined;

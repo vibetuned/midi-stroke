@@ -43,6 +43,15 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
+            // The grooves (public/groove/): the index and each take's MIDI file, on first use
+            urlPattern: /\/groove\/.*\.(?:mid|json)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'groove-files',
+              expiration: { maxEntries: 1200, maxAgeSeconds: 30 * 24 * 60 * 60 },
+            },
+          },
+          {
             // Cache Salamander piano audio samples from external CDN
             urlPattern: /^https:\/\/tonejs\.github\.io\/audio\//,
             handler: 'CacheFirst',

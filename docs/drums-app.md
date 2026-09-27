@@ -6,11 +6,16 @@
 > The app also ships a **pattern generator** — a 16-step sequencer with
 > Euclidean, Bernoulli, shift-register, Markov and cellular-automaton engines
 > behind it. It has its own document: [drums-patterns.md](drums-patterns.md).
+>
+> And **Grooves**: the 1,150 performances of Magenta's Groove MIDI Dataset, put on
+> a grid and written out, beats of up to twenty minutes and fills of a bar or two —
+> with what the app does with a score longer than a pattern (it plays through, the
+> score scrolls, the grid rolls). Its document: [drums-grooves.md](drums-grooves.md).
 
 The Drums app trains rhythm patterns, built for the **Yamaha FGDP-50** finger-drum pad (any
-GM-style pad controller works — see the pad maps below). Scores are short looping patterns
+GM-style pad controller works — see the pad maps below). Most scores are short looping patterns
 (1–2 measures), so instead of a scrolling keyboard it shows a **step-sequencer grid** that lights
-up per measure.
+up column by column; the grooves are whole performances, and play through.
 
 ---
 
@@ -20,6 +25,8 @@ up per measure.
 DrumsApp                       src/components/DrumsApp.tsx
 ├── StartOverlay
 ├── SongSelector               from public/drums_files.json
+│   ├── DrumPatternBuilder     🎛 Pattern generator (drums-patterns.md)
+│   └── GrooveBrowser          🥁 Grooves (drums-grooves.md)
 ├── StatsPanel (modal)
 ├── header                     "Midi Stroke - Drums" · LiveStats · SongNavigator · stats
 ├── main
@@ -43,8 +50,8 @@ Root div uses `className="app-container theme-drums"` (red accent). Hooks:
 | Hand selection | Yes | **None** (`activeHand` forced to `'both'`) |
 | Key-range setup | `PianoSetup` required | **None** — no `PianoSetup`, `SongSelector` not gated on `pianoRange` |
 | Note identity | MIDI pitch == score pitch | MEI pitch **remapped** to drum-pad MIDI |
-| Song end | Pause + reset to 0 | **Loop** (`seek(144)`) |
-| Score view | Scrolls under a fixed cursor; sticky clef; minimap; hand overlays | Centred; only the cursor sweeps |
+| Song end | Pause + reset to 0 | **Loop** (`seek(144)`) for a pattern of up to 4 bars; longer, pause + reset to 0 |
+| Score view | Scrolls under a fixed cursor; sticky clef; minimap; hand overlays | Centred, only the cursor sweeping; scrolls under a fixed cursor when wider than the screen |
 | Theme | purple `#646cff` | red `#f5576c` (`.theme-drums`) |
 
 ### Pitch remapping
@@ -58,14 +65,21 @@ and pads:
   → where that voice is notated. It is what `useGameLogic()` matches an incoming hit through, and
   what the live kit sounds. It starts as General MIDI and is edited in the 🥁 panel
   ([DrumMapEditor.tsx](../src/components/drums/DrumMapEditor.tsx)).
+- Rhythm mode reads the score's note the same way, as the drum it stands for
+  (`drumScorePosition`: note → pad → voice → where that voice is notated), which is how practice
+  mode always waited. For the positions the libraries use that is where the note is written; the
+  grooves add two that are not — the **ride on the top line** (f5 ×, pad 51) and the **hi-hat
+  foot below the staff** (d4 ×, pad 44) — which score as the cymbal and the hi-hat.
 
 ---
 
 ## 3. DrumsScoreView specifics
 
-[DrumsScoreView.tsx](../src/components/DrumsScoreView.tsx) is a stripped-down `ScoreView`:
-no sticky clef, no minimap, no hand overlays. The whole (short) pattern is **centred** in the
-viewport (`offsetX = (innerWidth - scoreWidth*scale) / 2`) and the cursor sweeps across it.
+[DrumsScoreView.tsx](../src/components/drums/DrumsScoreView.tsx) is a stripped-down `ScoreView`:
+no sticky clef, no minimap, no hand overlays. A pattern that fits is **centred** in the
+viewport (`offsetX = (innerWidth - scoreWidth*scale) / 2`) and the cursor sweeps across it. A score
+wider than the screen — a groove — **scrolls**: the cursor stays at 12 % of the width and the page
+moves under it, as on the saxophone, and dragging the page seeks.
 Verovio options use a larger `scale: 85` and the scale-factor cap is `1.5` (vs piano's `1`) since
 patterns are small and benefit from being drawn bigger.
 
@@ -73,22 +87,26 @@ patterns are small and benefit from being drawn bigger.
 
 ## 4. VirtualDrums specifics
 
-[VirtualDrums.tsx](../src/components/VirtualDrums.tsx) is a **grid sequencer**, not a live
-controller. It:
+[VirtualDrums.tsx](../src/components/drums/VirtualDrums.tsx) is a **grid sequencer**, not a live
+controller; its logic is [drumGrid.ts](../src/utils/drumGrid.ts), pure and checked
+(`npm run check:grid`). It:
 
-1. **Re-parses the MEI itself** (independently of the MIDI playback) to extract
-   `{ tick, instrumentId }[]`, walking layers and honouring beams/tuplets/chords for accurate
-   tick math.
-2. Derives a grid config from the meter (`columns`, `ticksPerColumn`, `ticksPerMeasure`) — 16 cols
-   for 4/4 sixteenths, 12 cols for 12/8 or triplet feel.
-3. Identifies each note's instrument via `DRUM_MAP` — an array of
-   `{ id, label, color, uiShape, match: {pname, oct, head.shape?, head.fill?}, order }`.
-   This **pname/oct/notehead → instrument** matcher is the drums analogue of a fingering table.
-4. Renders a row per active instrument (sorted by `order`), a column per step, an SVG glyph
-   (`circle`/`cross`/`plus`/`diamond`/`slash`) where a hit lands, and highlights the current
-   column from `playPosition`.
+1. **Reads the timemap** — the same one the score view loaded — for each onset's notes (pitch,
+   notehead, fill) and the bars' ticks. (It used to re-parse the MEI itself; the timemap follows
+   whatever is played — repeats written out, generated, uploaded and groove scores — and on all
+   518 library charts puts every hit in the same cell as before.)
+2. Derives the columns from the meter, and keeps them: 16 sixteenths in 4/4, **12 triplet eighths
+   when a 4/4 is played more in triplets than in sixteenths**, 12 eighths in 12/8, 8 in 2/4.
+3. Identifies each note's row by written pitch + notehead (+ fill for the f5 diamonds) — the drums
+   analogue of a fingering table — including the grooves' **RD** (ride, f5 ×) and **HF** (hi-hat
+   foot, d4 ×).
+4. Renders a row per drum the score uses, a column per step with a darker line on each beat, an
+   SVG glyph (`circle`/`cross`/`plus`/`diamond`/`slash`) where a hit lands, and **rolls**: the grid
+   never moves, and as the playhead leaves a column, the column turns to the same step of the next
+   bar (faintly shaded). Ahead of the cursor, the rest of this bar; behind it, the start of the
+   next — round again for a looping pattern, on through a groove, back to a loop range's first bar.
 
-> **Relevance to Saxo:** `DRUM_MAP` is the closest existing pattern to what `VirtualSaxo` needs —
+> **Relevance to Saxo:** the grid's rows table (`ROWS` in drumGrid.ts) is the closest existing pattern to what `VirtualSaxo` needs —
 > a static table mapping a musical event to a visual representation. The Saxo table maps a **MIDI
 > note → set of pressed keys** (a fingering), rendered as a minimalist sax body. See
 > [saxo-app.md](saxo-app.md).
