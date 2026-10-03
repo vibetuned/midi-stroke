@@ -135,6 +135,12 @@ export function repeatOrder(doc: Document): string[] | { error: string } {
  * Verovio plays). Returns the bars before and after, or an error, leaving
  * the document as it was when it cannot.
  */
+/** Attributes that hold references to other elements, with or without a "#". */
+const POINTERS = new Set(['startid', 'endid', 'plist', 'sameas', 'corresp', 'next', 'prev', 'follows', 'precedes', 'copyof', 'synch']);
+/** References that point on in time, and back. */
+const FORWARD = new Set(['endid', 'next', 'precedes']);
+const BACKWARD = new Set(['startid', 'prev', 'follows']);
+
 export function writeOutRepeats(doc: Document, order: string[]): { bars: [number, number] } | { error: string } {
     const sections = topSections(doc);
     if (sections.length === 0) return { error: 'no section' };
@@ -156,14 +162,26 @@ export function writeOutRepeats(doc: Document, order: string[]): { bars: [number
     const COPY = /-rend(\d+)$/;
     const seen = new Set<string>();
     const out: Element[] = [];
+    // Each measure as it is played: its place, and for a copy, its renamed ids.
+    const occurrences = new Map<string, Array<{ pos: number; rename: Map<string, string> | null }>>();
+    const copies: Array<{ inside: Element[]; pos: number; rename: Map<string, string> }> = [];
+    // Which measure each id is in, to find a reference's bar.
+    const measureOfId = new Map<string, string>();
+    for (const [base, g] of groups) for (const el of [g.measure, ...all(g.measure, '*')]) {
+        const id = el.getAttribute('xml:id');
+        if (id) measureOfId.set(id, base);
+    }
+    let pos = 0;
     for (const id of order) {
         const pass = Number(COPY.exec(id)?.[1] ?? 1);
         const base = id.replace(COPY, '');
         const g = groups.get(base);
         if (!g) return { error: `a measure the score does not have (${id})` };
+        const at = pos++;
         if (!seen.has(base)) {
             seen.add(base);
             out.push(...g.before, g.measure);
+            occurrences.set(base, [{ pos: at, rename: null }]);
             continue;
         }
         // Again: a copy, with its own ids.
@@ -175,16 +193,40 @@ export function writeOutRepeats(doc: Document, order: string[]): { bars: [number
             const old = el.getAttribute('xml:id');
             if (old) { rename.set(old, `${old}-r${pass}`); el.setAttribute('xml:id', `${old}-r${pass}`); }
         }
+        for (const t of all(copy, 'tempo')) t.parentNode?.removeChild(t);
+        occurrences.get(base)!.push({ pos: at, rename });
+        copies.push({ inside, pos: at, rename });
+        out.push(copy);
+    }
+    // A copy's references: to its own bar, its own copies; to another bar —
+    // a tie or a slur across the bar line — that bar as it is played next to
+    // this one: the time after for an end, the time before for a start.
+    for (const { inside, pos: here, rename } of copies) {
+        const resolve = (id: string, attr: string): string => {
+            if (rename.has(id)) return rename.get(id)!;
+            const base = measureOfId.get(id);
+            const occs = base ? occurrences.get(base) : undefined;
+            if (!occs) return id;
+            const after = occs.find(o => o.pos >= here), before = [...occs].reverse().find(o => o.pos <= here);
+            const nearest = [...occs].sort((a, b) => Math.abs(a.pos - here) - Math.abs(b.pos - here) || b.pos - a.pos)[0];
+            const pick = FORWARD.has(attr) ? after ?? nearest : BACKWARD.has(attr) ? before ?? nearest : nearest;
+            return pick.rename?.get(id) ?? id;
+        };
         for (const el of inside) {
             for (let a = 0; a < el.attributes.length; a++) {
                 const attr = el.attributes.item(a)!;
-                if (!attr.value.includes('#')) continue;
-                const value = attr.value.split(/\s+/).map(t => (t.startsWith('#') && rename.has(t.slice(1)) ? `#${rename.get(t.slice(1))}` : t)).join(' ');
+                const pointer = POINTERS.has(attr.name);
+                if (!pointer && !attr.value.includes('#')) continue;
+                const value = attr.value.split(/\s+/).map(t => {
+                    const hash = t.startsWith('#');
+                    if (!hash && !pointer) return t;
+                    const id = hash ? t.slice(1) : t;
+                    const to = resolve(id, attr.name);
+                    return to === id ? t : `${hash ? '#' : ''}${to}`;
+                }).join(' ');
                 if (value !== attr.value) el.setAttribute(attr.name, value);
             }
         }
-        for (const t of all(copy, 'tempo')) t.parentNode?.removeChild(t);
-        out.push(copy);
     }
     if (seen.size !== groups.size) return { error: `${groups.size - seen.size} of the measures are never played` };
 

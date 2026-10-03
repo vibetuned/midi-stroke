@@ -6,6 +6,32 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
+## Unreleased
+
+### Scores
+
+- **A tied note is played once**, in practice mode and in rhythm mode, however the score writes
+  the tie ([src/utils/timemap.ts](src/utils/timemap.ts)). Three kinds were asking for the note
+  again, most often across a bar line:
+  - a tie on a **chord** — `@tie` on the `<chord>`, or a `<tie>` between chords: the piano's
+    jazz licks hold their left-hand shells across bar lines this way, and asked for every shell
+    twice;
+  - a tie in **repeated bars** that crosses into the next bar: writing the repeats out copied it
+    still pointing at the first time through, so the second time asked for the note again (and
+    Verovio drew the tie backwards). The copies now point within their own time through, slurs
+    too, and ids written without a `#` are followed as well
+    ([src/utils/expandRepeats.ts](src/utils/expandRepeats.ts));
+  - a tie placed **by beat** (`@tstamp`, `@tstamp2`) instead of by note.
+- **Every tie the app holds is drawn.** A `<tie>` with no end, or a `tie="i"` with nothing ending
+  it, was held but not drawn — the page showed two notes and asked for one. As a score loads, each
+  tie now gets its end, the next note of its pitch in the voice, and one pointing past it is put
+  right (`completeTies`, [src/utils/mei.ts](src/utils/mei.ts)); 20 of the piano library's pieces
+  draw ties they did not before. Only the copy of the score in memory changes, never the file.
+- `npm run check:ties` ([scripts/check-ties.mjs](scripts/check-ties.mjs)): one tie across a bar
+  line written every way MEI allows, plain and repeated; every piano and saxophone score in the
+  library, and the generated licks and jazz exercises, struck exactly as Verovio plays them, with
+  a tie drawn wherever one is held.
+
 ## 0.0.5 — 2026-09-27
 
 Real drummers, and the masters' vocabulary. The drums app gains the 1,150 performances of Magenta's

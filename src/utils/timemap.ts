@@ -90,6 +90,7 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
     const rawOnsets: Array<{ tick: number; notes: RawNote[] }> = [];
     const onsetAtTick = new Map<number, { tick: number; notes: RawNote[] }>();
     const offTickOf = new Map<string, number>();
+    const onTickOf = new Map<string, number>();
 
     for (const ev of events) {
         const tick = Math.round(ev.qstamp * TONE_PPQ);
@@ -101,6 +102,9 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
 
         for (const id of ev.off ?? []) {
             if (!offTickOf.has(id)) offTickOf.set(id, tick);
+        }
+        for (const id of ev.on ?? []) {
+            if (!onTickOf.has(id)) onTickOf.set(id, tick);
         }
 
         if (ev.on && ev.on.length > 0) {
@@ -140,41 +144,137 @@ export function extractTimemap(toolkit: VerovioToolkit, meiDoc: Document | null)
         return cont ? cont.id : null;
     };
 
+    // The note of a pitch that turns on at a tick, on a staff.
+    const noteAt = (tick: number, staff: number | undefined, pitch: number | undefined): string | null => {
+        if (!pitch) return null;
+        const n = onsetAtTick.get(tick)?.notes.find(x => x.midi === pitch && (staff === undefined || x.staff === staff));
+        return n ? n.id : null;
+    };
+
+    // Where a control event's @tstamp (or, `end`, its @tstamp2 "2m+1.5") falls,
+    // in ticks: beats of the meter's unit from its measure's start, as many
+    // measures on as it says. Measures are matched to the timemap's by id, or
+    // in order.
+    const measureList = meiDoc?.getElementsByTagName('measure');
+    const measureEls = measureList ? Array.from({ length: measureList.length }, (_, i) => measureList.item(i)!) : [];
+    const unitOfMeasure = new Map<Element, number>();
+    if (meiDoc) {
+        let unit = 4;
+        const everything = meiDoc.getElementsByTagName('*');
+        for (let i = 0; i < everything.length; i++) {
+            const el = everything.item(i)!;
+            const u = Number(el.nodeName === 'meterSig' ? el.getAttribute('unit') : el.getAttribute('meter.unit'));
+            if (u > 0) unit = u;
+            if (el.nodeName === 'measure') unitOfMeasure.set(el, unit);
+        }
+    }
+    const measureStarts = [...measureTicks.entries()].filter(([id]) => !/-rend\d+$/.test(id)).map(([, t]) => t);
+    const tickOfTstamp = (el: Element, value: string, end: boolean): number | null => {
+        let m: Node | null = el.parentNode;
+        while (m && m.nodeName !== 'measure') m = m.parentNode;
+        const index = m ? measureEls.indexOf(m as Element) : -1;
+        if (index < 0) return null;
+        const match = end ? /^(?:(\d+)m\+)?([\d.]+)$/.exec(value.trim()) : /^()([\d.]+)$/.exec(value.trim());
+        if (!match) return null;
+        const at = index + (Number(match[1]) || 0);
+        const measure = measureEls[at];
+        const id = measure?.getAttribute('xml:id');
+        const start = (id ? measureTicks.get(id) : undefined) ?? measureStarts[at];
+        if (start === undefined) return null;
+        return Math.round(start + (Number(match[2]) - 1) * TONE_PPQ * 4 / (unitOfMeasure.get(measure) ?? 4));
+    };
+
     // Tie edges (start note → continuation note). Continuations must not become
     // pause points / expected re-strikes: the player holds the note, they don't
     // press it again — and the struck note's span extends through the tie.
+    //
+    // A tie joins a note to the one of the same pitch that starts as it ends;
+    // one that claims anything else (a reference to another time through a
+    // repeat, say) joins nothing, so a note is never held backwards in time.
+    // A tie may be written between notes, between chords (every note of the
+    // chord tied to its own pitch in the next), as @tie on a note or a chord,
+    // or by beat (@tstamp, @tstamp2) instead of by note.
     const tieNext = new Map<string, string>();
     const tieContinuations = new Set<string>();
+    const link = (startId: string, endId: string) => {
+        const off = offTickOf.get(startId), on = onTickOf.get(endId);
+        if (off === undefined || on === undefined || Math.abs(off - on) > 1) return;
+        tieContinuations.add(endId);
+        tieNext.set(startId, endId);
+    };
     if (meiDoc) {
+        // A tie's end, or start, may be a chord: its notes, each by its pitch.
+        const chordNotes = new Map<string, string[]>();
+        const chordEls = meiDoc.getElementsByTagName('chord');
+        for (let i = 0; i < chordEls.length; i++) {
+            const c = chordEls.item(i)!;
+            const ids: string[] = [];
+            const inner = c.getElementsByTagName('note');
+            for (let j = 0; j < inner.length; j++) { const id = inner.item(j)!.getAttribute('xml:id'); if (id) ids.push(id); }
+            const cid = c.getAttribute('xml:id');
+            if (cid) chordNotes.set(cid, ids);
+        }
+        const notesOf = (id: string) => chordNotes.get(id) ?? [id];
+        const pitchOf = (id: string) => toolkit.getMIDIValuesForElement(id)?.pitch;
+        const linkPairs = (starts: string[], ends: string[]) => {
+            for (const s of starts) {
+                const p = pitchOf(s);
+                const e = ends.length === 1 && starts.length === 1 ? ends[0] : ends.find(x => pitchOf(x) === p);
+                if (e) link(s, e);
+            }
+        };
+
         const tieEls = meiDoc.getElementsByTagName('tie');
         for (let i = 0; i < tieEls.length; i++) {
             const tieEl = tieEls.item(i)!;
             // Missing attributes read as null in browsers but "" in some DOM
             // implementations — treat both as absent.
             const startId = (tieEl.getAttribute('startid') || '').replace(/^#/, '');
-            const rawEndId = (tieEl.getAttribute('endid') || '').replace(/^#/, '');
-            const endId = rawEndId || (startId ? resolveContinuation(startId) : null);
-            if (!endId) continue;
-            tieContinuations.add(endId);
-            if (startId) tieNext.set(startId, endId);
+            const endId = (tieEl.getAttribute('endid') || '').replace(/^#/, '');
+            if (startId) {
+                const starts = notesOf(startId);
+                if (endId) { linkPairs(starts, notesOf(endId)); continue; }
+                const tstamp2 = tieEl.getAttribute('tstamp2') || '';
+                const endTick = tstamp2 ? tickOfTstamp(tieEl, tstamp2, true) : null;
+                for (const s of starts) {
+                    const e = endTick === null ? resolveContinuation(s) : noteAt(endTick, staffOfNote.get(s), pitchOf(s));
+                    if (e) link(s, e);
+                }
+                continue;
+            }
+            // By beat: the notes on the tie's staff at @tstamp, held to the same pitches at @tstamp2.
+            const tstamp = tieEl.getAttribute('tstamp') || '';
+            if (!tstamp) continue;
+            const startTick = tickOfTstamp(tieEl, tstamp, false);
+            if (startTick === null) continue;
+            const staff = parseInt((tieEl.getAttribute('staff') || '1').split(/\s+/)[0], 10) || 1;
+            const tstamp2 = tieEl.getAttribute('tstamp2') || '';
+            const endTick = tstamp2 ? tickOfTstamp(tieEl, tstamp2, true) : null;
+            for (const n of onsetAtTick.get(startTick)?.notes.filter(n => n.staff === staff) ?? []) {
+                const e = endTick === null ? resolveContinuation(n.id) : noteAt(endTick, staff, n.midi);
+                if (e) link(n.id, e);
+            }
         }
 
         // Attribute-encoded ties: @tie "i" (initial) and "m" (medial) start a
-        // tie; "m" and "t" (terminal) are themselves continuations.
+        // tie; "m" and "t" (terminal) are themselves continuations. On a
+        // chord, @tie is every one of its notes'.
+        const tieOf = (noteEl: Element): string => {
+            if (noteEl.hasAttribute('tie')) return noteEl.getAttribute('tie') ?? '';
+            const parent = noteEl.parentNode as Element | null;
+            return parent && parent.nodeName === 'chord' ? parent.getAttribute('tie') ?? '' : '';
+        };
         const noteEls = meiDoc.getElementsByTagName('note');
         for (let i = 0; i < noteEls.length; i++) {
             const noteEl = noteEls.item(i)!;
-            if (!noteEl.hasAttribute('tie')) continue; // what 'note[tie]' selected
-            const tie = noteEl.getAttribute('tie') ?? '';
+            const tie = tieOf(noteEl);
+            if (!tie) continue;
             const id = noteEl.getAttribute('xml:id');
             if (!id) continue;
             if (tie.includes('m') || tie.includes('t')) tieContinuations.add(id);
             if (tie.includes('i') || tie.includes('m')) {
                 const contId = resolveContinuation(id);
-                if (contId) {
-                    tieContinuations.add(contId);
-                    tieNext.set(id, contId);
-                }
+                if (contId) link(id, contId);
             }
         }
     }

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useVerovio } from '../../hooks/useVerovio';
 import { loadSongText } from '../../utils/songUrl';
-import { ensureCountInMeasure, ensureNoteIds } from '../../utils/mei';
+import { completeTies, ensureCountInMeasure, ensureNoteIds } from '../../utils/mei';
 import { OPFS_PREFIX, deleteOpfsSong, isOpfsSupported, listOpfsSongs, saveOpfsSong } from '../../utils/opfs';
 import { removeAccompaniment } from '../../utils/accompaniment';
 import { extractTimemap, type TimemapData } from '../../utils/timemap';
@@ -165,6 +165,7 @@ export const GamesApp: React.FC<{
         expandRepeats(dom);
         ensureCountInMeasure(dom);
         ensureNoteIds(dom);
+        completeTies(dom);
         const mei = new XMLSerializer().serializeToString(dom);
         toolkit.setOptions({ header: 'none', footer: 'none' });
         toolkit.loadData(mei);

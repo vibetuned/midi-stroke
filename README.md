@@ -298,6 +298,7 @@ npm run check:loop               # validate the minimap bar range (snapping, lab
 npm run check:pads               # validate the drum pad map (GM default, remapping, every bundled chart)
 npm run check:groove             # validate the grooves: every take on the grid, written out and read back through Verovio hit for hit
 npm run check:grid               # validate the drums step grid (every bundled chart as before, the rolling columns, the grooves' grids)
+npm run check:ties               # validate ties: struck once and held, however they are written, across bar lines and repeats, and drawn on the page
 npm run check:accompaniment      # validate lining a recording up with a score (offset, tempo, peaks, storage rules)
 npm run check:games              # validate the rhythm games (lessons, song levels, judging, the Slingshot's course, the choir, canons, grooves, calibration)
 ```

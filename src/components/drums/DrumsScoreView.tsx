@@ -4,7 +4,7 @@ import { useVerovio } from '../../hooks/useVerovio';
 import { useGame } from '../../context/game';
 import { loadSongText } from '../../utils/songUrl';
 import { extractTimemap, type TimemapData } from '../../utils/timemap';
-import { ensureCountInMeasure, ensureNoteIds } from '../../utils/mei';
+import { completeTies, ensureCountInMeasure, ensureNoteIds } from '../../utils/mei';
 import * as PIXI from 'pixi.js';
 import { placeMeasures } from '../../utils/placeMeasures';
 import { expandRepeats } from '../../utils/expandRepeats';
@@ -295,7 +295,9 @@ export const DrumsScoreView: React.FC = () => {
                         const expanded = expandRepeats(xmlDoc);
                         const countIn = ensureCountInMeasure(xmlDoc);
                         const ids = ensureNoteIds(xmlDoc);
-                        if (expanded || countIn || ids) {
+                        // Every tie drawn as it is held (utils/mei.ts).
+                        const ties = completeTies(xmlDoc);
+                        if (expanded || countIn || ids || ties) {
                             meiData = new XMLSerializer().serializeToString(xmlDoc);
                             console.log('Injected count-in measure (score had none)');
                         }

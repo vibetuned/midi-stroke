@@ -271,6 +271,13 @@ view is simpler — the whole pattern is centred and only the cursor sweeps.
 
 - `n="0"` is a one-measure count-in (a rest).
 - Chords appear as `<chord><note/><note/></chord>`.
+- **Ties** are held, never struck twice. The timemap joins a note to the one of the same pitch
+  that starts as it ends, however the tie is written: a `<tie>` between notes or chords (by id,
+  with or without `#`, or by beat with `@tstamp`/`@tstamp2`), or `@tie` on a note or a chord. As a
+  score loads — after `expandRepeats`, `ensureCountInMeasure` and `ensureNoteIds` —
+  `completeTies()` ([mei.ts](../src/utils/mei.ts)) gives every tie its end, the next note of its
+  pitch in the same voice, and puts right one that points past it, so Verovio draws exactly the
+  ties the app holds. In memory only: the score is not changed. `npm run check:ties`.
 - This is exactly the structure the Saxo pipeline must transform: **drop staff `n="2"`, flatten
   chords to a single voice, transpose** — see [saxo-app.md](saxo-app.md).
 
