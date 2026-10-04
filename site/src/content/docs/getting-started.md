@@ -35,6 +35,23 @@ MIDI API, so on those the desktop app is the only option.
 Either way, plug your instrument in first (so it's detected right away), then
 pick an instrument card.
 
+### On a phone
+
+The browser app works on a phone too — Chrome on Android plays with a USB or
+Bluetooth MIDI instrument; Safari on an iPhone has no Web MIDI, so there the
+score and playback work, but not playing in. Hold the phone **sideways**: the
+piano, drums and saxophone show the **score**, or your **instrument** (the
+keyboard, the drum grid, the fingering), across the whole screen — switch with
+the toggle at the top left.
+
+- The **top notch**, with the song's name, opens the menu: back, the song
+  navigator, statistics and playback.
+- The **bottom notch** opens the play controls — mode, hands, tempo — and its
+  **▶** plays and pauses without opening them.
+- In *By ear*, its panel stays on screen.
+
+Installed from the browser (*Add to Home screen*), the app stays in landscape.
+
 ## First session
 
 1. **Start** — the first click boots the audio engine (one gesture is needed

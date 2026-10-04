@@ -220,6 +220,7 @@ The application is built on a web stack trying to be optimized for low-latency a
 * **Accompaniment (piano, saxo):** attach a recording to a piece (a backing track, a band, a teacher). Line it up once on its waveform, and it plays along in Rhythm mode, loops included.
 * **Loop a passage:** drag the two handles on the minimap to choose bars. They loop in Rhythm and Practice, and By ear they choose the passage to learn.
 * **Your kit's pad map (Drums):** each note a drum controller sends is assigned to a kit voice. The map starts as General MIDI and you can teach it any module's notes by hitting the pads.
+* **On a phone:** held sideways, the piano, drums and saxophone show the score or the instrument across the screen, a toggle away from each other, with the song and the play controls under a top and a bottom notch. Tablets and desktops keep their layout.
 * **Bring Your Own Scores:** load a single MEI file, or **import a ZIP of MEI scores** as a permanent on-device collection (stored in the browser's OPFS, offline-capable, delete anytime). Scores need no special preparation — the one-beat count-in measure (`n="0"`) is injected automatically at load time if missing, and repeats (repeat bar lines, first and second endings) are written out as the score loads, so it reads straight through.
 
 ![Song picker with ZIP import](docs/screenshots/song-selector.png)

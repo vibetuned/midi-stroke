@@ -24,6 +24,9 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#1a1a2e',
         background_color: '#1a1a2e',
         display: 'standalone',
+        // Installed on a phone, the app holds landscape (the phone layout is
+        // landscape only: components/mobile/MobileShell.tsx). Desktops ignore it.
+        orientation: 'landscape',
         icons: [
           { src: `${process.env.DEPLOY_BASE || '/'}vite.svg`, sizes: 'any', type: 'image/svg+xml' },
         ],

@@ -15,6 +15,9 @@ import { LiveStats } from '../LiveStats';
 import { StatsPanel } from '../StatsPanel';
 import { SongNavigator } from '../SongNavigator';
 import { useStats } from '../../context/stats';
+import { FitBox } from '../mobile/FitBox';
+import { MobileShell } from '../mobile/MobileShell';
+import { useMobileLayout } from '../../hooks/useMobileLayout';
 
 interface DrumsAppProps {
     onBack: () => void;
@@ -29,6 +32,8 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
 
     const [prevSong, setPrevSong] = useState<string | null>(null);
     const [showStats, setShowStats] = useState(false);
+    // A phone gets its own layout; everything else, the desktop one (hooks/useMobileLayout.ts).
+    const mobile = useMobileLayout();
 
     const handleChangeSong = () => {
         setPrevSong(selectedSong);
@@ -60,75 +65,98 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
         setSongCompleted(false);
     }, [songCompleted]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // The header: the desktop's, and on a phone the top drawer's.
+    const header = (
+    <header style={{
+        padding: '1rem',
+        borderBottom: '1px solid var(--color-bg-secondary)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        background: 'var(--color-bg-primary)',
+        gap: '1rem',
+    }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button
+                onClick={onBack}
+                style={{
+                    padding: '0.4rem 0.8rem',
+                    background: 'transparent',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    color: 'white',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    transition: 'background 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+                ← Back
+            </button>
+            <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Midi Stroke - Drums</h1>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {selectedSong && (
+                <>
+                    <LiveStats />
+                    <SongNavigator onChangeRequest={handleChangeSong} />
+                </>
+            )}
+            {/* Stats history button — to the right of Change Song */}
+            <DrumMapButton />
+            <PlaybackButton />
+            <button
+                onClick={() => setShowStats(true)}
+                title="Song statistics"
+                style={{
+                    width: '32px',
+                    height: '32px',
+                    padding: '4px',
+                    background: 'transparent',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <img src={`${import.meta.env.BASE_URL}stats.svg`} alt="Stats" style={{ width: '20px', height: '20px' }} />
+            </button>
+        </div>
+    </header>
+    );
+
+    // On a phone: the score or the step grid, the rest under the notches (components/mobile).
+    if (mobile) {
+        return (
+            <div className="app-container theme-drums">
+                <StartOverlay />
+                <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
+                {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
+                <MobileShell
+                    header={header}
+                    score={<DrumsScoreView fill />}
+                    instrument={<FitBox maxScale={1.5}><VirtualDrums /></FitBox>}
+                    instrumentLabel="Grid" instrumentIcon="🥁"
+                    controls={<PlayControls />}
+                    storageKey="midi-stroke-mobile-view-drums"
+                />
+            </div>
+        );
+    }
     return (
         <div className="app-container theme-drums">
             <StartOverlay />
             <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
             {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
 
-            <header style={{
-                padding: '1rem',
-                borderBottom: '1px solid var(--color-bg-secondary)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                background: 'var(--color-bg-primary)',
-                gap: '1rem',
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <button
-                        onClick={onBack}
-                        style={{
-                            padding: '0.4rem 0.8rem',
-                            background: 'transparent',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            color: 'white',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '0.9rem',
-                            transition: 'background 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                        onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                        ← Back
-                    </button>
-                    <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Midi Stroke - Drums</h1>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {selectedSong && (
-                        <>
-                            <LiveStats />
-                            <SongNavigator onChangeRequest={handleChangeSong} />
-                        </>
-                    )}
-                    {/* Stats history button — to the right of Change Song */}
-                    <DrumMapButton />
-                    <PlaybackButton />
-                    <button
-                        onClick={() => setShowStats(true)}
-                        title="Song statistics"
-                        style={{
-                            width: '32px',
-                            height: '32px',
-                            padding: '4px',
-                            background: 'transparent',
-                            border: '1px solid rgba(255,255,255,0.15)',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <img src={`${import.meta.env.BASE_URL}stats.svg`} alt="Stats" style={{ width: '20px', height: '20px' }} />
-                    </button>
-                </div>
-            </header>
+            {header}
 
             {/* The score sits as a vertically-centered band (like the saxo view)
                 rather than filling the whole slack. */}

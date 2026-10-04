@@ -62,6 +62,30 @@ main.tsx → App.tsx
 > **Adding an instrument touches the routing in 4 type unions** (see the switch-point table in
 > §9). This is the seam the Saxo app plugs into.
 
+### On a phone
+
+A phone — a touch screen whose short side is at most 500 px
+([useMobileLayout.ts](../src/hooks/useMobileLayout.ts)) — gets its own layout for the piano, drums
+and saxophone apps; tablets and desktops get the desktop one, which the phone layout leaves
+untouched (each app builds its header once and hands it to whichever layout it renders).
+`?layout=mobile` / `?layout=desktop` / `?layout=auto` overrides the detection, remembered on the
+device.
+
+- **Landscape only.** Held upright, a phone shows [RotateNotice](../src/components/mobile/RotateNotice.tsx)
+  over everything (with a full-screen-and-lock button where the browser allows it, Android's Chrome);
+  installed as an app, the manifest asks for landscape.
+- **One thing at a time**: [MobileShell](../src/components/mobile/MobileShell.tsx) shows the score
+  or the virtual instrument across the screen, picked by a toggle at the top left. Both stay
+  mounted (the score view is what loads the song and its timemap); the hidden one is only
+  `visibility: hidden`. The score views take a `fill` prop to use the whole height; the
+  instruments are drawn at their desktop sizes and scaled to fit by
+  [FitBox](../src/components/mobile/FitBox.tsx) (the keyboard may grow longer keys).
+- **The rest under two notches**: the app's header (back, the song navigator, live stats,
+  playback, statistics) slides down from the top notch, which shows the song's name; the play
+  controls slide up from the bottom notch, which carries a ▶/⏸ of its own. The By ear panel,
+  when it is up, stays docked above the bottom notch. A small MIDI dot sits top right.
+- The splash's phone rules are scoped by `html.phone`, set by the same hook.
+
 ---
 
 ## 4. State — `GameContext`

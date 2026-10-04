@@ -222,3 +222,17 @@
         transform: translateY(0);
     }
 }
+
+/* On a phone held sideways (html.phone, set by components/mobile/RotateNotice.tsx):
+   the five cards in a row, under a smaller title. The desktop is not affected. */
+.phone .splash-container { height: 100dvh; padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left); }
+.phone .splash-title-wrapper { margin-bottom: 1.2rem; }
+.phone .splash-title { font-size: 2.2rem; letter-spacing: -1px; }
+.phone .splash-subtitle { font-size: 0.9rem; margin-top: 0.2rem; }
+.phone .splash-cards-container { gap: 0.8rem; flex-wrap: nowrap; }
+.phone .app-card { width: 132px; height: 172px; border-radius: 14px; }
+.phone .app-card:hover { transform: none; }
+.phone .app-icon { font-size: 2.6rem; margin-bottom: 0.7rem; }
+.phone .app-name { font-size: 1.05rem; }
+.phone .app-badge { top: 0.5rem; right: 0.5rem; font-size: 0.5rem; padding: 0.1rem 0.45rem; letter-spacing: 0.5px; }
+

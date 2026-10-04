@@ -1,0 +1,202 @@
+/*
+ * The phone layout (MobileShell.tsx). Everything here is under .mobile-shell,
+ * which only phones render: the desktop layout is untouched.
+ */
+.mobile-shell {
+    --band: 30px;
+    position: fixed;
+    inset: 0;
+    height: 100dvh;
+    width: 100dvw;
+    overflow: hidden;
+    background: var(--color-bg-primary);
+    display: flex;
+    flex-direction: column;
+    /* The phone's notch and rounded corners, held sideways. */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- the two bands, each with its notch ---- */
+.mobile-band {
+    flex: 0 0 var(--band);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.5rem;
+    z-index: 5;
+}
+.mobile-band-bottom { padding-bottom: env(safe-area-inset-bottom); flex-basis: calc(var(--band) + env(safe-area-inset-bottom)); }
+
+.mobile-notch {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    max-width: 46vw;
+    height: 24px;
+    padding: 0 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--color-text-secondary, #b8b8c4);
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+.mobile-band-top .mobile-notch { border-top: none; border-radius: 0 0 12px 12px; align-self: flex-start; }
+.mobile-band-bottom .mobile-notch { border-bottom: none; border-radius: 12px 12px 0 0; align-self: flex-end; }
+.mobile-notch-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mobile-chevron { color: var(--color-accent); font-size: 0.7rem; }
+
+/* The view toggle, top left; the MIDI dot, top right; play, bottom right. */
+.mobile-views {
+    position: absolute;
+    left: 0.5rem;
+    top: 3px;
+    display: flex;
+    gap: 2px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 2px;
+}
+.mobile-views button {
+    border: none;
+    border-radius: 10px;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.72rem;
+    color: var(--color-text-secondary, #b8b8c4);
+    background: transparent;
+    cursor: pointer;
+}
+.mobile-views button.on { background: var(--color-accent); color: white; }
+.mobile-midi {
+    position: absolute;
+    right: 0.6rem;
+    top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    color: var(--color-error, #f87171);
+}
+.mobile-midi.on { color: var(--color-success, #4ade80); }
+.mobile-midi .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.mobile-play {
+    position: absolute;
+    right: 0.6rem;
+    bottom: calc(3px + env(safe-area-inset-bottom));
+    width: 40px;
+    height: 24px;
+    border: none;
+    border-radius: 12px;
+    background: var(--color-accent);
+    color: white;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+/* ---- the stage: the score and the instrument, one over the other ---- */
+.mobile-stage {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+}
+.mobile-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* The By ear panel, docked over the bottom notch while it is up. */
+.mobile-dock { flex: 0 0 auto; position: relative; z-index: 4; }
+.mobile-dock > * { flex-wrap: wrap; }
+
+/* ---- the drawers ---- */
+.mobile-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.35);
+}
+.mobile-drawer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: var(--color-bg-primary);
+    transition: transform 0.22s ease;
+    max-height: 85dvh;
+    overflow-y: auto;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+.mobile-drawer-top {
+    top: 0;
+    transform: translateY(-105%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+.mobile-drawer-bottom {
+    bottom: 0;
+    transform: translateY(105%);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.5);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+.mobile-open-top .mobile-drawer-top,
+.mobile-open-bottom .mobile-drawer-bottom { transform: translateY(0); }
+.mobile-drawer-handle {
+    display: block;
+    margin: 0 auto;
+    width: 64px;
+    height: 18px;
+    border: none;
+    background: transparent;
+    color: var(--color-accent);
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+/* The desktop header, made to fit a phone's height and width. */
+.mobile-drawer-top header {
+    padding: 0.5rem 0.75rem !important;
+    flex-wrap: wrap;
+    border-bottom: none !important;
+}
+.mobile-drawer-top header h1 { font-size: 1rem !important; }
+/* The desktop controls bar, wrapping rather than overflowing. */
+.mobile-drawer-bottom > *:not(.mobile-drawer-handle) { flex-wrap: wrap; }
+
+/* ---- turn the phone ---- */
+.rotate-notice {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: var(--color-bg-primary, #111118);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+    text-align: center;
+    padding: 2rem;
+}
+.rotate-notice .phone {
+    width: 46px;
+    height: 80px;
+    border: 3px solid var(--color-accent, #646cff);
+    border-radius: 9px;
+    animation: rotate-phone 2.4s ease-in-out infinite;
+}
+.rotate-notice p { margin: 0; color: var(--color-text-secondary, #b8b8c4); font-size: 0.95rem; max-width: 18rem; }
+@keyframes rotate-phone {
+    0%, 30% { transform: rotate(0deg); }
+    55%, 85% { transform: rotate(-90deg); }
+    100% { transform: rotate(0deg); }
+}

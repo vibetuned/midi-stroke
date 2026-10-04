@@ -8,6 +8,23 @@ the way. Install channels and downloads:
 
 ## Unreleased
 
+### Phones
+
+- **A phone layout** for the piano, drums and saxophone apps
+  ([src/components/mobile/](src/components/mobile/)), held sideways: the score, or the virtual
+  instrument — the keyboard, the drum grid, the fingering — across the whole screen, switched with
+  a toggle; the header (back, the song navigator, stats, playback) under a **top notch** that
+  shows the song's name, and the play controls under a **bottom notch** that has its own ▶/⏸.
+  By ear, its panel stays on screen. The instruments are scaled to fit the phone, the keyboard's
+  keys made longer.
+- **Landscape only on a phone**: held upright, a notice asks to turn it (and offers full screen,
+  locked sideways, where the browser allows it); installed, the app asks for landscape in its
+  manifest. The splash fits its five cards in a row.
+- A phone is a touch screen whose short side is at most 500 px: tablets and desktops keep the
+  desktop layout, unchanged — on the desktop, the splash and the three apps render the same page
+  as before. `?layout=mobile`, `?layout=desktop` and `?layout=auto` override the detection
+  ([src/hooks/useMobileLayout.ts](src/hooks/useMobileLayout.ts)).
+
 ### Scores
 
 - **A tied note is played once**, in practice mode and in rhythm mode, however the score writes

@@ -59,7 +59,8 @@ function findMeasureAtX(mData: MeasureData[], x: number): number {
     return lo;
 }
 
-export const PianoScoreView: React.FC = () => {
+/** `fill`: take the whole height it is given (the phone layout), not a band of it. */
+export const PianoScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
     const { toolkit } = useVerovio();
     // Fix 7: destructure setSelectedSong for error-recovery back button
     const { isPlaying, setIsPlaying, loadTimemap, seek, selectedSong, setSelectedSong, playPosition, instrument, handSelection } = useGame();
@@ -695,7 +696,7 @@ export const PianoScoreView: React.FC = () => {
     return (
         // A bounded band, vertically centered by the app's <main> — same
         // presentation as the saxo score.
-        <div style={{ position: 'relative', width: '100%', height: 'min(100%, 45vh)', minHeight: '180px', overflow: 'hidden', background: SCORE_BG_COLOR, touchAction: 'none' }}>
+        <div style={{ position: 'relative', width: '100%', height: fill ? '100%' : 'min(100%, 45vh)', minHeight: fill ? 0 : '180px', overflow: 'hidden', background: SCORE_BG_COLOR, touchAction: 'none' }}>
             {loadingMsg && (
                 <div style={{
                     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,

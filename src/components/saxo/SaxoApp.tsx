@@ -16,6 +16,8 @@ import { LiveStats } from '../LiveStats';
 import { StatsPanel } from '../StatsPanel';
 import { SongNavigator } from '../SongNavigator';
 import { useStats } from '../../context/stats';
+import { MobileShell } from '../mobile/MobileShell';
+import { useMobileLayout } from '../../hooks/useMobileLayout';
 
 interface SaxoAppProps {
     onBack: () => void;
@@ -33,6 +35,8 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
 
     const [prevSong, setPrevSong] = useState<string | null>(null);
     const [showStats, setShowStats] = useState(false);
+    // A phone gets its own layout; everything else, the desktop one (hooks/useMobileLayout.ts).
+    const mobile = useMobileLayout();
 
     const handleChangeSong = () => {
         setPrevSong(selectedSong);
@@ -65,6 +69,96 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
         setSongCompleted(false);
     }, [songCompleted]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // The header: the desktop's, and on a phone the top drawer's.
+    const header = (
+    <header style={{
+        padding: '1rem',
+        borderBottom: '1px solid var(--color-bg-secondary)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        background: 'var(--color-bg-primary)',
+        gap: '1rem',
+    }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button
+                onClick={onBack}
+                style={{
+                    padding: '0.4rem 0.8rem',
+                    background: 'transparent',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    color: 'white',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    transition: 'background 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+                ← Back
+            </button>
+            <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Midi Stroke - Saxo</h1>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {selectedSong && (
+                <>
+                    {gameMode !== 'ear' && <LiveStats />}
+                    <SongNavigator onChangeRequest={handleChangeSong} />
+                </>
+            )}
+            <PlaybackButton />
+            <button
+                onClick={() => setShowStats(true)}
+                title="Song statistics"
+                style={{
+                    width: '32px',
+                    height: '32px',
+                    padding: '4px',
+                    background: 'transparent',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <img src={`${import.meta.env.BASE_URL}stats.svg`} alt="Stats" style={{ width: '20px', height: '20px' }} />
+            </button>
+        </div>
+    </header>
+    );
+
+    // On a phone: the score or the fingering, the rest under the notches (components/mobile).
+    if (mobile) {
+        return (
+            <EarTrainingProvider>
+            <div className="app-container theme-saxo">
+                <StartOverlay />
+                <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
+                {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
+                <MobileShell
+                    header={header}
+                    score={<SaxoScoreView fill />}
+                    instrument={
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', justifyContent: 'center' }}>
+                            <div style={{ width: 'min(100%, 460px)', height: '100%', display: 'flex' }}><VirtualSaxo /></div>
+                        </div>
+                    }
+                    instrumentLabel="Fingering" instrumentIcon="🎷"
+                    controls={<PlayControls />}
+                    dock={<EarTrainingPanel />}
+                    storageKey="midi-stroke-mobile-view-saxo"
+                />
+            </div>
+            </EarTrainingProvider>
+        );
+    }
     return (
         <EarTrainingProvider>
         <div className="app-container theme-saxo">
@@ -72,67 +166,7 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
             <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
             {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
 
-            <header style={{
-                padding: '1rem',
-                borderBottom: '1px solid var(--color-bg-secondary)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                background: 'var(--color-bg-primary)',
-                gap: '1rem',
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <button
-                        onClick={onBack}
-                        style={{
-                            padding: '0.4rem 0.8rem',
-                            background: 'transparent',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            color: 'white',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '0.9rem',
-                            transition: 'background 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                        onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                        ← Back
-                    </button>
-                    <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Midi Stroke - Saxo</h1>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {selectedSong && (
-                        <>
-                            {gameMode !== 'ear' && <LiveStats />}
-                            <SongNavigator onChangeRequest={handleChangeSong} />
-                        </>
-                    )}
-                    <PlaybackButton />
-                    <button
-                        onClick={() => setShowStats(true)}
-                        title="Song statistics"
-                        style={{
-                            width: '32px',
-                            height: '32px',
-                            padding: '4px',
-                            background: 'transparent',
-                            border: '1px solid rgba(255,255,255,0.15)',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <img src={`${import.meta.env.BASE_URL}stats.svg`} alt="Stats" style={{ width: '20px', height: '20px' }} />
-                    </button>
-                </div>
-            </header>
+            {header}
 
             {/* Split layout: VirtualSaxo (left, content-sized) + SaxoScoreView (right).
                 The left column hugs the fingering chart instead of a viewport

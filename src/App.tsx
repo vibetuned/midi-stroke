@@ -7,8 +7,9 @@ import { TheoryApp } from './components/theory/TheoryApp';
 import { GamesApp } from './components/games/GamesApp';
 import { GameProvider } from './context/GameContext';
 import { StatsProvider } from './context/StatsContext';
+import { RotateNotice } from './components/mobile/RotateNotice';
 
-function App() {
+function Screens() {
   const [currentApp, setCurrentApp] = useState<'splash' | 'piano' | 'drums' | 'saxo' | 'theory' | 'games'>('splash');
   // A piece to open straight away — a game's "play it on the saxophone" (or piano, or drums).
   const [initialSong, setInitialSong] = useState<string | null>(null);
@@ -64,6 +65,16 @@ function App() {
         <PianoApp onBack={back} />
       </GameProvider>
     </StatsProvider>
+  );
+}
+
+/** The app, and on a phone held upright, the notice to turn it. */
+function App() {
+  return (
+    <>
+      <Screens />
+      <RotateNotice />
+    </>
   );
 }
 
