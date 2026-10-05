@@ -6,7 +6,15 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
-## Unreleased
+## 1.0.0 — 2026-10-05
+
+Version 1. A visual metronome rides the cursor: a small arrow swinging with the beat, its wave
+traced back over the clef and the key signature, and a dot on it for every key you press — in a
+trough when it is on the beat, on the slope when it is early or late. The piano, drums and
+saxophone come to the phone, held sideways: the score or your instrument across the whole screen,
+the song and the controls tucked under two notches. Ties hold however a score writes them —
+across bar lines, on chords, through repeats — and are drawn wherever they are held. And a
+keyboard that sends the app's own notes back, as a ROLI Piano does, no longer plays itself.
 
 ### Visual metronome
 
