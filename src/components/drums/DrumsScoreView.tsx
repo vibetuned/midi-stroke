@@ -4,10 +4,13 @@ import { useVerovio } from '../../hooks/useVerovio';
 import { useGame } from '../../context/game';
 import { loadSongText } from '../../utils/songUrl';
 import { extractTimemap, type TimemapData } from '../../utils/timemap';
-import { completeTies, ensureCountInMeasure, ensureNoteIds } from '../../utils/mei';
+import { completeTies, ensureCountInMeasure, ensureNoteIds, removeInstrumentNames } from '../../utils/mei';
 import * as PIXI from 'pixi.js';
 import { placeMeasures } from '../../utils/placeMeasures';
 import { expandRepeats } from '../../utils/expandRepeats';
+import { VisualMetronome } from '../../utils/visualMetronome';
+import { measureStaffLines } from '../../utils/scoreRaster';
+import { useMidiNotes } from '../../hooks/useMidi';
 
 interface MeasureData {
     id: string;
@@ -29,6 +32,8 @@ const LOADING_STEPS = ['Loading Score...', 'Rendering SVG...', 'Slicing Textures
 const HIT_LINE = 0.12;
 /** Leave this much of the width free before a score counts as too wide. */
 const FIT_MARGIN = 40;
+/** How far back from the cursor the metronome's trace reaches, in screen pixels. */
+const METRONOME_WIDTH = 200;
 
 // Fix 1: binary search helpers — O(log n) instead of O(n) findIndex
 function findMeasureAtTick(mData: MeasureData[], tick: number): number {
@@ -83,6 +88,15 @@ export const DrumsScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
     /** The same measures in page order, each at its first time through: for dragging the page. */
     const writtenDataRef = useRef<MeasureData[]>([]);
     const totalWidthRef = useRef<number>(0);
+    // The visual metronome on the cursor (utils/visualMetronome.ts), and the
+    // staff's span on screen, which its wave fills.
+    const metronomeRef = useRef<VisualMetronome | null>(null);
+    const metronomeSpanRef = useRef<{ top: number; bottom: number } | null>(null);
+    useMidiNotes({ onNoteOn: () => metronomeRef.current?.hit() });
+    // Shown or not (the ∿ button by the transport); read by the ticker, which is registered once.
+    const { visualMetronome } = useGame();
+    const metronomeOnRef = useRef(visualMetronome);
+    useEffect(() => { metronomeOnRef.current = visualMetronome; }, [visualMetronome]);
     const scaleRef = useRef<number>(1);
     /** Too wide for the screen: the page scrolls under a fixed cursor. */
     const scrollingRef = useRef<boolean>(false);
@@ -111,6 +125,11 @@ export const DrumsScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
                 const scrollContainer = new PIXI.Container();
                 app.stage.addChild(scrollContainer);
                 scrollContainerRef.current = scrollContainer;
+
+                // No clef strip here: the trace runs over the bar just played, so it is drawn fainter.
+                const metronome = new VisualMetronome(0xf5576c, 0.55);
+                app.stage.addChild(metronome.view);
+                metronomeRef.current = metronome;
 
                 const cursor = new PIXI.Graphics();
                 app.stage.addChild(cursor);
@@ -230,6 +249,11 @@ export const DrumsScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
                             lastCursorX = targetCursorX;
                         }
 
+                        // The metronome: a few beats back from the cursor, wherever it is.
+                        const span = metronomeSpanRef.current;
+                        metronomeRef.current?.setArea(span && metronomeOnRef.current ? { left: Math.max(4, targetCursorX - METRONOME_WIDTH), cursorX: targetCursorX, top: span.top, bottom: span.bottom } : null);
+                        metronomeRef.current?.update();
+
                         // Keep the score in place: centred, or scrolled to the cursor (no-op once there)
                         if (Math.abs(scrollContainerRef.current.x - offsetX) > 0.5) {
                             scrollContainerRef.current.x = offsetX;
@@ -257,6 +281,7 @@ export const DrumsScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
             if (appRef.current) {
                 appRef.current.destroy(true, { children: true });
                 appRef.current = null;
+                metronomeRef.current = null;
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -298,7 +323,9 @@ export const DrumsScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
                         const ids = ensureNoteIds(xmlDoc);
                         // Every tie drawn as it is held (utils/mei.ts).
                         const ties = completeTies(xmlDoc);
-                        if (expanded || countIn || ids || ties) {
+                        // No instrument names where the clef strip and the metronome are.
+                        const names = removeInstrumentNames(xmlDoc);
+                        if (expanded || countIn || ids || ties || names) {
                             meiData = new XMLSerializer().serializeToString(xmlDoc);
                             console.log('Injected count-in measure (score had none)');
                         }
@@ -352,7 +379,8 @@ export const DrumsScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
         }
 
         // Fix 4: batch all getBoundingClientRect reads up front
-        const svgOuterBBox = hiddenDiv.querySelector('svg')?.getBoundingClientRect() || { left: 0, width: 0 };
+        const svgOuterBBox = hiddenDiv.querySelector('svg')?.getBoundingClientRect() || { left: 0, top: 0, width: 0 };
+        const staves = measureStaffLines(hiddenDiv, svgOuterBBox.top);
         const measureBBoxes = measures.map(m => m.getBoundingClientRect());
 
         // The measures on the page, placed in time (utils/placeMeasures.ts): as
@@ -432,6 +460,14 @@ export const DrumsScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
             scrollContainerRef.current?.addChild(sprite);
         }
 
+        // The metronome's wave spans the staff, top line to bottom line; it and the cursor stay on top.
+        metronomeSpanRef.current = staves.length
+            ? { top: (targetY + staves[0].top) * scaleFactor, bottom: (targetY + staves[staves.length - 1].bottom) * scaleFactor }
+            : null;
+        metronomeRef.current?.setScore(timemapData);
+        if (metronomeRef.current) {
+            appRef.current.stage.setChildIndex(metronomeRef.current.view, appRef.current.stage.children.length - 1);
+        }
         if (cursorRef.current) {
             appRef.current.stage.setChildIndex(cursorRef.current, appRef.current.stage.children.length - 1);
         }

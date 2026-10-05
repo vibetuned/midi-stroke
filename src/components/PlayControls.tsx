@@ -7,7 +7,7 @@ import * as Tone from 'tone';
 import { LoopChip } from './LoopRangeSelector';
 
 export const PlayControls: React.FC = () => {
-    const { isPlaying, setIsPlaying, tempo, setTempo, scoreTempo, isMetronomeMuted, setMetronomeMuted, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection, loopRange, tempoLock } = useGame();
+    const { isPlaying, setIsPlaying, tempo, setTempo, scoreTempo, isMetronomeMuted, setMetronomeMuted, visualMetronome, setVisualMetronome, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection, loopRange, tempoLock } = useGame();
     const { resetSession } = useStats();
 
     // Fix 10: stable refs so the keydown closure never captures stale values
@@ -303,6 +303,35 @@ export const PlayControls: React.FC = () => {
                 className="hover-scale"
             >
                 {isMetronomeMuted ? '🔇' : '🔊'}
+            </button>
+
+            {/* The visual metronome on the cursor: the wave, the arrow, the dots. */}
+            <button
+                onClick={() => setVisualMetronome(!visualMetronome)}
+                title={visualMetronome ? 'Hide the visual metronome' : 'Show the visual metronome: an arrow on the cursor swinging with the beat, a dot for each key you press'}
+                aria-pressed={visualMetronome}
+                aria-label="Visual metronome"
+                style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    border: '1px solid var(--color-text-secondary)',
+                    background: visualMetronome ? 'rgba(255,255,255,0.1)' : 'transparent',
+                    color: visualMetronome ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                    opacity: visualMetronome ? 1 : 0.6,
+                    padding: 0,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s'
+                }}
+                className="hover-scale"
+            >
+                {/* A drawn wave, centred exactly (a ∿ glyph sits low in most fonts). */}
+                <svg width="22" height="14" viewBox="0 0 22 14" aria-hidden="true">
+                    <path d="M1 7 C 4 -1, 7 -1, 11 7 S 18 15, 21 7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                </svg>
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '240px' }}>

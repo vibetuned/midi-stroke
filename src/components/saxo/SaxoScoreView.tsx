@@ -5,7 +5,7 @@ import { useGame } from '../../context/game';
 import { useStats } from '../../context/stats';
 import { loadSongText } from '../../utils/songUrl';
 import { extractTimemap, type TimemapData } from '../../utils/timemap';
-import { completeTies, ensureCountInMeasure, ensureNoteIds } from '../../utils/mei';
+import { completeTies, ensureCountInMeasure, ensureNoteIds, removeInstrumentNames } from '../../utils/mei';
 import * as PIXI from 'pixi.js';
 import { LoopRangeSelector } from '../LoopRangeSelector';
 import { useEarVeil } from '../../hooks/useEarVeil';
@@ -13,6 +13,8 @@ import { useLoopMarks } from '../../hooks/useLoopMarks';
 import { loadSvgImage, measureNoteLefts, measureStaffLines, sliceToSprites } from '../../utils/scoreRaster';
 import { placeMeasures } from '../../utils/placeMeasures';
 import { expandRepeats } from '../../utils/expandRepeats';
+import { VisualMetronome } from '../../utils/visualMetronome';
+import { useMidiNotes } from '../../hooks/useMidi';
 
 interface MeasureData {
     id: string;
@@ -91,6 +93,15 @@ export const SaxoScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
     /** The same measures in page order, each at its first time through: for dragging the page. */
     const writtenDataRef = useRef<MeasureData[]>([]);
     const stickyWidthRef = useRef<number>(0);
+    // The visual metronome on the cursor (utils/visualMetronome.ts), and the
+    // staff's span on screen, which its wave fills.
+    const metronomeRef = useRef<VisualMetronome | null>(null);
+    const metronomeSpanRef = useRef<{ top: number; bottom: number } | null>(null);
+    useMidiNotes({ onNoteOn: () => metronomeRef.current?.hit() });
+    // Shown or not (the ∿ button by the transport); read by the ticker, which is registered once.
+    const { visualMetronome } = useGame();
+    const metronomeOnRef = useRef(visualMetronome);
+    useEffect(() => { metronomeOnRef.current = visualMetronome; }, [visualMetronome]);
     const totalWidthRef = useRef<number>(0);
     const scaleRef = useRef<number>(1);
 
@@ -167,6 +178,10 @@ export const SaxoScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
                 const scrollContainer = new PIXI.Container();
                 app.stage.addChild(scrollContainer);
                 scrollContainerRef.current = scrollContainer;
+
+                const metronome = new VisualMetronome(CURSOR_HEX);
+                app.stage.addChild(metronome.view);
+                metronomeRef.current = metronome;
 
                 const cursor = new PIXI.Graphics();
                 app.stage.addChild(cursor);
@@ -287,6 +302,11 @@ export const SaxoScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
                     // has scrolled past it — while dragging too.
                     loopMarks.follow(scrollContainerRef.current.x, hitLineScreenX);
 
+                    // The metronome: over the clef strip, from its left edge to the cursor.
+                    const span = metronomeSpanRef.current;
+                    metronomeRef.current?.setArea(span && metronomeOnRef.current ? { left: screenW * 0.05, cursorX: hitLineScreenX, top: span.top, bottom: span.bottom } : null);
+                    metronomeRef.current?.update();
+
                     // Drive the minimap playhead in lockstep with the score scroll
                     const playheadEl = playheadRef.current;
                     const totalTicks = totalScoreTicksRef.current;
@@ -309,6 +329,7 @@ export const SaxoScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
             if (appRef.current) {
                 appRef.current.destroy(true, { children: true });
                 appRef.current = null;
+                metronomeRef.current = null;
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -353,7 +374,9 @@ export const SaxoScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
                         const ids = ensureNoteIds(xmlDoc);
                         // Every tie drawn as it is held (utils/mei.ts).
                         const ties = completeTies(xmlDoc);
-                        if (expanded || countIn || ids || ties) {
+                        // No instrument names where the clef strip and the metronome are.
+                        const names = removeInstrumentNames(xmlDoc);
+                        if (expanded || countIn || ids || ties || names) {
                             meiData = new XMLSerializer().serializeToString(xmlDoc);
                             console.log('Injected count-in measure (score had none)');
                         }
@@ -540,6 +563,14 @@ export const SaxoScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
             overlay: appRef.current.stage,
         });
 
+        // The metronome's wave spans the staff, top line to bottom line; it and the cursor stay on top.
+        metronomeSpanRef.current = staves.length
+            ? { top: (targetY + staves[0].top) * scaleFactor, bottom: (targetY + staves[staves.length - 1].bottom) * scaleFactor }
+            : null;
+        metronomeRef.current?.setScore(timemapData);
+        if (metronomeRef.current) {
+            appRef.current.stage.setChildIndex(metronomeRef.current.view, appRef.current.stage.children.length - 1);
+        }
         if (cursorRef.current) {
             appRef.current.stage.setChildIndex(cursorRef.current, appRef.current.stage.children.length - 1);
         }

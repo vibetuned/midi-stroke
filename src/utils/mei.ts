@@ -278,3 +278,36 @@ function childElements(parent: Element, name?: string): Element[] {
     }
     return out;
 }
+
+/**
+ * No instrument names: a score's staves carry no "Piano" or "Alto Sax." at the
+ * left of the system, where the sticky clef strip and the visual metronome
+ * (utils/visualMetronome.ts) are. Scores from MuseScore or MusicXML name their
+ * parts — <label> and <labelAbbr> in a staffDef or a staffGrp, or the older
+ * @label and @label.abbr — and Verovio prints them. In memory, as the score
+ * loads: the file is not changed. DOM Level 2 only. True when a name went.
+ */
+export function removeInstrumentNames(meiDoc: Document): boolean {
+    if (meiDoc.getElementsByTagName('parsererror').length > 0) return false;
+    let changed = false;
+    for (const name of ['label', 'labelAbbr']) {
+        const els = meiDoc.getElementsByTagName(name);
+        const doomed: Element[] = [];
+        for (let i = 0; i < els.length; i++) {
+            const el = els.item(i)!;
+            const parent = el.parentNode?.nodeName;
+            if (parent === 'staffDef' || parent === 'staffGrp' || parent === 'layerDef') doomed.push(el);
+        }
+        for (const el of doomed) { el.parentNode!.removeChild(el); changed = true; }
+    }
+    for (const tag of ['staffDef', 'staffGrp', 'layerDef']) {
+        const els = meiDoc.getElementsByTagName(tag);
+        for (let i = 0; i < els.length; i++) {
+            const el = els.item(i)!;
+            for (const attr of ['label', 'label.abbr']) {
+                if (el.hasAttribute(attr)) { el.removeAttribute(attr); changed = true; }
+            }
+        }
+    }
+    return changed;
+}

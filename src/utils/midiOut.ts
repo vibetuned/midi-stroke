@@ -11,6 +11,8 @@
  * score — the audio path is the one that has to be sample-accurate.
  */
 
+import { noteSent } from './midiEcho';
+
 interface TauriInvokeApi {
     core: { invoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T> };
 }
@@ -71,6 +73,7 @@ export async function openMidiOutput(portName: string): Promise<MidiPort | null>
         const pending = new Set<ReturnType<typeof setTimeout>>();
         return {
             send(bytes, atMs) {
+                noteSent(bytes, atMs);   // its echo, if the device sends it back, is not the player (utils/midiEcho.ts)
                 const fire = () => { invoke('midi_send', { portMatch: portName, data: bytes }).catch(() => undefined); };
                 const delay = atMs === undefined ? 0 : atMs - performance.now();
                 if (delay <= 1) { fire(); return; }
@@ -91,6 +94,7 @@ export async function openMidiOutput(portName: string): Promise<MidiPort | null>
     if (ports.length === 0) return null;
     return {
         send(bytes, atMs) {
+            noteSent(bytes, atMs);   // its echo, if the device sends it back, is not the player (utils/midiEcho.ts)
             for (const port of ports) {
                 try { port.send(bytes, atMs); } catch { /* port went away mid-send */ }
             }

@@ -15,6 +15,8 @@
  * midir shim in the Tauri shell (`midi_outputs` / `midi_send` commands).
  */
 
+import { noteSent } from './midiEcho';
+
 const LUMI_NAME = /lumi|roli|piano m/i;
 
 const LIGHT_VELOCITY = 100;
@@ -51,6 +53,7 @@ async function connectWeb(sysex: boolean): Promise<Sender | null> {
         return null;
     }
     return (bytes: number[]) => {
+        noteSent(bytes);   // the keyboard sends its lights back as key presses (utils/midiEcho.ts)
         access.outputs.forEach(o => {
             if (LUMI_NAME.test(o.name ?? '')) o.send(bytes);
         });
@@ -61,6 +64,7 @@ async function connectTauri(invoke: TauriInvokeApi['core']['invoke']): Promise<S
     const outputs = await invoke<string[]>('midi_outputs');
     if (!outputs.some(name => LUMI_NAME.test(name))) return null;
     return (bytes: number[]) => {
+        noteSent(bytes);   // the keyboard sends its lights back as key presses (utils/midiEcho.ts)
         invoke('midi_send', { portMatch: 'lumi|roli|piano m', data: bytes })
             .catch(err => console.error('midi_send failed:', err));
     };

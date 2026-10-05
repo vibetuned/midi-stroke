@@ -8,6 +8,32 @@ the way. Install channels and downloads:
 
 ## Unreleased
 
+### Visual metronome
+
+- **A visual metronome on the cursor**, in the piano, saxophone and drums apps
+  ([src/utils/visualMetronome.ts](src/utils/visualMetronome.ts)): a small arrow, pointing back
+  over the music, swings with the tempo — down on every beat, up between — and draws its wave
+  over the clef and the key signature, the last two to four beats of it sliding away to the
+  left. Every key pressed leaves a dot on the wave: in a trough when it is on the beat, on the
+  slope before or after when it is early or late. The beat is the meter's (a dotted quarter in
+  6/8), counted from each bar line, and the arrow keeps the time that is heard, so it bottoms out
+  as the metronome clicks. On the drums, with no clef strip, the wave runs fainter over the bar
+  just played. The **∿** button by the mute button switches it off and on, remembered on the
+  device.
+- **Scores open without instrument names** — a score's `<label>`, `<labelAbbr>`, `@label`, which
+  Verovio prints at the start of the staves where the wave goes, are left out as it loads
+  (`removeInstrumentNames`, [src/utils/mei.ts](src/utils/mei.ts)); the file is not changed. No
+  library score names one; imported and served scores often do.
+- **The app's own notes are no longer taken for key presses.** A keyboard that is both the MIDI
+  output and the input — a ROLI Piano, played to or lit by the app — sends the app's notes back,
+  and they arrived as keys pressed: dots on the metronome, notes for the judging. A note-on that
+  comes back with the key, the velocity and the moment of one the app just sent is now dropped as
+  its echo ([src/utils/midiEcho.ts](src/utils/midiEcho.ts)); a key pressed by a hand still counts,
+  and nothing changes on a keyboard that does not echo.
+- `npm run check:metronome`: the beat of every meter, the arrow at the bottom on every beat of real
+  scores (4/4, 3/4, the 6/8 folk tunes), the names gone and the notes untouched, the app's echoed
+  notes dropped and a hand's kept.
+
 ### Phones
 
 - **A phone layout** for the piano, drums and saxophone apps

@@ -151,6 +151,10 @@ Loads the Verovio WASM module once and exposes `{ toolkit }`. The toolkit render
 
 ### MIDI input — [midiInput.ts](../src/utils/midiInput.ts), [useMidi.ts](../src/hooks/useMidi.ts)
 One connection for the whole app, from Web MIDI or the Tauri native bridge, opened on first use.
+Notes the app sends — score playback to an output ([midiOut.ts](../src/utils/midiOut.ts)),
+the ROLI guide lights ([keyLights.ts](../src/utils/keyLights.ts)) — are noted by
+[midiEcho.ts](../src/utils/midiEcho.ts), and a note-on that comes back as their echo (the same key
+and velocity, within 40 ms of being sent, as a ROLI Piano does) is dropped before anyone hears it.
 Consumers listen in one of two ways:
 - `useMidi()`: the state, for display. That covers `activeNotes` (held keys), `lastNote`, the
   devices, the breath level and the TravelSax keys.
@@ -265,6 +269,22 @@ view is simpler — the whole pattern is centred and only the cursor sweeps.
 > grand-staff / hand-overlay machinery is dropped. See [saxo-app.md](saxo-app.md).
 
 ---
+
+### The visual metronome — [visualMetronome.ts](../src/utils/visualMetronome.ts)
+
+A layer on each score view's PIXI stage, under the cursor: a small arrow on the cursor at the
+bottom of its swing on every beat (the meter's: [metronomeBeat.ts](../src/utils/metronomeBeat.ts),
+counted from each bar line) and at the top between, its trace over the last two to four beats
+drawn back to the left — over the sticky clef strip on the piano and saxophone, over the bar just
+played (fainter) on the drums — and a dot wherever a key was pressed (`useMidiNotes`). It runs on
+the transport at the audio clock's present (`heardTicks`), not the scheduler's lookahead the
+score's play position uses, so the arrow bottoms out as the metronome clicks and a key pressed
+with the click lands in a trough. Each view hands it the area (clef strip to cursor, the staves'
+top line to bottom line) every frame. Scores load without instrument names
+(`removeInstrumentNames` in [mei.ts](../src/utils/mei.ts)), which Verovio would print where the
+wave goes. The ∿ button in [PlayControls](../src/components/PlayControls.tsx) switches it
+(`visualMetronome` in the game context, remembered in localStorage); off, the views hand it no
+area and it draws nothing. `npm run check:metronome`.
 
 ## 7. Score assets
 

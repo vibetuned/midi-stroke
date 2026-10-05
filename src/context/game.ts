@@ -46,6 +46,10 @@ export interface GameState {
     setAudioStarted: (started: boolean) => void;
     isMetronomeMuted: boolean;
     setMetronomeMuted: (muted: boolean) => void;
+    /** The visual metronome on the score's cursor (utils/visualMetronome.ts): shown, or not.
+     *  Remembered on the device; on until switched off. */
+    visualMetronome: boolean;
+    setVisualMetronome: (on: boolean) => void;
     /** Where a played score goes: 'off', 'audio', or a MIDI output port name.
      *  Shared by the transport and the exercise builders' audition button. */
     playbackTarget: PlaybackTarget;

@@ -21,6 +21,8 @@
  *   "midi-devices": string[] of connected input port names (re-emitted ~2 s)
  */
 
+import { isEcho } from './midiEcho';
+
 export interface MidiNote {
     note: number;
     velocity: number;
@@ -71,6 +73,8 @@ export function handleMidiBytes(status: number, data1: number, data2: number): v
     const channel = status & 0x0f;
 
     if (command === 0x90 && data2 > 0) {
+        // A note the app sent, come back from a keyboard that echoes it: not a key pressed (utils/midiEcho.ts).
+        if (isEcho(data1, data2)) return;
         const hit: MidiNote = { note: data1, velocity: data2, channel, timestamp: performance.now() };
         const activeNotes = new Map(state.activeNotes);
         activeNotes.set(hit.note, { velocity: hit.velocity, timestamp: hit.timestamp });

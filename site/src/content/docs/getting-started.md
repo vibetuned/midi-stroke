@@ -106,6 +106,33 @@ with three choices. The button lights up whenever the score is being played:
 The setting is remembered, and the exercise builders share it: each has a **▶ Listen** button that
 plays the exercise you just built before you commit to practising it.
 
+## The visual metronome
+
+On the cursor — the line that shows what to play now — a small arrow points
+back over the music and swings with the tempo: down to the bottom on every
+beat, up to the top between beats. As it goes, it draws its wave over the clef
+and the key signature, and every key you press leaves a dot on the wave, where
+the arrow was.
+
+- A dot in a **trough** is a note on the beat.
+- A dot on the **slope before** a trough came early; one on the **slope
+  after**, late — the further up the slope, the further off.
+- Notes between the beats sit higher up: an eighth halfway between two beats
+  lands at the top.
+
+![The visual metronome](/screenshots/visual-metronome.png)
+
+The beat is the meter's — a quarter in 4/4, a dotted quarter in 6/8 — counted
+from each bar line, and the arrow follows what you hear: it reaches the bottom
+as the metronome clicks. On the drums, which have no clef strip, the wave runs
+over the bar you have just played.
+
+The **∿** button next to the mute button in the play controls hides it, and
+brings it back; the app remembers which.
+
+Scores open without instrument names at the start of the staves, so the clef
+strip stays clear for the wave.
+
 ## MIDI status
 
 The pill in the top-right shows whether MIDI is live and how many input

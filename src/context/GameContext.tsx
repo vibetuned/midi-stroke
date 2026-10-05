@@ -10,6 +10,7 @@ import { useAccompanimentFor } from '../hooks/useAccompaniment';
 
 /** Where playback sends notes; remembered across sessions. */
 const PLAYBACK_TARGET_KEY = 'midi-stroke-playback-target';
+const VISUAL_METRONOME_KEY = 'midi-stroke-visual-metronome';
 
 export const GameProvider: React.FC<{
     children: ReactNode;
@@ -39,6 +40,13 @@ export const GameProvider: React.FC<{
     const setPlaybackTarget = useCallback((target: PlaybackTarget) => {
         setPlaybackTargetState(target);
         try { localStorage.setItem(PLAYBACK_TARGET_KEY, target); } catch { /* private mode */ }
+    }, []);
+    const [visualMetronome, setVisualMetronomeState] = useState<boolean>(() => {
+        try { return localStorage.getItem(VISUAL_METRONOME_KEY) !== 'off'; } catch { return true; }
+    });
+    const setVisualMetronome = useCallback((on: boolean) => {
+        setVisualMetronomeState(on);
+        try { localStorage.setItem(VISUAL_METRONOME_KEY, on ? 'on' : 'off'); } catch { /* private mode */ }
     }, []);
     const [pianoRange, setPianoRange] = useState<{ min: number; max: number } | null>(null);
     const [playSizeTicks, setPlaySizeTicks] = useState(0);
@@ -166,6 +174,8 @@ export const GameProvider: React.FC<{
             playbackTarget,
             setPlaybackTarget,
             setMetronomeMuted,
+            visualMetronome,
+            setVisualMetronome,
             pianoRange,
             setPianoRange,
             playSizeTicks,
