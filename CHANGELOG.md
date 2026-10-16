@@ -6,7 +6,15 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
-## Unreleased
+## 1.0.1 — 2026-10-16
+
+Play starts with a bar counted in — "4, 3, 2, Start" — or from the instrument itself: any key,
+pad or note. What is set once has moved behind a ⚙ button: the sound, the tempo, the count-in,
+starting mid-song, whether scrolling stops the music, the visual metronome. At the end of a
+piece, its results: the numbers, your progress against earlier sessions, where the mistakes were,
+and the visual metronome's wave for the whole piece with every key you played on it — then
+Replay or Play next. And D.C. and D.S., al Fine and al Coda, are written out as a score loads,
+like its repeats, so the page reads straight through.
 
 ### Count-in
 
