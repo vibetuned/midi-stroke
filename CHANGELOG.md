@@ -36,6 +36,8 @@ the way. Install channels and downloads:
   moved there from the bar, which keeps the mode, the hands, reset, play and the loop. Every
   setting is remembered on the device, the sound now too. On a phone the dialog lays out in two
   columns, to fit the screen held sideways.
+- The first screen of the piano, saxophone, drums and theory apps says **Start Training** rather
+  than *Start Game*.
 - **The bar, mirrored**: the modes at the left, ↺ ▶ ⚙ in the middle, and the piano's hands —
   L, L+R, R — now at the right.
 - **The ⚙ settings and the 🎧 playback panel look alike**
@@ -49,6 +51,32 @@ the way. Install channels and downloads:
 - **Pause while scrolling** — on by default, as before; off, dragging the score or the minimap
   stops the music only while it moves, and it plays on from where it is let go
   ([src/hooks/useScrollPause.ts](src/hooks/useScrollPause.ts)).
+
+### Results
+
+- **The end of a piece shows how it went**, in the piano, saxophone and drums apps
+  ([src/components/SessionResults.tsx](src/components/SessionResults.tsx)):
+  - the session's numbers — precision, accuracy, hits, wrong notes, missed notes (Rhythm), the
+    longest combo, how early or late your keys were on average (Rhythm), and the time played;
+  - **Progress**: this session's precision against your earlier ones of the same piece and mode,
+    with the change since last time or a new best;
+  - **Mistakes**: the whole piece as a strip, its bars and where each wrong and missed note was;
+  - **Timing** (Rhythm): the visual metronome's wave for the whole piece, with a dot for every key
+    you played — white where it played a note, red where it played nothing, an orange ring where a
+    note went unplayed. It scrolls; the strip above shows which part, and a click on the strip
+    takes it there;
+  - **↺ Replay** plays the piece again, count-in and all; **Play next** opens the next piece of
+    the collection and starts it as soon as it has loaded.
+  A drum pattern loops on, so it has no end to show; Learn by ear keeps its own results.
+- Each song now keeps a record of every session, the last fifty per mode, beside its totals
+  ([src/utils/sessionResults.ts](src/utils/sessionResults.ts)). The keys and missed notes of the
+  session are logged as they happen ([src/utils/sessionLog.ts](src/utils/sessionLog.ts)).
+- **Fixed:** played again from the start after it ended, a piece counted none of its notes as
+  answered and none as missed — the judging kept the notes of the play before. A chord now counts
+  once toward *n/total*, so precision can no longer pass 100%, and with one hand the total is that
+  hand's notes.
+- The space bar and the arrow keys leave the transport alone while a panel is open over the app.
+- `npm run check:session`: the log, the record, the history, and the wave on a real score.
 
 ## 1.0.0 — 2026-10-05
 

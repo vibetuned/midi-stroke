@@ -5,6 +5,8 @@ import { useMidiNotes } from './useMidi';
 import { getMidiState, type MidiNote } from '../utils/midiInput';
 import { useDrumMap } from './useDrumMap';
 import { drumScorePosition, inputAnswersPad, inputScorePitch } from '../utils/drumMap';
+import { logSessionEvent } from '../utils/sessionLog';
+import { heardTicks } from '../utils/visualMetronome';
 
 // Tolerance in ticks (approx 100ms at 120bpm is ~192 ticks, but depends on PPQ)
 // Let's assume standard PPQ 192 (Tone default).
@@ -168,6 +170,7 @@ export function useGameLogic() {
                 lastWrongTimeRef.current = hit.timestamp;
                 groupWrongedRef.current = true;
                 recordWrong(selectedSong, songName, 'practice');
+                logSessionEvent({ tick: heardTicks(), kind: 'wrong' });
             }
         }
 
@@ -182,7 +185,10 @@ export function useGameLogic() {
 
         const firstAttempt = !groupWrongedRef.current;
         groupWrongedRef.current = false;
-        if (selectedSong) recordGood(selectedSong, songName, firstAttempt);
+        if (selectedSong) {
+            recordGood(selectedSong, songName, firstAttempt);
+            logSessionEvent({ tick: heardTicks(), kind: 'hit' });
+        }
         resumePractice();
     };
 
@@ -214,11 +220,17 @@ export function useGameLogic() {
             }
         }
 
+        // Where the key was heard — the session's results draw it there (utils/sessionLog.ts).
+        const heard = heardTicks();
         if (hitSourceTick !== null) {
+            // A chord is one note to play: its first key counts toward n/total, the rest are hits.
+            const first = !resolvedTicksRef.current.has(hitSourceTick);
             resolvedTicksRef.current.add(hitSourceTick);
-            recordHit(selectedSong, songName);
+            recordHit(selectedSong, songName, first);
+            logSessionEvent({ tick: heard, kind: 'hit', offset: heard - hitSourceTick });
         } else {
             recordWrong(selectedSong, songName, 'rhythm');
+            logSessionEvent({ tick: heard, kind: 'wrong' });
         }
     };
 
@@ -259,6 +271,9 @@ export function useGameLogic() {
     // skipped so seeking over a passage doesn't fabricate misses.
     useEffect(() => {
         if (gameMode !== 'standard' || !isPlaying || !selectedSong) {
+            // Back to the start at the end of a piece, by ↺, or by a seek while
+            // paused: the notes ahead are to be played again, so none is answered.
+            if (playPosition < prevPlayPositionRef.current) resolvedTicksRef.current = new Set();
             prevPlayPositionRef.current = playPosition;
             return;
         }
@@ -278,6 +293,7 @@ export function useGameLogic() {
             if (!resolvedTicksRef.current.has(group.sourceTick)) {
                 resolvedTicksRef.current.add(group.sourceTick);
                 recordWrong(selectedSong, songName, 'rhythm');
+                logSessionEvent({ tick: group.tick, kind: 'miss' });
             }
         }
     }, [playPosition, gameMode, isPlaying, selectedSong, songName, noteGroups, recordWrong]);

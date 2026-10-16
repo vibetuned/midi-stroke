@@ -45,7 +45,7 @@ export const StartOverlay: React.FC = () => {
                 onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                 onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
-                Start Game
+                Start Training
             </button>
             <p style={{ marginTop: '1rem', color: 'var(--color-text-secondary)' }}>
                 Click to enable audio and MIDI

@@ -13,6 +13,7 @@ import { useAudio } from '../../hooks/useAudio';
 import { StartOverlay } from '../StartOverlay';
 import { CountdownOverlay } from '../CountdownOverlay';
 import { MidiStartHint } from '../MidiStartHint';
+import { SessionResults } from '../SessionResults';
 import { PianoSetup } from '../PianoSetup';
 import { SongSelector } from '../SongSelector';
 import { LiveStats } from '../LiveStats';
@@ -32,8 +33,8 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
     useMidiFile();
     // A song's accompaniment, played along in rhythm mode.
     useAccompanimentPlayer();
-    const { selectedSong, setSelectedSong, gameMode, timemap, songCompleted, setSongCompleted } = useGame();
-    const { recordPlay, recordSessionEnd, resetSession, sessionStats } = useStats();
+    const { selectedSong, setSelectedSong, gameMode } = useGame();
+    const { resetSession } = useStats();
 
     const [prevSong, setPrevSong] = useState<string | null>(null);
     const [showStats, setShowStats] = useState(false);
@@ -55,20 +56,6 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
         resetSession();
     }, [selectedSong, resetSession]);
 
-    // When the song finishes naturally: record the completed play, persist maxCombo + precision, then reset
-    useEffect(() => {
-        if (!songCompleted || !selectedSong) return;
-        const statsMode = gameMode === 'standard' ? 'rhythm' : 'practice';
-        const songName = selectedSong.split('/').pop() ?? selectedSong;
-        // One timemap onset = one hit/good moment (chords pre-grouped,
-        // tie continuations already erased).
-        const totalNotes = timemap ? timemap.onsets.length : 0;
-        const precision = totalNotes > 0 ? sessionStats.score / totalNotes : 0;
-        recordPlay(selectedSong, songName, statsMode);
-        recordSessionEnd(selectedSong, songName, statsMode, precision, sessionStats.maxCombo);
-        resetSession();
-        setSongCompleted(false);
-    }, [songCompleted]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // The header: the desktop's, and on a phone the top drawer's.
     const header = (
@@ -144,6 +131,7 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
                 <StartOverlay />
                 <CountdownOverlay />
                 <MidiStartHint action="Press any key" />
+                <SessionResults />
                 <PianoSetup />
                 <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
                 {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
@@ -166,6 +154,7 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
             <StartOverlay />
             <CountdownOverlay />
             <MidiStartHint action="Press any key" />
+                <SessionResults />
             <PianoSetup />
             <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
             {showStats && <StatsPanel onClose={() => setShowStats(false)} />}

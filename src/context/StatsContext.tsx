@@ -1,5 +1,7 @@
 import React, { useState, useCallback, type ReactNode } from 'react';
 import { StatsContext, type ModeStats, type SessionStats, type SongRecord } from './stats';
+import { clearSessionLog } from '../utils/sessionLog';
+import { appendHistory, type SessionRecord } from '../utils/sessionResults';
 
 const emptyMode = (): ModeStats => ({ plays: 0, hits: 0, wrongs: 0, goods: 0, maxCombo: 0, scoreAccum: 0 });
 
@@ -114,8 +116,7 @@ export const StatsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         songPath: string,
         songName: string,
         mode: 'rhythm' | 'practice',
-        precision: number,
-        maxCombo: number,
+        record: SessionRecord,
     ) => {
         updateStore(s => {
             s = ensure(s, songPath, songName);
@@ -126,8 +127,9 @@ export const StatsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                     ...s[songPath],
                     [mode]: {
                         ...m,
-                        maxCombo: Math.max(m.maxCombo, maxCombo),
-                        scoreAccum: m.scoreAccum + precision,
+                        maxCombo: Math.max(m.maxCombo, record.maxCombo),
+                        scoreAccum: m.scoreAccum + record.precision,
+                        sessions: appendHistory(m.sessions, record),
                     },
                 },
             };
@@ -155,6 +157,8 @@ export const StatsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const resetSession = useCallback(() => {
         setSessionStats(emptySession());
+        // Where and when, with the counts (utils/sessionLog.ts).
+        clearSessionLog();
     }, []);
 
     return (

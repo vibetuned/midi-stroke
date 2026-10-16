@@ -12,6 +12,7 @@ import { useGameLogic } from '../../hooks/useGameLogic';
 import { StartOverlay } from '../StartOverlay';
 import { CountdownOverlay } from '../CountdownOverlay';
 import { MidiStartHint } from '../MidiStartHint';
+import { SessionResults } from '../SessionResults';
 import { SongSelector } from '../SongSelector';
 import { LiveStats } from '../LiveStats';
 import { StatsPanel } from '../StatsPanel';
@@ -29,8 +30,8 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
     useAudio();
     useDrumsMidiFile();
     useGameLogic();
-    const { selectedSong, setSelectedSong, gameMode, timemap, songCompleted, setSongCompleted } = useGame();
-    const { recordPlay, recordSessionEnd, resetSession, sessionStats } = useStats();
+    const { selectedSong, setSelectedSong } = useGame();
+    const { resetSession } = useStats();
 
     const [prevSong, setPrevSong] = useState<string | null>(null);
     const [showStats, setShowStats] = useState(false);
@@ -52,20 +53,6 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
         resetSession();
     }, [selectedSong, resetSession]);
 
-    // When a loop completes: record the play, persist maxCombo + precision, then reset
-    useEffect(() => {
-        if (!songCompleted || !selectedSong) return;
-        const statsMode = gameMode === 'standard' ? 'rhythm' : 'practice';
-        const songName = selectedSong.split('/').pop() ?? selectedSong;
-        // One timemap onset = one hit/good moment (chords pre-grouped,
-        // tie continuations already erased).
-        const totalNotes = timemap ? timemap.onsets.length : 0;
-        const precision = totalNotes > 0 ? sessionStats.score / totalNotes : 0;
-        recordPlay(selectedSong, songName, statsMode);
-        recordSessionEnd(selectedSong, songName, statsMode, precision, sessionStats.maxCombo);
-        resetSession();
-        setSongCompleted(false);
-    }, [songCompleted]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // The header: the desktop's, and on a phone the top drawer's.
     const header = (
@@ -141,6 +128,7 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
                 <StartOverlay />
                 <CountdownOverlay />
                 <MidiStartHint action="Hit any pad" />
+                <SessionResults />
                 <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
                 {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
                 <MobileShell
@@ -159,6 +147,7 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
             <StartOverlay />
             <CountdownOverlay />
             <MidiStartHint action="Hit any pad" />
+            <SessionResults />
             <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
             {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
 

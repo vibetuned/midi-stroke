@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import type { SessionRecord } from '../utils/sessionResults';
 
 /**
  * Song statistics as the rest of the app sees them: the data model, the
@@ -15,6 +16,8 @@ export interface ModeStats {
     goods: number;    // practice: note-group cleared correctly
     maxCombo: number; // highest combo streak recorded across all sessions
     scoreAccum: number; // sum of per-session (correct/totalNotes) ratios for precision avg
+    /** Each finished session, oldest first, up to HISTORY_MAX (utils/sessionResults.ts) — what the results compare with. */
+    sessions?: SessionRecord[];
 }
 
 export interface SongRecord {
@@ -41,8 +44,8 @@ export interface StatsContextType {
     recordWrong: (songPath: string, songName: string, mode: 'rhythm' | 'practice') => void;
     recordGood: (songPath: string, songName: string, firstAttempt?: boolean) => void;
     recordPlay: (songPath: string, songName: string, mode: 'rhythm' | 'practice') => void;
-    /** Called when a song finishes naturally. Persists session maxCombo and precision. */
-    recordSessionEnd: (songPath: string, songName: string, mode: 'rhythm' | 'practice', precision: number, maxCombo: number) => void;
+    /** Called when a song finishes naturally. Persists the session's maxCombo and precision, and keeps its record. */
+    recordSessionEnd: (songPath: string, songName: string, mode: 'rhythm' | 'practice', record: SessionRecord) => void;
     // Reading
     getSongStats: (songPath: string) => SongRecord | null;
     getAllStats: () => Array<{ songPath: string; record: SongRecord }>;

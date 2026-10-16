@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStats } from '../context/stats';
-import { useGame } from '../context/game';
+import { isTrackActiveForHand, useGame } from '../context/game';
+import { countNotes } from '../utils/sessionResults';
 
 /** Accuracy colour: green ≥80 %, yellow ≥60 %, red <60 % */
 function accColor(acc: number): string {
@@ -16,7 +17,7 @@ function accColor(acc: number): string {
  * Practice mode →  combo streak  |  n/total  |  ✓ goods  ✗ wrongs   acc%
  */
 export const LiveStats: React.FC = () => {
-    const { selectedSong, gameMode, timemap } = useGame();
+    const { selectedSong, gameMode, timemap, instrument, handSelection } = useGame();
     const { sessionStats } = useStats();
 
     if (!selectedSong) return null;
@@ -31,8 +32,10 @@ export const LiveStats: React.FC = () => {
     if (total === 0) return null;
 
     // One timemap onset = one hit/good moment — chords are pre-grouped and
-    // tie continuations already erased, so they count as one here too.
-    const totalNotes = timemap ? timemap.onsets.length : null;
+    // tie continuations already erased, so they count as one here too. One
+    // hand plays only its own staff's: the same count as the results'.
+    const hands = instrument === 'piano' ? handSelection : 'both';
+    const totalNotes = timemap ? countNotes(timemap, staff => isTrackActiveForHand(staff - 1, hands)) : null;
 
     const comboColor = combo >= 10 ? '#facc15' : combo >= 5 ? '#fb923c' : '#e2e8f0';
 

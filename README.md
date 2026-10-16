@@ -221,6 +221,7 @@ The application is built on a web stack trying to be optimized for low-latency a
 * **Loop a passage:** drag the two handles on the minimap to choose bars. They loop in Rhythm and Practice, and By ear they choose the passage to learn.
 * **Your kit's pad map (Drums):** each note a drum controller sends is assigned to a kit voice. The map starts as General MIDI and you can teach it any module's notes by hitting the pads.
 * **Count-in:** play starts with a bar counted in, in large numbers over the score — "4, 3, 2, Start" in 4/4, "2, Start" in 2/4 — clicked on each beat; the score's own rest is the "1", so the music comes in on time. Any key on your instrument starts it too, while the song waits at its start.
+* **Results:** at the end of a piece, how it went — precision, accuracy, hits, wrong and missed notes, the longest combo, your timing — your progress against earlier sessions of the piece, where the mistakes were across the whole piece, and the visual metronome's wave for the whole piece with every key you played on it. Then ↺ Replay or Play next.
 * **Settings (⚙):** what is set once, remembered on the device — the sound, the tempo, the count-in, starting mid-song from the instrument, whether dragging the score pauses the music or it plays on from where you let go, and the visual metronome.
 * **Visual metronome:** a small arrow on the cursor dips on every beat and rises between, tracing the wave of the tempo back over the clef and key signature; every key you press leaves a dot on it — in a trough when it is on the beat, on the slope when it is early or late. Piano, saxophone and drums; it can be switched off in the ⚙ settings.
 
@@ -305,6 +306,7 @@ npm run check:pads               # validate the drum pad map (GM default, remapp
 npm run check:groove             # validate the grooves: every take on the grid, written out and read back through Verovio hit for hit
 npm run check:grid               # validate the drums step grid (every bundled chart as before, the rolling columns, the grooves' grids)
 npm run check:countdown          # validate the count-in (every meter, the music a beat after "Start" from the beginning and mid-piece)
+npm run check:session            # validate the results at a piece's end (the session log, its record and history, the whole-piece wave)
 npm run check:metronome          # validate the visual metronome's beat (every meter, real scores' bar lines) and the removal of instrument names
 npm run check:ties               # validate ties: struck once and held, however they are written, across bar lines and repeats, and drawn on the page
 npm run check:accompaniment      # validate lining a recording up with a score (offset, tempo, peaks, storage rules)

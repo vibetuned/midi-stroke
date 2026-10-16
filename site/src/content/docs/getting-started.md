@@ -105,6 +105,30 @@ and does.
   on the device. The 📊 button in the header opens the history. The desktop
   app and your browser keep separate histories, since each stores its own.
 
+## At the end of a piece
+
+When a piece plays to its end, its results open:
+
+- **The numbers** — *precision* (the notes right the first time, out of the
+  notes to play; a chord is one), *accuracy* (as the header shows it while you
+  play), hits, wrong notes, missed notes, your longest combo, how early or late
+  your keys were on average, and how long you played. Hover over one for what
+  it counts.
+- **Progress** — this session's precision against your earlier sessions of the
+  same piece and mode, with the change since last time, or a new best.
+- **Mistakes** — the whole piece as a strip, each bar marked, with a red line
+  for each wrong note and an orange one for each note missed.
+- **Timing** (Rhythm) — the visual metronome's wave for the whole piece, down
+  on every beat and up between, with a dot for every key you played: white
+  where it played a note, red where it played nothing, an orange ring where a
+  note went unplayed. A dot in a trough is on the beat; on the slope before it,
+  early; after it, late. Scroll it, or click the strip above to go to a part.
+- **↺ Replay** plays the piece again, count-in and all; **Play next** opens the
+  next piece of the collection and starts it once it has loaded.
+
+A drum pattern loops on, so it has no end to show; *By ear* keeps its own
+results.
+
 ## Settings
 
 The **⚙** button at the end of the play controls opens what you set once

@@ -318,6 +318,30 @@ Dragging the score or the minimap goes through `useScrollPause()`
 ([useScrollPause.ts](../src/hooks/useScrollPause.ts)): `begin` on pointer-down pauses the
 transport, `end` on pointer-up starts it again when it was playing and `pauseOnScroll` is off.
 
+### The results — [SessionResults.tsx](../src/components/SessionResults.tsx)
+
+Mounted once in each app, it is the handler of `songCompleted` (set by `useMidiFile` /
+`useDrumsMidiFile` when the transport reaches the end). It makes the session's
+`SessionRecord` ([sessionResults.ts](../src/utils/sessionResults.ts) `summarizeSession`) from the
+stats context's counts and the session log, has `recordSessionEnd` keep it in the song's
+`sessions` (the last `HISTORY_MAX` per mode, in the same localStorage store as the totals), resets
+the session and opens the dialog — not for a drum pattern, which loops on (`drumScoreLoops`), nor
+by ear.
+
+The session log ([sessionLog.ts](../src/utils/sessionLog.ts)) is a module-level store, outside
+React because keys come faster than renders: `useGameLogic` logs every key judged — a `hit` at the
+tick it was heard (`heardTicks`, the audio clock's present) with its `offset` from the note's tick,
+a `wrong`, and each `miss` at the missed note's tick — and `SessionResults` the time played
+(`sessionPlaying`, from `isPlaying`). `resetSession` clears it with the counts.
+
+The dialog draws, from the record and the log: the numbers; a precision chart over the song's
+records; the whole piece as a strip with each wrong and missed note; and in rhythm the visual
+metronome's wave over the whole piece (`swingAt(beatsAt(...))` at the meter's `pulseTicksOf` — the
+cursor's own) as a scrolling SVG, every logged key a dot on it, the strip showing and moving its
+window. ↺ Replay calls `usePlayToggle()`; Play next sets the next piece
+([useSongNeighbours.ts](../src/hooks/useSongNeighbours.ts), the header's ◀ ▶ too) and plays it once
+its timemap has loaded. `npm run check:session`.
+
 ## 7. Score assets
 
 - Stored under `public/<instrument>/<collection>/*.mei`.

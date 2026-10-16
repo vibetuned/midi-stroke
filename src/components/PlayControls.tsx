@@ -34,6 +34,8 @@ export const PlayControls: React.FC = () => {
                 e.target instanceof HTMLSelectElement ||
                 e.target instanceof HTMLTextAreaElement
             ) return;
+            // Nor while a panel is open over the app (the results, the settings…): the keys are its.
+            if (document.querySelector('[role="dialog"]')) return;
 
             // By ear, the session drives the page: play and seek would give the
             // melody away, so only the tempo keys stay live.
