@@ -4,11 +4,13 @@ import { listMidiOutputs } from '../utils/midiOut';
 import { AccompanimentPanel } from './AccompanimentPanel';
 import { useAccompanimentFor } from '../hooks/useAccompaniment';
 import { formatTime } from '../utils/accompanimentSync';
+import { cardIconStyle, cardStyle, cardTitleStyle, closeStyle } from './dialogStyles';
 
 /**
  * Where the score's own playback goes, as a header button beside the stats and
- * a panel with the three choices spelled out — off, in sound, or to a MIDI
- * output — rather than a select squeezed into the transport. The exercise
+ * a panel with the three choices as cards — off, in sound, or to a MIDI
+ * output — rather than a select squeezed into the transport; what each does is
+ * in its title, on hover (the cards' look: dialogStyles.ts). The exercise
  * builders keep their compact selector; both read and write the same
  * remembered setting.
  */
@@ -117,12 +119,12 @@ export const PlaybackPanel: React.FC<{ onClose: () => void; onOpenAccompaniment?
                 onClick={e => e.stopPropagation()}
             >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                        <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Score playback</h2>
-                        <p style={{ margin: '0.3rem 0 0', fontSize: '0.82rem', color: '#9a9aa8' }}>
-                            Whether the score plays along as it scrolls, and where it goes.
-                        </p>
-                    </div>
+                    <h2
+                        style={{ margin: 0, fontSize: '1.2rem' }}
+                        title="Whether the score plays along as it scrolls, and where it goes. Remembered for next time; the exercise builders' ▶ Listen uses the same choice."
+                    >
+                        Score playback
+                    </h2>
                     <button onClick={onClose} title="Close (Esc)" style={closeStyle}>✕</button>
                 </div>
 
@@ -152,9 +154,9 @@ export const PlaybackPanel: React.FC<{ onClose: () => void; onOpenAccompaniment?
                     >
                         {ports === null && <span style={noteStyle}>Looking for MIDI outputs…</span>}
                         {ports !== null && shownPorts.length === 0 && (
-                            <span style={noteStyle}>
-                                No MIDI outputs found. Connect a device or start a virtual port, then{' '}
-                                <button onClick={e => { e.stopPropagation(); refresh(); }} style={linkStyle}>look again</button>.
+                            <span style={noteStyle} title="Connect a device or start a virtual port, then look again.">
+                                No MIDI outputs ·{' '}
+                                <button onClick={e => { e.stopPropagation(); refresh(); }} style={linkStyle}>look again</button>
                             </span>
                         )}
                         {shownPorts.length > 0 && (
@@ -180,23 +182,23 @@ export const PlaybackPanel: React.FC<{ onClose: () => void; onOpenAccompaniment?
                     </Choice>
                 </div>
 
-                <p style={{ margin: 0, fontSize: '0.72rem', color: '#7a7a88' }}>
-                    Remembered for next time. The exercise builders&apos; ▶ Listen uses the same choice.
-                </p>
-
                 {/* A recording to play along with, in rhythm mode (piano, saxo). */}
                 {onOpenAccompaniment && (instrument === 'piano' || instrument === 'saxo') && (
-                    <div style={accompanimentCardStyle}>
-                        <span style={{ fontSize: '1.35rem', lineHeight: 1.2 }}>🎶</span>
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: 0 }}>
-                            <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Accompaniment</span>
-                            <span style={{ fontSize: '0.8rem', color: '#b0b0bc', lineHeight: 1.4 }}>
-                                {!selectedSong
-                                    ? 'Open a piece to give it a recording to play along with.'
-                                    : accompaniment
-                                        ? `${accompaniment.fileName} · ${formatTime(accompaniment.duration, 0)} · ♩ = ${Math.round(accompaniment.bpm * 10) / 10}. Plays along in Rhythm mode.`
-                                        : 'A recording of the piece — a backing track, a band, a teacher — that plays along in Rhythm mode.'}
-                            </span>
+                    <div
+                        style={cardStyle(false)}
+                        title={!selectedSong
+                            ? 'Open a piece to give it a recording to play along with.'
+                            : 'A recording of the piece — a backing track, a band, a teacher — that plays along in Rhythm mode.'}
+                    >
+                        <span style={cardIconStyle} aria-hidden="true">🎶</span>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0 }}>
+                            <span style={cardTitleStyle}>Accompaniment</span>
+                            {/* Which recording, when there is one: what it is, not what it does. */}
+                            {selectedSong && accompaniment && (
+                                <span style={{ fontSize: '0.78rem', color: '#9a9aa8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {`${accompaniment.fileName} · ${formatTime(accompaniment.duration, 0)} · ♩ = ${Math.round(accompaniment.bpm * 10) / 10}`}
+                                </span>
+                            )}
                         </div>
                         <button onClick={onOpenAccompaniment} disabled={!selectedSong} style={accompanimentButtonStyle(!selectedSong)}>
                             {accompaniment ? 'Sync…' : 'Add…'}
@@ -208,7 +210,7 @@ export const PlaybackPanel: React.FC<{ onClose: () => void; onOpenAccompaniment?
     );
 };
 
-/** One option: a whole card is the target, so the choice reads at a glance. */
+/** One option: a whole card is the target, so the choice reads at a glance; what it does, on hover. */
 const Choice: React.FC<{
     icon: string;
     title: string;
@@ -225,44 +227,31 @@ const Choice: React.FC<{
         tabIndex={disabled ? -1 : 0}
         onClick={() => !disabled && onSelect()}
         onKeyDown={e => { if (!disabled && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onSelect(); } }}
+        title={detail}
         style={{
-            display: 'flex', gap: '0.8rem', alignItems: 'flex-start',
-            padding: '0.85rem 1rem', borderRadius: '10px',
-            border: `1px solid ${selected ? 'var(--color-accent)' : 'rgba(255,255,255,0.12)'}`,
-            background: selected ? 'color-mix(in srgb, var(--color-accent) 14%, transparent)' : 'rgba(255,255,255,0.03)',
+            ...cardStyle(selected),
+            // The MIDI card lists its outputs under its name.
+            alignItems: children ? 'flex-start' : 'center',
             cursor: disabled ? 'default' : 'pointer',
             opacity: disabled ? 0.55 : 1,
         }}
     >
-        <span style={{ fontSize: '1.35rem', lineHeight: 1.2 }}>{icon}</span>
+        <span style={cardIconStyle} aria-hidden="true">{icon}</span>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{title}</span>
+                <span style={cardTitleStyle}>{title}</span>
                 {selected && <span style={{ fontSize: '0.68rem', color: 'var(--color-accent)', fontWeight: 600 }}>SELECTED</span>}
             </div>
-            <span style={{ fontSize: '0.8rem', color: '#b0b0bc', lineHeight: 1.4 }}>{detail}</span>
             {children}
         </div>
     </div>
 );
-
-const accompanimentCardStyle: React.CSSProperties = {
-    display: 'flex', gap: '0.8rem', alignItems: 'center',
-    padding: '0.85rem 1rem', borderRadius: '10px',
-    border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)',
-};
 
 const accompanimentButtonStyle = (disabled: boolean): React.CSSProperties => ({
     padding: '0.45rem 0.9rem', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 600,
     background: 'transparent', color: 'white', border: '1px solid var(--color-accent)',
     cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.45 : 1, flexShrink: 0,
 });
-
-const closeStyle: React.CSSProperties = {
-    width: '32px', height: '32px', borderRadius: '50%', border: '1px solid #444',
-    background: 'transparent', color: '#aaa', cursor: 'pointer', fontSize: '1rem',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-};
 
 const noteStyle: React.CSSProperties = { fontSize: '0.75rem', color: '#8a8a98', marginTop: '0.2rem' };
 

@@ -143,7 +143,7 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
             <div className="app-container">
                 <StartOverlay />
                 <CountdownOverlay />
-                <MidiStartHint text="Press any key to start" />
+                <MidiStartHint action="Press any key" />
                 <PianoSetup />
                 <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
                 {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
@@ -165,7 +165,7 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
         <div className="app-container">
             <StartOverlay />
             <CountdownOverlay />
-            <MidiStartHint text="Press any key to start" />
+            <MidiStartHint action="Press any key" />
             <PianoSetup />
             <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
             {showStats && <StatsPanel onClose={() => setShowStats(false)} />}

@@ -143,7 +143,7 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
             <div className="app-container theme-saxo">
                 <StartOverlay />
                 <CountdownOverlay />
-                <MidiStartHint text="Play any note to start" />
+                <MidiStartHint action="Play any note" />
                 <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
                 {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
                 <MobileShell
@@ -168,7 +168,7 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
         <div className="app-container theme-saxo">
             <StartOverlay />
             <CountdownOverlay />
-            <MidiStartHint text="Play any note to start" />
+            <MidiStartHint action="Play any note" />
             <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
             {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
 

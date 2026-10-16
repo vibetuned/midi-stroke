@@ -140,7 +140,7 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
             <div className="app-container theme-drums">
                 <StartOverlay />
                 <CountdownOverlay />
-                <MidiStartHint text="Hit any pad to start" />
+                <MidiStartHint action="Hit any pad" />
                 <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
                 {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
                 <MobileShell
@@ -158,7 +158,7 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
         <div className="app-container theme-drums">
             <StartOverlay />
             <CountdownOverlay />
-            <MidiStartHint text="Hit any pad to start" />
+            <MidiStartHint action="Hit any pad" />
             <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
             {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
 

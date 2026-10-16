@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import * as Tone from 'tone';
 import { useVerovio } from '../../hooks/useVerovio';
 import { useGame } from '../../context/game';
 import { loadSongText } from '../../utils/songUrl';
@@ -11,6 +10,7 @@ import { expandRepeats } from '../../utils/expandRepeats';
 import { VisualMetronome } from '../../utils/visualMetronome';
 import { measureStaffLines } from '../../utils/scoreRaster';
 import { useMidiNotes } from '../../hooks/useMidi';
+import { useScrollPause } from '../../hooks/useScrollPause';
 
 interface MeasureData {
     id: string;
@@ -60,7 +60,7 @@ function findMeasureAtX(mData: MeasureData[], x: number): number {
 export const DrumsScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
     const { toolkit } = useVerovio();
     // Fix 7: destructure setSelectedSong for error-recovery back button
-    const { isPlaying, setIsPlaying, loadTimemap, seek, selectedSong, setSelectedSong, playPosition } = useGame();
+    const { loadTimemap, seek, selectedSong, setSelectedSong, playPosition } = useGame();
 
     const [loadingMsg, setLoadingMsg] = useState<string>('Initializing Engine...');
     const pixiContainerRef = useRef<HTMLDivElement>(null);
@@ -70,12 +70,6 @@ export const DrumsScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
     const scrollContainerRef = useRef<PIXI.Container | null>(null);
     const cursorRef = useRef<PIXI.Graphics | null>(null);
     const isDragging = useRef<boolean>(false);
-
-    // Fix stale closures in Pixi events
-    const isPlayingRef = useRef(isPlaying);
-    useEffect(() => {
-        isPlayingRef.current = isPlaying;
-    }, [isPlaying]);
 
     // Fix 3: keep playPosition in a ref so the ticker never needs to be re-registered
     const playPositionRef = useRef(playPosition);
@@ -93,6 +87,9 @@ export const DrumsScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
     const metronomeRef = useRef<VisualMetronome | null>(null);
     const metronomeSpanRef = useRef<{ top: number; bottom: number } | null>(null);
     useMidiNotes({ onNoteOn: () => metronomeRef.current?.hit() });
+    // Dragging the score stops it; with "Pause while scrolling" off, it plays on when let go.
+    const scrollPause = useScrollPause();
+    const scrollPauseRef = useRef(scrollPause);
     // Shown or not (the ∿ button by the transport); read by the ticker, which is registered once.
     const { visualMetronome } = useGame();
     const metronomeOnRef = useRef(visualMetronome);
@@ -145,13 +142,8 @@ export const DrumsScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
                     isDragging.current = true;
                     dragStartX = e.global.x;
                     dragStartScrollX = scrollContainer.x;
-                    if (isPlayingRef.current) {
-                        setIsPlaying(false);
-                        Tone.getTransport().pause();
-                    } else if (Tone.getTransport().state !== 'paused') {
-                        setIsPlaying(false);
-                        Tone.getTransport().pause();
-                    }
+                    // Stopped while it moves; played on from where it is let go, if so set (hooks/useScrollPause.ts).
+                    scrollPauseRef.current.begin();
                     // A scrolling page is dragged, not pointed at.
                     if (scrollingRef.current) return;
                     const scale = scaleRef.current;
@@ -161,7 +153,7 @@ export const DrumsScoreView: React.FC<{ fill?: boolean }> = ({ fill }) => {
                     seekToGlobalX(targetGlobalX);
                 });
 
-                const endDrag = () => { isDragging.current = false; };
+                const endDrag = () => { isDragging.current = false; scrollPauseRef.current.end(); };
                 app.stage.on('pointerup', endDrag);
                 app.stage.on('pointerupoutside', endDrag);
                 app.stage.on('pointercancel', endDrag);

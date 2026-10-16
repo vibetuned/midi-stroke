@@ -12,6 +12,21 @@ import { useAccompanimentFor } from '../hooks/useAccompaniment';
 const PLAYBACK_TARGET_KEY = 'midi-stroke-playback-target';
 const VISUAL_METRONOME_KEY = 'midi-stroke-visual-metronome';
 
+/** A setting kept on the device: on or off, with its default until it is changed. */
+function useStoredFlag(key: string, fallback: boolean): [boolean, (on: boolean) => void] {
+    const [value, setValue] = useState<boolean>(() => {
+        try {
+            const kept = localStorage.getItem(key);
+            return kept === null ? fallback : kept === 'on';
+        } catch { return fallback; }
+    });
+    const set = useCallback((on: boolean) => {
+        setValue(on);
+        try { localStorage.setItem(key, on ? 'on' : 'off'); } catch { /* private mode */ }
+    }, [key]);
+    return [value, set];
+}
+
 export const GameProvider: React.FC<{
     children: ReactNode;
     instrument?: 'piano' | 'drums' | 'saxo' | 'theory';
@@ -32,7 +47,11 @@ export const GameProvider: React.FC<{
     }, []);
     const [currentMeasure, setCurrentMeasure] = useState(1);
     const [isAudioStarted, setAudioStarted] = useState(false);
-    const [isMetronomeMuted, setMetronomeMuted] = useState(false);
+    // The ⚙ settings, kept on the device.
+    const [isMetronomeMuted, setMetronomeMuted] = useStoredFlag('midi-stroke-muted', false);
+    const [countIn, setCountIn] = useStoredFlag('midi-stroke-count-in', true);
+    const [midiStartAnywhere, setMidiStartAnywhere] = useStoredFlag('midi-stroke-midi-start-anywhere', false);
+    const [pauseOnScroll, setPauseOnScroll] = useStoredFlag('midi-stroke-pause-on-scroll', true);
     // Remembered across sessions: picking your synth again every time is a chore.
     const [playbackTarget, setPlaybackTargetState] = useState<PlaybackTarget>(
         () => localStorage.getItem(PLAYBACK_TARGET_KEY) ?? 'off',
@@ -179,6 +198,12 @@ export const GameProvider: React.FC<{
             setVisualMetronome,
             countdown,
             setCountdown,
+            countIn,
+            setCountIn,
+            midiStartAnywhere,
+            setMidiStartAnywhere,
+            pauseOnScroll,
+            setPauseOnScroll,
             pianoRange,
             setPianoRange,
             playSizeTicks,

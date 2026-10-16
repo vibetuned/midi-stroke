@@ -28,6 +28,28 @@ the way. Install channels and downloads:
 - `npm run check:countdown`: the count in every meter, and the music a beat after "Start" from
   the beginning, from a drum loop's wrap, and mid-piece.
 
+### Settings
+
+- **A ⚙ button at the end of the play controls** opens the settings — what is set once rather
+  than played with ([src/components/SettingsDialog.tsx](src/components/SettingsDialog.tsx)). The
+  sound, the tempo slider (its score marking and *use* button with it) and the visual metronome
+  moved there from the bar, which keeps the mode, the hands, reset, play and the loop. Every
+  setting is remembered on the device, the sound now too. On a phone the dialog lays out in two
+  columns, to fit the screen held sideways.
+- **The bar, mirrored**: the modes at the left, ↺ ▶ ⚙ in the middle, and the piano's hands —
+  L, L+R, R — now at the right.
+- **The ⚙ settings and the 🎧 playback panel look alike**
+  ([src/components/dialogStyles.ts](src/components/dialogStyles.ts)): a card per option, its icon
+  and its name, outlined when it is on or chosen. What each option does now shows on hover rather
+  than under it, so the panels read at a glance.
+- **Count in before play** — on by default; off, play starts at once.
+- **Start mid-song from the instrument** — off by default; on, a song paused part-way through
+  starts again from any key, pad or note, as it does at its start, with *Press any key to
+  continue*.
+- **Pause while scrolling** — on by default, as before; off, dragging the score or the minimap
+  stops the music only while it moves, and it plays on from where it is let go
+  ([src/hooks/useScrollPause.ts](src/hooks/useScrollPause.ts)).
+
 ## 1.0.0 — 2026-10-05
 
 Version 1. A visual metronome rides the cursor: a small arrow swinging with the beat, its wave

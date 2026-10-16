@@ -53,6 +53,15 @@ export interface GameState {
     /** The count-in before play (utils/countdown.ts): the label showing now, or null. */
     countdown: string | null;
     setCountdown: (label: string | null) => void;
+    /** Settings (the ⚙ dialog, components/SettingsDialog.tsx), remembered on the device:
+     *  count a bar in before play; let a key start a song paused mid-way, not only at its start;
+     *  pause while the score is dragged (off: it plays on from where it is let go). */
+    countIn: boolean;
+    setCountIn: (on: boolean) => void;
+    midiStartAnywhere: boolean;
+    setMidiStartAnywhere: (on: boolean) => void;
+    pauseOnScroll: boolean;
+    setPauseOnScroll: (on: boolean) => void;
     /** Where a played score goes: 'off', 'audio', or a MIDI output port name.
      *  Shared by the transport and the exercise builders' audition button. */
     playbackTarget: PlaybackTarget;

@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { TEMPO_MAX, TEMPO_MIN } from '../context/game';
-import type { TempoMap } from '../utils/tempo';
 import { useGame } from '../context/game';
 import { useStats } from '../context/stats';
 import * as Tone from 'tone';
 import { LoopChip } from './LoopRangeSelector';
+import { SettingsButton } from './SettingsDialog';
 import { usePlayToggle } from '../hooks/usePlayToggle';
 
 export const PlayControls: React.FC = () => {
-    const { isPlaying, setIsPlaying, tempo, setTempo, scoreTempo, isMetronomeMuted, setMetronomeMuted, visualMetronome, setVisualMetronome, countdown, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection, loopRange, tempoLock } = useGame();
+    const { isPlaying, setIsPlaying, tempo, setTempo, countdown, countIn, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection, loopRange, tempoLock } = useGame();
     const { resetSession } = useStats();
     // Play and pause, with the count-in (hooks/usePlayToggle.ts); the key handler reads the latest through a ref.
     const togglePlay = usePlayToggle();
@@ -168,45 +168,6 @@ export const PlayControls: React.FC = () => {
                 )}
             </div>
 
-            {/* Hand Selection — piano only. Drums never see this control. By ear
-                it gives way to the ear panel's own treble / bass choice. */}
-            {instrument === 'piano' && !byEar && (
-                <div style={{
-                    display: 'flex',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    borderRadius: '20px',
-                    padding: '4px',
-                    marginRight: '1rem',
-                }}>
-                    {(['left', 'both', 'right'] as const).map(hand => {
-                        const active = handSelection === hand;
-                        const label = hand === 'left' ? 'L' : hand === 'right' ? 'R' : 'L+R';
-                        const title = hand === 'left' ? 'Left hand only' : hand === 'right' ? 'Right hand only' : 'Both hands';
-                        return (
-                            <button
-                                key={hand}
-                                onClick={() => setHandSelection(hand)}
-                                title={title}
-                                style={{
-                                    background: active ? 'var(--color-accent)' : 'transparent',
-                                    color: active ? 'white' : 'var(--color-text-secondary)',
-                                    border: 'none',
-                                    borderRadius: '16px',
-                                    padding: '0.5rem 0.9rem',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    minWidth: '2.5rem',
-                                }}
-                            >
-                                {label}
-                            </button>
-                        );
-                    })}
-                </div>
-            )}
-
             {/* Reset and play belong to the transport; by ear the session drives
                 itself from the ear panel above. */}
             {!byEar && (<>
@@ -237,7 +198,7 @@ export const PlayControls: React.FC = () => {
             {/* Play/Pause Button */}
             <button
                 onClick={togglePlay}
-                title={countdown ? 'Stop the count' : isPlaying ? 'Pause' : 'Play, after a bar counted in'}
+                title={countdown ? 'Stop the count' : isPlaying ? 'Pause' : countIn ? 'Play, after a bar counted in' : 'Play'}
                 style={{
                     width: '50px',
                     height: '50px',
@@ -261,136 +222,47 @@ export const PlayControls: React.FC = () => {
                 the way back to the whole piece. */}
             <LoopChip />
 
-            <button
-                onClick={() => setMetronomeMuted(!isMetronomeMuted)}
-                title={isMetronomeMuted ? "Unmute audio" : "Mute audio (metronome + instrument)"}
-                style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    border: '1px solid var(--color-text-secondary)',
-                    background: isMetronomeMuted ? 'transparent' : 'rgba(255,255,255,0.1)',
-                    color: 'var(--color-text-primary)',
-                    fontSize: '1rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.2s'
-                }}
-                className="hover-scale"
-            >
-                {isMetronomeMuted ? '🔇' : '🔊'}
-            </button>
+            {/* Set once, rather than played with: sound, tempo, count-in, scrolling, the visual metronome. */}
+            <SettingsButton />
 
-            {/* The visual metronome on the cursor: the wave, the arrow, the dots. */}
-            <button
-                onClick={() => setVisualMetronome(!visualMetronome)}
-                title={visualMetronome ? 'Hide the visual metronome' : 'Show the visual metronome: an arrow on the cursor swinging with the beat, a dot for each key you press'}
-                aria-pressed={visualMetronome}
-                aria-label="Visual metronome"
-                style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    border: '1px solid var(--color-text-secondary)',
-                    background: visualMetronome ? 'rgba(255,255,255,0.1)' : 'transparent',
-                    color: visualMetronome ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                    opacity: visualMetronome ? 1 : 0.6,
-                    padding: 0,
-                    cursor: 'pointer',
+            {/* Hand Selection — piano only, at the right, the modes' mirror. Drums never
+                see this control. By ear it gives way to the ear panel's own treble / bass choice. */}
+            {instrument === 'piano' && !byEar && (
+                <div style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.2s'
-                }}
-                className="hover-scale"
-            >
-                {/* A drawn wave, centred exactly (a ∿ glyph sits low in most fonts). */}
-                <svg width="22" height="14" viewBox="0 0 22 14" aria-hidden="true">
-                    <path d="M1 7 C 4 -1, 7 -1, 11 7 S 18 15, 21 7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-                </svg>
-            </button>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '240px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                    <span style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', fontWeight: 'bold' }}>
-                        Tempo: {Math.round(tempo * 10) / 10} BPM
-                    </span>
-                    {tempoLock !== null
-                        ? (
-                            <span
-                                title="The accompaniment was synced at this tempo, so the piece plays at it. Change it in the accompaniment's sync view (🎧 → Accompaniment)."
-                                style={{ fontSize: '0.68rem', color: 'var(--color-text-secondary, #8a8a98)' }}
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '20px',
+                    padding: '4px',
+                    marginLeft: '1rem',
+                }}>
+                    {(['left', 'both', 'right'] as const).map(hand => {
+                        const active = handSelection === hand;
+                        const label = hand === 'left' ? 'L' : hand === 'right' ? 'R' : 'L+R';
+                        const title = hand === 'left' ? 'Left hand only' : hand === 'right' ? 'Right hand only' : 'Both hands';
+                        return (
+                            <button
+                                key={hand}
+                                onClick={() => setHandSelection(hand)}
+                                title={title}
+                                style={{
+                                    background: active ? 'var(--color-accent)' : 'transparent',
+                                    color: active ? 'white' : 'var(--color-text-secondary)',
+                                    border: 'none',
+                                    borderRadius: '16px',
+                                    padding: '0.5rem 0.9rem',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    minWidth: '2.5rem',
+                                }}
                             >
-                                🎶 set by the accompaniment
-                            </span>
-                        )
-                        : <ScoreTempoBadge scoreTempo={scoreTempo} tempo={tempo} onReset={setTempo} />}
+                                {label}
+                            </button>
+                        );
+                    })}
                 </div>
-                <input
-                    type="range"
-                    min={TEMPO_MIN}
-                    max={TEMPO_MAX}
-                    step="1"
-                    value={tempo}
-                    disabled={tempoLock !== null}
-                    onChange={(e) => setTempo(Number(e.target.value))}
-                    title="Quarter notes per minute — for a score that states its tempo, this is its opening tempo, and later changes keep their proportion"
-                    style={{
-                        flex: 1,
-                        cursor: tempoLock !== null ? 'not-allowed' : 'pointer',
-                        opacity: tempoLock !== null ? 0.45 : 1,
-                        accentColor: 'var(--color-accent)'
-                    }}
-                />
-            </div>
-        </div>
-    );
-};
-
-/**
- * What the score says about its tempo: its marking, whether it changes tempo
- * along the way, and — when the slider has moved off the marking — how far off
- * it is and a way back.
- */
-const ScoreTempoBadge: React.FC<{
-    scoreTempo: TempoMap | null;
-    tempo: number;
-    onReset: (bpm: number) => void;
-}> = ({ scoreTempo, tempo, onReset }) => {
-    const initial = scoreTempo?.initial;
-    if (!initial) return null;
-    const marked = Math.round(initial.bpm);
-    const changes = scoreTempo.marks.length - 1;
-    const off = tempo !== marked;
-    const percent = Math.round((tempo / initial.bpm) * 100);
-    const label = initial.text && !/\d/.test(initial.text) ? `${initial.text} · ` : '';
-    return (
-        <span
-            title={`The score marks ♩ = ${marked} (from @${initial.source === 'text' ? 'its tempo text' : initial.source})`
-                + (changes ? `, and changes tempo ${changes} time${changes > 1 ? 's' : ''} — each change keeps its proportion to the slider` : '')}
-            style={{ fontSize: '0.68rem', color: 'var(--color-text-secondary, #8a8a98)', display: 'flex', gap: '0.35rem', alignItems: 'center' }}
-        >
-            {label}score ♩ = {marked}{changes ? ` · ${changes} change${changes > 1 ? 's' : ''}` : ''}
-            {off && (
-                <>
-                    <span>· {percent}%</span>
-                    {/* Words, not a glyph: the transport already has a ↺ that means
-                        "restart", and two of them side by side read as one. */}
-                    <button
-                        onClick={() => onReset(initial.bpm)}
-                        title="Back to the score's tempo"
-                        style={{
-                            fontSize: '0.66rem', padding: '0 0.4rem', borderRadius: '8px', cursor: 'pointer',
-                            background: 'transparent', color: 'var(--color-accent)',
-                            border: '1px solid var(--color-accent)',
-                        }}
-                    >
-                        use {marked}
-                    </button>
-                </>
             )}
-        </span>
+        </div>
     );
 };

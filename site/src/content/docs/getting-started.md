@@ -46,8 +46,8 @@ the toggle at the top left.
 
 - The **top notch**, with the song's name, opens the menu: back, the song
   navigator, statistics and playback.
-- The **bottom notch** opens the play controls — mode, hands, tempo — and its
-  **▶** plays and pauses without opening them.
+- The **bottom notch** opens the play controls — mode, hands, the ⚙
+  settings — and its **▶** plays and pauses without opening them.
 - In *By ear*, its panel stays on screen.
 
 Installed from the browser (*Add to Home screen*), the app stays in landscape.
@@ -76,29 +76,48 @@ score and a click on each beat (unless the sound is muted) — **4, 3, 2,
 Start** in 4/4, **3, 2, Start** in 3/4, **2, Start** in 2/4. The score's own
 rest is the "1": the music comes in one beat after *Start*. A quick 6/8 is
 counted in two dotted quarters (**2, Start**), a slow one in six eighths
-(**6, 5, 4, 3, 2, Start**). Press play again while it counts to stop it.
+(**6, 5, 4, 3, 2, Start**). Press play again while it counts to stop it, or
+switch the count-in off in the [settings](#settings).
 
 You can also start from your instrument: while a song waits at its start, a
 small **Press any key to start** shows where the count will appear, and any
 key (on the drums any pad, on the saxophone any note) starts it, count-in and
 all. A key pressed while the song is paused part-way through doesn't restart
-it, so you can try a note freely.
+it, so you can try a note freely — unless *Start mid-song from the
+instrument* is on in the settings, when it says **Press any key to continue**
+and does.
 
 ## Transport & controls
 
-- **Tempo** — a slider from 20 to 240 BPM (quarter notes per minute), with
-  ↑ / ↓ for steps of 5; everything (score scroll, practice pauses, hit windows)
+- **Tempo** — in the ⚙ settings, a slider from 20 to 240 BPM (quarter notes
+  per minute), with ↑ / ↓ for steps of 5 as you play; everything (score scroll, practice pauses, hit windows)
   scales musically with it. If the score **states its own tempo** it opens at
   it, and the slider shows the marking — *score ♩ = 160* — with a way back to it
   once you have moved away. A score that changes tempo along the way is
   followed as it plays, and slowing it down keeps every section in proportion.
 - **Seek** — drag the score itself, click/drag the minimap strip at the top
-  (piano & saxo), or use the arrow keys.
+  (piano & saxo), or use the arrow keys. Dragging pauses the music; with
+  *Pause while scrolling* off in the settings, it plays on from where you let
+  go.
 - **Hand selection (piano)** — L / R / both; the inactive staff dims and its
   notes stop being expected.
 - **Stats** — precision, combos and history are kept per piece and per mode,
   on the device. The 📊 button in the header opens the history. The desktop
   app and your browser keep separate histories, since each stores its own.
+
+## Settings
+
+The **⚙** button at the end of the play controls opens what you set once
+rather than play with. Each setting is remembered on the device.
+
+| Setting | On | Off |
+|---|---|---|
+| **Sound on** | The metronome's click and your instrument's sound. | Silent. |
+| **Tempo** | The slider, with the score's own marking and a way back to it. | — |
+| **Count in before play** *(on)* | A bar counted in before the music. | Play starts at once. |
+| **Start mid-song from the instrument** *(off)* | A song paused part-way through starts again from any key, pad or note. | Only a song waiting at its start does. |
+| **Pause while scrolling** *(on)* | Dragging the score or the minimap stops the music. | The music stops only while you drag, and plays on from where you let go. |
+| **Visual metronome** *(on)* | The arrow on the cursor and its wave. | Hidden. |
 
 ## Hearing the score
 
@@ -137,8 +156,8 @@ from each bar line, and the arrow follows what you hear: it reaches the bottom
 as the metronome clicks. On the drums, which have no clef strip, the wave runs
 over the bar you have just played.
 
-The **∿** button next to the mute button in the play controls hides it, and
-brings it back; the app remembers which.
+*Visual metronome* in the [settings](#settings) hides it, and brings it back;
+the app remembers which.
 
 Scores open without instrument names at the start of the staves, so the clef
 strip stays clear for the wave.

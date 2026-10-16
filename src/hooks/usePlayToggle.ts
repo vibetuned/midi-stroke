@@ -7,10 +7,11 @@ import { cancelCountdown, countdownPlan, musicStartOf, runCountdown } from '../u
  * Play and pause, for the play button, the space bar and the phone's ▶: play
  * starts with the count-in (utils/countdown.ts); pressed again while it is
  * counting, the count stops and nothing plays. By ear, the session runs the
- * transport itself, so there is no count.
+ * transport itself, so there is no count; with "Count in before play" off
+ * (the ⚙ settings), neither.
  */
 export function usePlayToggle(): () => Promise<void> {
-    const { isPlaying, setIsPlaying, timemap, isMetronomeMuted, gameMode, setCountdown } = useGame();
+    const { isPlaying, setIsPlaying, timemap, isMetronomeMuted, gameMode, setCountdown, countIn } = useGame();
     return useCallback(async () => {
         if (cancelCountdown()) return;
         const transport = Tone.getTransport();
@@ -25,7 +26,7 @@ export function usePlayToggle(): () => Promise<void> {
             console.error('Audio Context blocked:', e);
             return;
         }
-        if (gameMode === 'ear' || !timemap) {
+        if (gameMode === 'ear' || !timemap || !countIn) {
             setIsPlaying(true);
             transport.start();
             return;
@@ -39,5 +40,5 @@ export function usePlayToggle(): () => Promise<void> {
                 setIsPlaying(true);
             },
         });
-    }, [isPlaying, setIsPlaying, timemap, isMetronomeMuted, gameMode, setCountdown]);
+    }, [isPlaying, setIsPlaying, timemap, isMetronomeMuted, gameMode, setCountdown, countIn]);
 }

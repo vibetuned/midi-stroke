@@ -105,6 +105,7 @@ the `GameState` type, `GameMode`, `HandSelection` and the tempo limits. They are
 | `playSizeTicks` | `number` | Total length in Tone ticks. |
 | `isPlaying` / `setIsPlaying` | `boolean` | Transport play/pause state. |
 | `tempo` / `setTempo` | `number` | BPM (default 120). |
+| `countIn`, `midiStartAnywhere`, `pauseOnScroll`, `visualMetronome`, `isMetronomeMuted` | `boolean` | The ⚙ settings, remembered in localStorage. |
 | `seek(ticks)` | fn | Jump the transport to an absolute tick. |
 | `loadMidiData(base64)` | fn | Parse a base64 MIDI string, compute `ppqRatio`, set duration. |
 | `gameMode` / `setGameMode` | `'standard' \| 'practice'` | Mode toggle. |
@@ -298,9 +299,24 @@ score's play position uses, so the arrow bottoms out as the metronome clicks and
 with the click lands in a trough. Each view hands it the area (clef strip to cursor, the staves'
 top line to bottom line) every frame. Scores load without instrument names
 (`removeInstrumentNames` in [mei.ts](../src/utils/mei.ts)), which Verovio would print where the
-wave goes. The ∿ button in [PlayControls](../src/components/PlayControls.tsx) switches it
-(`visualMetronome` in the game context, remembered in localStorage); off, the views hand it no
-area and it draws nothing. `npm run check:metronome`.
+wave goes. *Visual metronome* in the ⚙ settings switches it (`visualMetronome` in the game
+context, remembered in localStorage); off, the views hand it no area and it draws nothing.
+`npm run check:metronome`.
+
+### The settings — [SettingsDialog.tsx](../src/components/SettingsDialog.tsx)
+
+The ⚙ button at the end of [PlayControls](../src/components/PlayControls.tsx) opens what is set
+once: the sound (`isMetronomeMuted`), the tempo slider, `countIn`, `midiStartAnywhere`,
+`pauseOnScroll` and `visualMetronome` — game-context flags, each remembered in localStorage
+(`useStoredFlag` in [GameContext.tsx](../src/context/GameContext.tsx)). It shares its cards with
+the 🎧 [PlaybackPanel](../src/components/PlaybackPanel.tsx) ([dialogStyles.ts](../src/components/dialogStyles.ts)):
+an icon, a name, and what the option does in its `title`. The dialog is portalled
+to `<body>`: on a phone the bar lives in a sliding drawer whose transform would otherwise hold a
+fixed dialog inside it. `countIn` off, `usePlayToggle()` starts the transport at once.
+`midiStartAnywhere` on, `MidiStartHint` arms on any pause, not only at the start ("to continue").
+Dragging the score or the minimap goes through `useScrollPause()`
+([useScrollPause.ts](../src/hooks/useScrollPause.ts)): `begin` on pointer-down pauses the
+transport, `end` on pointer-up starts it again when it was playing and `pauseOnScroll` is off.
 
 ## 7. Score assets
 
