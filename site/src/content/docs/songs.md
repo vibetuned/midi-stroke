@@ -50,8 +50,16 @@ bar line, so a repeat never plays the count-in again.
 
 Repeats are written out as a score loads, so the page reads straight through
 and bars on the page are bars as played: repeat bar lines, and first and
-second endings, each time through with its own ending. A score with D.C.,
-D.S., segno or coda marks keeps them as written.
+second endings, each time through with its own ending.
+
+The jumps too — **D.C.** and **D.S.**, with **Fine** and the **coda**. At the
+D.C. or D.S. the piece goes back to the start or the segno and is played
+through again without its repeats, each set of endings by its last one; it
+stops at Fine, or leaves at *To Coda* for the coda. Written out, the jump is a
+double bar, the D.C., D.S., Fine and segno are gone, and the coda sign stays
+where the coda begins. A score that states its own playing order (as Verovio
+writes one when it reads MusicXML) is played in that order. A score with more
+than one D.C. or D.S., or a double segno or coda, keeps its marks as written.
 
 Beyond that, any MEI that Verovio can render works — including scores
 exported from MusicXML converters. Ties, pickup measures, meter changes and

@@ -227,7 +227,7 @@ The application is built on a web stack trying to be optimized for low-latency a
 
   ![The visual metronome: the wave over the clef, a dot for each key pressed](docs/screenshots/visual-metronome.png)
 * **On a phone:** held sideways, the piano, drums and saxophone show the score or the instrument across the screen, a toggle away from each other, with the song and the play controls under a top and a bottom notch. Tablets and desktops keep their layout.
-* **Bring Your Own Scores:** load a single MEI file, or **import a ZIP of MEI scores** as a permanent on-device collection (stored in the browser's OPFS, offline-capable, delete anytime). Scores need no special preparation — the one-beat count-in measure (`n="0"`) is injected automatically at load time if missing, and repeats (repeat bar lines, first and second endings) are written out as the score loads, so it reads straight through.
+* **Bring Your Own Scores:** load a single MEI file, or **import a ZIP of MEI scores** as a permanent on-device collection (stored in the browser's OPFS, offline-capable, delete anytime). Scores need no special preparation — the one-beat count-in measure (`n="0"`) is injected automatically at load time if missing, and repeats (repeat bar lines, first and second endings) and jumps (D.C. and D.S., al Fine or al Coda) are written out as the score loads, so it reads straight through.
 
 ![Song picker with ZIP import](docs/screenshots/song-selector.png)
 * **Scale Generator (Piano):** technique exercises in all 24 keys engraved on demand — scales, intervals, triads, arpeggios and cadences with conservatory fingering — plus key-aware graying of the virtual keyboard.
@@ -307,6 +307,7 @@ npm run check:groove             # validate the grooves: every take on the grid,
 npm run check:grid               # validate the drums step grid (every bundled chart as before, the rolling columns, the grooves' grids)
 npm run check:countdown          # validate the count-in (every meter, the music a beat after "Start" from the beginning and mid-piece)
 npm run check:session            # validate the results at a piece's end (the session log, its record and history, the whole-piece wave)
+npm run check:jumps              # validate D.C., D.S., Fine and the coda written out (every form, against Verovio's own reading of MusicXML)
 npm run check:metronome          # validate the visual metronome's beat (every meter, real scores' bar lines) and the removal of instrument names
 npm run check:ties               # validate ties: struck once and held, however they are written, across bar lines and repeats, and drawn on the page
 npm run check:accompaniment      # validate lining a recording up with a score (offset, tempo, peaks, storage rules)

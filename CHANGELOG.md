@@ -78,6 +78,26 @@ the way. Install channels and downloads:
 - The space bar and the arrow keys leave the transport alone while a panel is open over the app.
 - `npm run check:session`: the log, the record, the history, and the wave on a real score.
 
+### Jumps
+
+- **D.C. and D.S., with Fine and the coda, are written out** as a score loads, like its repeats
+  ([src/utils/expandRepeats.ts](src/utils/expandRepeats.ts)), as battuta plays them: at the D.C.
+  or D.S. the piece goes back to the start or the segno and is played through again without its
+  repeats, each group of endings by its last; it stops at Fine, or leaves at To Coda for the coda
+  sign (or, with none, for the bar after the jump); with neither, it ends at the D.C. or D.S. bar.
+  Written out, each jump is a double bar, the D.C., D.S., To Coda, Fine and segno marks go, and
+  the coda sign stays where the coda begins.
+- Read from MEI's `repeatMark` (as battuta writes it), MuseScore's MEI marks, the words of a
+  `dir` ("D.C. al Fine", "To Coda", "Fine"…), SMuFL segno and coda symbols — or, when the score
+  states its own playing order in an `<expansion>` (as Verovio writes one when it reads
+  MusicXML), that order, as Verovio plays it.
+- Left as written: two jumps in one piece, a D.S. without a segno, a double segno or coda.
+- `npm run expand-repeats` writes jumps out too, checked against Verovio playing the order made
+  explicit. `npm run check:jumps`: every form — D.C., D.C. al Fine, D.C. al Coda, D.S., D.S. al
+  Fine, D.S. al Coda, with repeats and endings before the jump — read from its marks and from
+  Verovio's own reading of it as MusicXML, the same order three ways, and written out to play the
+  same notes.
+
 ## 1.0.0 — 2026-10-05
 
 Version 1. A visual metronome rides the cursor: a small arrow swinging with the beat, its wave

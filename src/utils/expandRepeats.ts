@@ -20,14 +20,20 @@
  * leaves out what should be said once: the tempo, and system and page
  * breaks.
  *
- * D.C., D.S., segno and coda marks are left alone, repeats and all: they
- * need a reader's judgement (the scrolling views still follow plain
- * repeats as Verovio plays them, utils/placeMeasures.ts).
+ * The jumps too — D.C. and D.S., with Fine and the coda — as battuta
+ * plays them (packages/core/src/expansion.ts there), and by the same rules:
+ * at the D.C. or D.S. the piece goes back to the start or the segno and is
+ * played through again without its repeats, each group of endings by its
+ * last; it stops at Fine, or leaves at To Coda for the coda sign; with
+ * neither, it ends at the D.C. or D.S. bar. One jump a piece. A score that
+ * states its own playing order (an <expansion>, as Verovio writes one when
+ * it reads MusicXML) is played in that order, as Verovio plays it. Written
+ * out, what the jumps said is done: D.C., D.S., To Coda, Fine and the
+ * segno go, the coda sign stays where the coda begins, and each jump is a
+ * double bar.
  *
  * Uses only DOM level 2 APIs, so it works with any XML DOM implementation.
  */
-
-const JUMPS = /\b(D\.\s?C\.|D\.\s?S\.|da capo|dal segno|al fine|al coda|segno|coda)\b/i;
 
 const elements = (parent: Element): Element[] => {
     const out: Element[] = [];
@@ -39,17 +45,64 @@ const all = (doc: Document | Element, tag: string): Element[] => {
     return Array.from({ length: list.length }, (_, i) => list.item(i)!);
 };
 
-/** Does the score have repeats to write out: repeat bar lines, or first and second endings? */
-export function hasRepeats(doc: Document): boolean {
-    if (all(doc, 'ending').length > 0) return true;
-    return all(doc, 'measure').some(m => /^rpt/.test(m.getAttribute('left') ?? '') || /^rpt/.test(m.getAttribute('right') ?? ''));
+/** What a mark says about the form: a jump, where one lands or ends, or a double segno or coda (not played here). */
+export type FormMark = 'segno' | 'coda' | 'toCoda' | 'fine' | 'daCapo' | 'dalSegno' | 'double';
+
+const DOUBLE = /\bD\.\s?D\.\s?S\.|\bdoppi[oa]\b|\bdouble (coda|segno)\b/i;
+const FUNCS = new Set(['segno', 'coda', 'fine', 'daCapo', 'dalSegno']);
+
+/**
+ * What a <repeatMark> or a <dir> says about the form, or null: MEI's
+ * repeatMark by its @func (a coda with words, "To Coda", is where the piece
+ * leaves for the coda; a bare one, where the coda is), MuseScore's by its
+ * @type, Verovio's MusicXML <dir> by its @type, and any other by its words
+ * or its symbol.
+ */
+export function formMarkOf(el: Element): FormMark | null {
+    if (el.nodeName !== 'repeatMark' && el.nodeName !== 'dir') return null;
+    const text = (el.textContent ?? '').replace(/\s+/g, ' ').trim();
+    const type = (el.getAttribute('type') ?? '').toLowerCase();
+    const func = el.getAttribute('func') ?? '';
+    if (func === 'varsegno' || DOUBLE.test(text) || /double|dss|segno-segno|segno-variation|varied-coda/.test(type)) return 'double';
+    if (el.nodeName === 'repeatMark' && FUNCS.has(func)) {
+        if (func === 'coda') return /\bto coda\b/i.test(text) || /to-coda/.test(type) ? 'toCoda' : 'coda';
+        return func as FormMark;
+    }
+    if (type === 'dacapo' || /\bD\.\s?C\.|\bda capo\b/i.test(text)) return 'daCapo';
+    if (type === 'dalsegno' || /\bD\.\s?S\.|\bdal segno\b/i.test(text)) return 'dalSegno';
+    if (type === 'tocoda' || /\bto coda\b/i.test(text)) return 'toCoda';
+    if (type === 'fine' || /^fine\b/i.test(text)) return 'fine';
+    const glyphs = all(el, 'symbol').map(g => `${g.getAttribute('glyph.name') ?? ''} ${g.getAttribute('glyph.num') ?? ''}`).join(' ');
+    if (type === 'segno' || text === '\u{1D10B}' || /^segno$/i.test(text) || /segno|E047/i.test(glyphs)) return 'segno';
+    if (type === 'coda' || text === '\u{1D10C}' || /^coda$/i.test(text) || /coda|E048/i.test(glyphs)) return 'coda';
+    return null;
 }
 
-/** Why a score's repeats are left alone, or null when they can be written out. */
+/** The form marks in a measure, with the elements that carry them. */
+function marksIn(measure: Element): Array<{ el: Element; mark: FormMark }> {
+    return [...all(measure, 'repeatMark'), ...all(measure, 'dir')]
+        .map(el => ({ el, mark: formMarkOf(el) }))
+        .filter((m): m is { el: Element; mark: FormMark } => m.mark !== null);
+}
+
+const isJump = (m: FormMark) => m === 'daCapo' || m === 'dalSegno';
+
+/** Does the score have a form to write out: repeat bar lines, endings, a D.C. or D.S., or a playing order of its own? */
+export function hasRepeats(doc: Document): boolean {
+    if (all(doc, 'ending').length > 0 || all(doc, 'expansion').length > 0) return true;
+    if (all(doc, 'measure').some(m => /^rpt/.test(m.getAttribute('left') ?? '') || /^rpt/.test(m.getAttribute('right') ?? ''))) return true;
+    return [...all(doc, 'repeatMark'), ...all(doc, 'dir')].some(el => { const m = formMarkOf(el); return m !== null && isJump(m); });
+}
+
+/** Why a score's form is left alone, or null when it can be written out. */
 export function unexpandable(doc: Document): string | null {
-    if (all(doc, 'repeatMark').length > 0 || all(doc, 'expansion').length > 0) return 'repeat marks (D.C., D.S., segno, coda)';
-    if (all(doc, 'dir').some(d => JUMPS.test(d.textContent ?? ''))) return 'D.C. or D.S. directions';
     if (all(doc, 'section').length === 0) return 'no section';
+    // A playing order of its own is followed as it is.
+    if (all(doc, 'expansion').length > 0) return null;
+    const marks = [...all(doc, 'repeatMark'), ...all(doc, 'dir')].map(formMarkOf);
+    if (marks.includes('double')) return 'a double segno or a double coda';
+    if (marks.filter(m => m !== null && isJump(m)).length > 1) return 'more than one D.C. or D.S.';
+    if (marks.includes('dalSegno') && !marks.includes('segno')) return 'a D.S. without a segno';
     return null;
 }
 
@@ -91,6 +144,24 @@ function measuresOf(doc: Document): Array<{ el: Element; endings: number[] | nul
  * as "<id>-rend2" (as Verovio names its copies), or an error.
  */
 export function repeatOrder(doc: Document): string[] | { error: string } {
+    const plan = playingPlan(doc);
+    return 'error' in plan ? plan : plan.order;
+}
+
+/**
+ * How the score is played: the order (repeatOrder), the places in it where
+ * the piece jumps (after which a double bar), and the marks that say so —
+ * done with once it is written out.
+ */
+interface Plan {
+    order: string[];
+    joins: number[];
+    spent: Element[];
+}
+
+function playingPlan(doc: Document): Plan | { error: string } {
+    const expansion = all(doc, 'expansion')[0];
+    if (expansion) return expansionPlan(doc, expansion);
     const flat = measuresOf(doc);
     if (flat.some(m => !m.el.getAttribute('xml:id'))) return { error: 'a measure without an id' };
     const bar = (k: number, side: 'left' | 'right') => flat[k]?.el.getAttribute(side) ?? '';
@@ -99,18 +170,28 @@ export function repeatOrder(doc: Document): string[] | { error: string } {
     const starts = (k: number) => /^rpt(start|both)$/.test(bar(k, 'left')) || /^rpt(start|both)$/.test(bar(k - 1, 'right'));
     // A notes-free first bar is a count-in (the generator bakes one in): a repeat back to the start skips it.
     const countIn = flat.length > 1 && flat[0].el.getElementsByTagName('note').length === 0;
+    const marks = flat.map(m => marksIn(m.el));
+    const has = (k: number, mark: FormMark) => marks[k]?.some(x => x.mark === mark) ?? false;
+    if (marks.some(ms => ms.some(x => x.mark === 'double'))) return { error: 'a double segno or a double coda' };
+    const jumps = flat.map((_, k) => k).filter(k => has(k, 'daCapo') || has(k, 'dalSegno'));
+    if (jumps.length > 1) return { error: 'more than one D.C. or D.S.' };
+    const jumpAt = jumps[0] ?? -1;
+
     const plays = new Map<string, number>();
     const order: string[] = [];
+    const play = (k: number) => {
+        const id = flat[k].el.getAttribute('xml:id')!;
+        const n = (plays.get(id) ?? 0) + 1;
+        plays.set(id, n);
+        order.push(n === 1 ? id : `${id}-rend${n}`);
+    };
     let i = 0, start = countIn ? 1 : 0, pass = 1, steps = 0;
     while (i < flat.length) {
         if (++steps > flat.length * 12) return { error: 'the repeats never end' };
         const m = flat[i];
         if (pass === 1 && starts(i)) start = i;
         if (m.endings && !m.endings.includes(pass)) { i++; continue; }
-        const id = m.el.getAttribute('xml:id')!;
-        const k = (plays.get(id) ?? 0) + 1;
-        plays.set(id, k);
-        order.push(k === 1 ? id : `${id}-rend${k}`);
+        play(i);
         if (ends(i)) {
             // As many times through as there are endings in this repeat; twice without any.
             let last = i;
@@ -125,9 +206,90 @@ export function repeatOrder(doc: Document): string[] | { error: string } {
             pass = 1;
             start = i + 1;
         }
+        // The D.C. or D.S.: what follows is the coda, played from To Coda.
+        if (i === jumpAt) break;
         i++;
     }
-    return order;
+    if (jumpAt < 0) return { order, joins: [], spent: [] };
+
+    // Back to the start, or the segno, and through again: no repeats, each
+    // group of endings by its last; to Fine, or to To Coda and on from the
+    // coda sign, or else to the D.C. or D.S. bar.
+    const joins = [order.length - 1];
+    const dalSegno = has(jumpAt, 'dalSegno');
+    const from = dalSegno ? flat.findIndex((_, k) => has(k, 'segno')) : countIn ? 1 : 0;
+    if (from < 0) return { error: 'a D.S. without a segno' };
+    // Where it leaves: "To Coda", or a coda sign before the jump; where it goes: the coda sign after it, or the next bar.
+    const toCoda = flat.findIndex((_, k) => k <= jumpAt && has(k, 'toCoda'));
+    const leave = toCoda >= 0 ? toCoda : flat.findIndex((_, k) => k <= jumpAt && has(k, 'coda'));
+    let coda = flat.findIndex((_, k) => k > jumpAt && has(k, 'coda'));
+    if (leave >= 0 && coda < 0 && jumpAt + 1 < flat.length) coda = jumpAt + 1;
+    const lastEnding = (k: number): boolean => {
+        let a = k, b = k;
+        while (a > 0 && flat[a - 1].endings) a--;
+        while (b + 1 < flat.length && flat[b + 1].endings) b++;
+        const top = Math.max(...flat.slice(a, b + 1).flatMap(x => x.endings ?? []));
+        return flat[k].endings!.includes(top);
+    };
+    let j = from, jumped = false;
+    while (j < flat.length) {
+        if (++steps > flat.length * 14) return { error: 'the jumps never end' };
+        if (!flat[j].endings || lastEnding(j)) play(j);
+        if (has(j, 'fine')) break;
+        if (!jumped && j === leave && coda > j) {
+            joins.push(order.length - 1);
+            j = coda;
+            jumped = true;
+            continue;
+        }
+        if (j === jumpAt && !jumped) break;
+        j++;
+    }
+    // Done with once written out: everything but the coda sign where the coda begins.
+    const spent = marks.flatMap((ms, k) => ms.filter(x => !(x.mark === 'coda' && k === coda && k !== leave)).map(x => x.el));
+    return { order, joins, spent };
+}
+
+/**
+ * A score's own playing order, its <expansion>: each entry a section, an
+ * ending or a measure (or another expansion), its measures in their order —
+ * as Verovio plays it. The jumps are wherever it leaves the page's order.
+ */
+function expansionPlan(doc: Document, expansion: Element): Plan | { error: string } {
+    const byId = new Map<string, Element>();
+    for (const el of all(doc, '*')) {
+        const id = el.getAttribute('xml:id');
+        if (id) byId.set(id, el);
+    }
+    const measures = all(doc, 'measure');
+    if (measures.some(m => !m.getAttribute('xml:id'))) return { error: 'a measure without an id' };
+    const place = new Map(measures.map((m, k) => [m, k]));
+    const listed: Element[] = [];
+    const expand = (exp: Element, depth: number): string | null => {
+        if (depth > 8) return 'an expansion inside itself';
+        for (const ref of (exp.getAttribute('plist') ?? '').split(/\s+/).filter(Boolean)) {
+            const el = byId.get(ref.replace(/^#/, ''));
+            if (!el) return `an expansion naming what the score does not have (${ref})`;
+            if (el.nodeName === 'expansion') { const why = expand(el, depth + 1); if (why) return why; }
+            else listed.push(...(el.nodeName === 'measure' ? [el] : all(el, 'measure')));
+        }
+        return null;
+    };
+    const why = expand(expansion, 0);
+    if (why) return { error: why };
+    if (listed.length === 0) return { error: 'an empty expansion' };
+    const plays = new Map<string, number>();
+    const order = listed.map(m => {
+        const id = m.getAttribute('xml:id')!;
+        const n = (plays.get(id) ?? 0) + 1;
+        plays.set(id, n);
+        return n === 1 ? id : `${id}-rend${n}`;
+    });
+    // Where the order leaves the page's, but not at a repeat sign (that is a double bar already).
+    const joins = listed.flatMap((m, k) => k + 1 < listed.length && place.get(listed[k + 1]) !== place.get(m)! + 1
+        && !/^rpt(end|both)$/.test(m.getAttribute('right') ?? '') ? [k] : []);
+    const spent = measures.flatMap(m => marksIn(m).filter(x => x.mark !== 'coda').map(x => x.el));
+    return { order, joins, spent };
 }
 
 /**
@@ -249,25 +411,41 @@ export function writeOutRepeats(doc: Document, order: string[]): { bars: [number
 }
 
 /**
- * For the viewers and the games, as a score loads: its repeats written out,
- * when it has any this can write out. Measures without an id get one first.
- * True when the document changed (it must be serialised again).
+ * For the viewers and the games, as a score loads: its repeats and jumps
+ * written out, when it has any this can write out. Measures without an id
+ * get one first. True when the document changed (it must be serialised again).
  */
 export function expandRepeats(doc: Document): boolean {
     if (doc.getElementsByTagName('parsererror').length > 0 || !hasRepeats(doc) || unexpandable(doc)) return false;
     const measures = all(doc, 'measure');
-    const taken = new Set(measures.map(m => m.getAttribute('xml:id')).filter(Boolean));
+    const taken = new Set(all(doc, '*').map(el => el.getAttribute('xml:id')).filter(Boolean));
     let named = false;
-    measures.forEach((m, k) => {
-        if (m.getAttribute('xml:id')) return;
-        let id = `m-${k + 1}`;
+    const name = (el: Element, stem: string) => {
+        let id = stem;
         while (taken.has(id)) id += 'x';
         taken.add(id);
-        m.setAttribute('xml:id', id);
+        el.setAttribute('xml:id', id);
+    };
+    measures.forEach((m, k) => {
+        if (m.getAttribute('xml:id')) return;
+        name(m, `m-${k + 1}`);
         named = true;
     });
-    const order = repeatOrder(doc);
-    const result = 'error' in order ? order : writeOutRepeats(doc, order);
-    if ('error' in result) console.warn(`Repeats not written out: ${result.error}`);
-    return named || !('error' in result);
+    const plan = playingPlan(doc);
+    if ('error' in plan) { console.warn(`Repeats not written out: ${plan.error}`); return named; }
+    // The marks the jumps leave behind are found again in the copies by their ids.
+    plan.spent.forEach((el, k) => { if (!el.getAttribute('xml:id')) name(el, `jump-${k + 1}`); });
+    const spent = new Set(plan.spent.map(el => el.getAttribute('xml:id')!));
+    const result = writeOutRepeats(doc, plan.order);
+    if ('error' in result) { console.warn(`Repeats not written out: ${result.error}`); return named; }
+
+    for (const el of [...all(doc, 'repeatMark'), ...all(doc, 'dir')]) {
+        if (spent.has((el.getAttribute('xml:id') ?? '').replace(/-r\d+$/, ''))) el.parentNode?.removeChild(el);
+    }
+    for (const e of all(doc, 'expansion')) e.parentNode?.removeChild(e);
+    // A double bar at each jump, and where the page ended before; the end only at the end.
+    const played = all(doc, 'measure');
+    for (const k of plan.joins) if (k < played.length - 1) played[k].setAttribute('right', 'dbl');
+    played.forEach((m, k) => { if (k < played.length - 1 && m.getAttribute('right') === 'end') m.setAttribute('right', 'dbl'); });
+    return true;
 }

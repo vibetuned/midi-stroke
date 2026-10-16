@@ -46,8 +46,11 @@ the middle of the piece.
 
 Repeats are written out, so the page reads straight through. The viewers and
 the games do it as a score loads (`src/utils/expandRepeats.ts`), so a score
-people bring may have repeat bar lines and first and second endings; D.C.,
-D.S., segno and coda marks are left as written, for a reader to follow. The
+people bring may have repeat bar lines, first and second endings, and a D.C.
+or D.S. with Fine and the coda, read from MEI's `repeatMark`, MuseScore's
+marks, the words of a `dir`, or the score's own `expansion` — as battuta plays
+them (`npm run check:jumps`). Two jumps, or a double segno or coda, are left
+as written, for a reader to follow. The
 bundled library's scores come written out already: after adding scores, run
 `npm run expand-repeats` (`scripts/expand-repeats.mjs`), which bakes the same
 step into the files and checks each result against Verovio playing the

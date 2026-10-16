@@ -5,11 +5,13 @@
  * here it is baked in, and checked before the file is written:
  *   - with plain repeats, the order must be the one Verovio plays, and the
  *     written-out score must play as the original does;
- *   - with first and second endings (which Verovio does not play), it must
- *     play as the original does with that order made explicit (an
- *     <expansion>, which Verovio follows).
- * The same notes at the same times, and no repeats left. A score it can't
- * write out (D.C., D.S., segno or coda marks) is reported and left alone.
+ *   - with first and second endings, or a D.C. or D.S. (which Verovio does
+ *     not play), it must play as the original does with that order made
+ *     explicit (an <expansion>, which Verovio follows);
+ *   - with a playing order of its own (an <expansion>), it must play as the
+ *     original does.
+ * The same notes at the same times, and no repeats or jumps left. A score it
+ * can't write out (two jumps, a double segno or coda) is reported and left alone.
  *
  * Usage:  node scripts/expand-repeats.mjs [file.mei …]
  *         (no files: every MEI under public/ with a repeat sign or an ending)
@@ -32,7 +34,8 @@ writeFileSync(join(outDir, 'entry.ts'), `export * from ${JSON.stringify(join(ROO
 await build({ entryPoints: [join(outDir, 'entry.ts')], bundle: true, format: 'esm', outfile: join(outDir, 'b.mjs'), logLevel: 'warning' });
 const E = await import(pathToFileURL(join(outDir, 'b.mjs')).href);
 
-const REPEAT_SIGN = /\b(left|right)="rpt(start|end|both)"|<ending\b/;
+/** A score to look at: a repeat sign, an ending, a jump, a playing order. */
+const FORM_SIGN = /\b(left|right)="rpt(start|end|both)"|<ending\b|<expansion\b|<repeatMark\b|D\.\s?[CS]\./;
 
 function walk(dir, out = []) {
     for (const name of readdirSync(dir)) {
@@ -64,7 +67,7 @@ function onsets(text) {
 
 const files = process.argv.length > 2
     ? process.argv.slice(2).map(f => resolve(f))
-    : walk(PUBLIC).filter(f => REPEAT_SIGN.test(readFileSync(f, 'utf8')));
+    : walk(PUBLIC).filter(f => FORM_SIGN.test(readFileSync(f, 'utf8')));
 if (files.length === 0) console.log('No repeats to write out.');
 let failed = 0;
 for (const file of files) {
@@ -78,7 +81,10 @@ for (const file of files) {
     if ('error' in order) { console.log(`✗ ${name}: ${order.error}; left alone`); failed++; continue; }
     // What to check it against: the original as Verovio plays it, or — with endings — as it plays the order made explicit.
     let reference = text;
-    if (dom.getElementsByTagName('ending').length === 0) {
+    const jumps = ['repeatMark', 'dir'].some(tag => Array.from({ length: dom.getElementsByTagName(tag).length }, (_, k) => dom.getElementsByTagName(tag).item(k))
+        .some(el => ['daCapo', 'dalSegno'].includes(E.formMarkOf(el))));
+    const ownOrder = dom.getElementsByTagName('expansion').length > 0;
+    if (ownOrder || (dom.getElementsByTagName('ending').length === 0 && !jumps)) {
         const verovio = verovioOrder(text);
         if (verovio.join(' ') !== order.join(' ')) { console.log(`✗ ${name}: the order is not the one Verovio plays (${verovio.join(' ')}); left alone`); failed++; continue; }
     } else {
@@ -102,13 +108,16 @@ for (const file of files) {
         section.insertBefore(expansion, section.firstChild);
         reference = new XMLSerializer().serializeToString(explicit);
     }
-    const r = E.writeOutRepeats(dom, order);
-    if ('error' in r) { console.log(`✗ ${name}: ${r.error}; left alone`); failed++; continue; }
+    // Written out as the viewers do it: the jumps' marks gone, a double bar at each.
+    const barsBefore = dom.getElementsByTagName('measure').length;
+    if (!E.expandRepeats(dom)) { console.log(`✗ ${name}: not written out; left alone`); failed++; continue; }
+    const r = { bars: [barsBefore, dom.getElementsByTagName('measure').length] };
     const result = new XMLSerializer().serializeToString(dom);
     const before = onsets(reference), after = onsets(result);
     const at = before.findIndex((o, k) => o !== after[k]);
-    if (before.length !== after.length || at >= 0 || REPEAT_SIGN.test(result)) {
-        console.log(`✗ ${name}: the written-out score does not play as the original (${REPEAT_SIGN.test(result) ? 'repeats left' : `note-on ${at}: ${before[at]} vs ${after[at]}`}); left alone`);
+    const left = E.hasRepeats(new DOMParser().parseFromString(result, 'text/xml'));
+    if (before.length !== after.length || at >= 0 || left) {
+        console.log(`✗ ${name}: the written-out score does not play as the original (${left ? 'repeats or jumps left' : `note-on ${at}: ${before[at]} vs ${after[at]}`}); left alone`);
         failed++;
         continue;
     }
