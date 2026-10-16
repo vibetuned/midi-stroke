@@ -70,6 +70,10 @@ function load(mei, names = true) {
     eq('1. 9/8 and 12/8 too', [beat(9, 8), beat(12, 8)], [1.5, 1.5]);
     eq('1. 5/8 beats in eighths', beat(5, 8), 0.5);
     eq('1. no meter: quarters', E.beatTicksOf(undefined) / Q, 1);
+    // As counted at a tempo: a 6/8 jig in dotted quarters, a slow one in eighths — as the games and the count-in.
+    eq('1. a 6/8 jig (♩ = 120) swings in dotted quarters', E.pulseTicksOf({ count: 6, unit: 8 }, 120) / Q, 1.5);
+    eq('1. a slow 6/8 (♪ = 100) swings in eighths', E.pulseTicksOf({ count: 6, unit: 8 }, 50) / Q, 0.5);
+    eq('1. 4/4 is quarters at any tempo', [E.pulseTicksOf({ count: 4, unit: 4 }, 40), E.pulseTicksOf({ count: 4, unit: 4 }, 200)].map(t => t / Q), [1, 1]);
 }
 
 // ------------------------------------------------------------ 2. the swing, on real scores
@@ -81,7 +85,7 @@ function load(mei, names = true) {
     for (const [file, label] of files) {
         const { tm } = load(readFileSync(join(ROOT, file), 'utf8'));
         const bars = [...new Set(tm.measureTicks.values())].sort((a, b) => a - b);
-        const beatTicks = E.beatTicksOf(tm.meter);
+        const beatTicks = E.pulseTicksOf(tm.meter, tm.tempo?.initial?.bpm ?? 120);
         let onBeats = 0, between = 0, badOn = 0, badBetween = 0;
         for (let i = 1; i < bars.length - 1; i++) {
             for (let t = bars[i]; t < bars[i + 1] - 1; t += beatTicks) {

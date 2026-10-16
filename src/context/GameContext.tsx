@@ -48,6 +48,7 @@ export const GameProvider: React.FC<{
         setVisualMetronomeState(on);
         try { localStorage.setItem(VISUAL_METRONOME_KEY, on ? 'on' : 'off'); } catch { /* private mode */ }
     }, []);
+    const [countdown, setCountdown] = useState<string | null>(null);
     const [pianoRange, setPianoRange] = useState<{ min: number; max: number } | null>(null);
     const [playSizeTicks, setPlaySizeTicks] = useState(0);
     const [playPosition, setPlayPosition] = useState(0);
@@ -176,6 +177,8 @@ export const GameProvider: React.FC<{
             setMetronomeMuted,
             visualMetronome,
             setVisualMetronome,
+            countdown,
+            setCountdown,
             pianoRange,
             setPianoRange,
             playSizeTicks,

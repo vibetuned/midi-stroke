@@ -71,8 +71,18 @@ Installed from the browser (*Add to Home screen*), the app stays in landscape.
 | **Rhythm** | Playback runs in time. Each note has a hit window; late, missed or wrong notes count against your precision. |
 | **Practice** | Playback pauses at every note (or chord) and waits until you press exactly the right keys, then moves on. Wrong presses are counted but never block you. |
 
-Every song starts with a **one-beat count-in** so you're never ambushed by
-the first note.
+Pressing **play** counts you in first: a bar, in large numbers over the
+score and a click on each beat (unless the sound is muted) — **4, 3, 2,
+Start** in 4/4, **3, 2, Start** in 3/4, **2, Start** in 2/4. The score's own
+rest is the "1": the music comes in one beat after *Start*. A quick 6/8 is
+counted in two dotted quarters (**2, Start**), a slow one in six eighths
+(**6, 5, 4, 3, 2, Start**). Press play again while it counts to stop it.
+
+You can also start from your instrument: while a song waits at its start, a
+small **Press any key to start** shows where the count will appear, and any
+key (on the drums any pad, on the saxophone any note) starts it, count-in and
+all. A key pressed while the song is paused part-way through doesn't restart
+it, so you can try a note freely.
 
 ## Transport & controls
 

@@ -50,6 +50,9 @@ export interface GameState {
      *  Remembered on the device; on until switched off. */
     visualMetronome: boolean;
     setVisualMetronome: (on: boolean) => void;
+    /** The count-in before play (utils/countdown.ts): the label showing now, or null. */
+    countdown: string | null;
+    setCountdown: (label: string | null) => void;
     /** Where a played score goes: 'off', 'audio', or a MIDI output port name.
      *  Shared by the transport and the exercise builders' audition button. */
     playbackTarget: PlaybackTarget;

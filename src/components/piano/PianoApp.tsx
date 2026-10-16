@@ -11,6 +11,8 @@ import { useMidiFile } from '../../hooks/useMidiFile';
 import { useAccompanimentPlayer } from '../../hooks/useAccompanimentPlayer';
 import { useAudio } from '../../hooks/useAudio';
 import { StartOverlay } from '../StartOverlay';
+import { CountdownOverlay } from '../CountdownOverlay';
+import { MidiStartHint } from '../MidiStartHint';
 import { PianoSetup } from '../PianoSetup';
 import { SongSelector } from '../SongSelector';
 import { LiveStats } from '../LiveStats';
@@ -140,6 +142,8 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
             <EarTrainingProvider>
             <div className="app-container">
                 <StartOverlay />
+                <CountdownOverlay />
+                <MidiStartHint text="Press any key to start" />
                 <PianoSetup />
                 <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
                 {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
@@ -160,6 +164,8 @@ export const PianoApp: React.FC<PianoAppProps> = ({ onBack }) => {
         <EarTrainingProvider>
         <div className="app-container">
             <StartOverlay />
+            <CountdownOverlay />
+            <MidiStartHint text="Press any key to start" />
             <PianoSetup />
             <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
             {showStats && <StatsPanel onClose={() => setShowStats(false)} />}

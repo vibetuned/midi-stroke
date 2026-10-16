@@ -11,6 +11,8 @@ import { useMidiFile } from '../../hooks/useMidiFile';
 import { useAccompanimentPlayer } from '../../hooks/useAccompanimentPlayer';
 import { useAudio } from '../../hooks/useAudio';
 import { StartOverlay } from '../StartOverlay';
+import { CountdownOverlay } from '../CountdownOverlay';
+import { MidiStartHint } from '../MidiStartHint';
 import { SongSelector } from '../SongSelector';
 import { LiveStats } from '../LiveStats';
 import { StatsPanel } from '../StatsPanel';
@@ -140,6 +142,8 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
             <EarTrainingProvider>
             <div className="app-container theme-saxo">
                 <StartOverlay />
+                <CountdownOverlay />
+                <MidiStartHint text="Play any note to start" />
                 <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
                 {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
                 <MobileShell
@@ -163,6 +167,8 @@ export const SaxoApp: React.FC<SaxoAppProps> = ({ onBack }) => {
         <EarTrainingProvider>
         <div className="app-container theme-saxo">
             <StartOverlay />
+            <CountdownOverlay />
+            <MidiStartHint text="Play any note to start" />
             <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
             {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
 

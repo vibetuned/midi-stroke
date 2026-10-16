@@ -10,6 +10,8 @@ import { useDrumsMidiFile } from '../../hooks/useMidiFile';
 import { useAudio } from '../../hooks/useAudio';
 import { useGameLogic } from '../../hooks/useGameLogic';
 import { StartOverlay } from '../StartOverlay';
+import { CountdownOverlay } from '../CountdownOverlay';
+import { MidiStartHint } from '../MidiStartHint';
 import { SongSelector } from '../SongSelector';
 import { LiveStats } from '../LiveStats';
 import { StatsPanel } from '../StatsPanel';
@@ -137,6 +139,8 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
         return (
             <div className="app-container theme-drums">
                 <StartOverlay />
+                <CountdownOverlay />
+                <MidiStartHint text="Hit any pad to start" />
                 <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
                 {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
                 <MobileShell
@@ -153,6 +157,8 @@ export const DrumsApp: React.FC<DrumsAppProps> = ({ onBack }) => {
     return (
         <div className="app-container theme-drums">
             <StartOverlay />
+            <CountdownOverlay />
+            <MidiStartHint text="Hit any pad to start" />
             <SongSelector onDismiss={prevSong ? handleDismissSelector : undefined} />
             {showStats && <StatsPanel onClose={() => setShowStats(false)} />}
 

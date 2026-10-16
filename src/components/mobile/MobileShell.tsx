@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import * as Tone from 'tone';
 import { useGame } from '../../context/game';
 import { useMidi } from '../../hooks/useMidi';
+import { usePlayToggle } from '../../hooks/usePlayToggle';
 import { describeScaleUrl } from '../../utils/scaleGen';
 import { describeJazzUrl } from '../../utils/jazzScaleGen';
 import { describeLickUrl } from '../../utils/jazzLicks';
@@ -119,22 +119,12 @@ function songTitle(song: string | null): string {
 
 /** Play and pause, without opening the controls — as the desktop's space bar does. */
 const MiniPlay: React.FC = () => {
-    const { isPlaying, setIsPlaying, gameMode } = useGame();
+    const { isPlaying, gameMode, countdown } = useGame();
+    const toggle = usePlayToggle();   // with the count-in, as the controls' play button
     if (gameMode === 'ear') return null;   // by ear, the session drives the page
-    const toggle = async () => {
-        const next = !isPlaying;
-        setIsPlaying(next);
-        if (!next) { Tone.getTransport().pause(); return; }
-        try {
-            await Tone.start();
-            Tone.getTransport().start();
-        } catch {
-            setIsPlaying(false);
-        }
-    };
     return (
-        <button className="mobile-play" onClick={toggle} aria-label={isPlaying ? 'Pause' : 'Play'}>
-            {isPlaying ? '⏸' : '▶'}
+        <button className="mobile-play" onClick={toggle} aria-label={isPlaying || countdown ? 'Pause' : 'Play'}>
+            {isPlaying || countdown ? '⏸' : '▶'}
         </button>
     );
 };

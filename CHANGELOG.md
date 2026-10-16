@@ -6,6 +6,28 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
+## Unreleased
+
+### Count-in
+
+- **Play starts with a bar counted in**, in the piano, saxophone and drums apps
+  ([src/utils/countdown.ts](src/utils/countdown.ts)): large numbers over the score, a beat apart,
+  with a click on each unless the sound is muted — "4, 3, 2, Start" in 4/4, "3, 2, Start" in 3/4,
+  "2, Start" in 2/4. The score's count-in rest is the "1": the music comes in one beat after
+  "Start". From a loop's start or a pause mid-piece, that beat is silent, so it comes in the same
+  way. A quick 6/8 is counted in dotted quarters ("2, Start"), a slow one in eighths ("6, 5, 4, 3,
+  2, Start") — the games' rule, which the visual metronome now follows too. The transport starts
+  on the audio clock, so the count and the music are one pulse. Play, the space bar and the
+  phone's ▶ all count in; pressed again while it counts, it stops.
+- **Start from the instrument**: while a song waits at its start — its count-in, or a loop's
+  first bar — any key, pad or note played starts it, count-in and all, and a small *Press any key
+  to start* (*Hit any pad*, *Play any note*) says so where the count will show
+  ([src/components/MidiStartHint.tsx](src/components/MidiStartHint.tsx)). Not while paused
+  mid-piece, so trying a note never sets it going; not while a panel is open over the app (the pad
+  map learning a pad, the statistics); a chord starts it once.
+- `npm run check:countdown`: the count in every meter, and the music a beat after "Start" from
+  the beginning, from a drum loop's wrap, and mid-piece.
+
 ## 1.0.0 — 2026-10-05
 
 Version 1. A visual metronome rides the cursor: a small arrow swinging with the beat, its wave

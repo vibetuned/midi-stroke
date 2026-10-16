@@ -26,3 +26,15 @@ export function beatsAt(bars: number[], beatTicks: number, tick: number): number
 export function swingAt(beats: number): number {
     return Math.cos(2 * Math.PI * beats);
 }
+
+/**
+ * The beat as it is counted at a tempo (quarter notes a minute): compound
+ * meters in dotted quarters while those go at 50 a minute or more, in eighths
+ * — "in six" — when slower; the rest as beatTicksOf. The games count the same
+ * way (games/rhythm.ts pulseOf); the count-in and the visual metronome do too.
+ */
+export function pulseTicksOf(meter: { count: number; unit: number } | undefined, bpm: number): number {
+    if (!meter || meter.unit !== 8) return beatTicksOf(meter);
+    if (meter.count % 3 === 0 && meter.count > 3 && bpm / 1.5 >= 50) return TONE_PPQ * 1.5;
+    return TONE_PPQ / 2;
+}

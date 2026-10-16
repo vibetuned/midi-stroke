@@ -76,6 +76,8 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ onClose }) => {
 
     return (
         <div
+            role="dialog"
+            aria-label="Song statistics"
             style={{
                 position: 'fixed',
                 inset: 0,

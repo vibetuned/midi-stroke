@@ -220,6 +220,7 @@ The application is built on a web stack trying to be optimized for low-latency a
 * **Accompaniment (piano, saxo):** attach a recording to a piece (a backing track, a band, a teacher). Line it up once on its waveform, and it plays along in Rhythm mode, loops included.
 * **Loop a passage:** drag the two handles on the minimap to choose bars. They loop in Rhythm and Practice, and By ear they choose the passage to learn.
 * **Your kit's pad map (Drums):** each note a drum controller sends is assigned to a kit voice. The map starts as General MIDI and you can teach it any module's notes by hitting the pads.
+* **Count-in:** play starts with a bar counted in, in large numbers over the score — "4, 3, 2, Start" in 4/4, "2, Start" in 2/4 — clicked on each beat; the score's own rest is the "1", so the music comes in on time. Any key on your instrument starts it too, while the song waits at its start.
 * **Visual metronome:** a small arrow on the cursor dips on every beat and rises between, tracing the wave of the tempo back over the clef and key signature; every key you press leaves a dot on it — in a trough when it is on the beat, on the slope when it is early or late. Piano, saxophone and drums; the ∿ button by the transport switches it off.
 
   ![The visual metronome: the wave over the clef, a dot for each key pressed](docs/screenshots/visual-metronome.png)
@@ -302,6 +303,7 @@ npm run check:loop               # validate the minimap bar range (snapping, lab
 npm run check:pads               # validate the drum pad map (GM default, remapping, every bundled chart)
 npm run check:groove             # validate the grooves: every take on the grid, written out and read back through Verovio hit for hit
 npm run check:grid               # validate the drums step grid (every bundled chart as before, the rolling columns, the grooves' grids)
+npm run check:countdown          # validate the count-in (every meter, the music a beat after "Start" from the beginning and mid-piece)
 npm run check:metronome          # validate the visual metronome's beat (every meter, real scores' bar lines) and the removal of instrument names
 npm run check:ties               # validate ties: struck once and held, however they are written, across bar lines and repeats, and drawn on the page
 npm run check:accompaniment      # validate lining a recording up with a score (offset, tempo, peaks, storage rules)

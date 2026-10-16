@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import * as Tone from 'tone';
-import { TONE_PPQ, type TimemapData } from './timemap';
-import { beatTicksOf, beatsAt, swingAt } from './metronomeBeat';
+import type { TimemapData } from './timemap';
+import { beatTicksOf, beatsAt, pulseTicksOf, swingAt } from './metronomeBeat';
 
 export { beatTicksOf };
 
@@ -23,8 +23,10 @@ export { beatTicksOf };
  * It keeps the time that is heard: the transport at the audio clock's
  * present, not the lookahead the scheduler works at — so the arrow is at the
  * bottom as the metronome clicks, and a key pressed with the click lands in a
- * trough. The beat is the meter's (a quarter in 4/4, a dotted quarter in 6/8,
- * an eighth in 5/8), counted from each bar line.
+ * trough. The beat is the meter's as it is counted at the tempo — a quarter
+ * in 4/4, a dotted quarter in a 6/8 jig, an eighth in a slow 6/8 or in 5/8,
+ * as the count-in counts it (utils/metronomeBeat.ts pulseTicksOf) — counted
+ * from each bar line.
  */
 
 /** Where the metronome draws, in screen pixels: from `left` to the cursor, between `top` and `bottom`. */
@@ -61,7 +63,7 @@ export class VisualMetronome {
     private readonly trace: number;
     private hits: number[] = [];
     private bars: number[] = [0];
-    private beatTicks = TONE_PPQ;
+    private meter: { count: number; unit: number } | undefined;
     private area: MetronomeArea | null = null;
     private drawnKey = '';
 
@@ -76,7 +78,7 @@ export class VisualMetronome {
     setScore(tm: TimemapData) {
         const starts = [...new Set(tm.measureTicks.values())].sort((a, b) => a - b);
         this.bars = starts.length ? starts : [0];
-        this.beatTicks = beatTicksOf(tm.meter);
+        this.meter = tm.meter;
         this.hits = [];
         this.drawnKey = '';
     }
@@ -99,18 +101,20 @@ export class VisualMetronome {
             return;
         }
         const now = heardTicks();
-        const key = `${now.toFixed(1)}|${a.left}|${a.cursorX}|${a.top}|${a.bottom}|${this.hits.length}`;
+        // The beat as it is counted at the tempo now (a slow 6/8 in eighths), as the count-in counts it.
+        const beatTicks = pulseTicksOf(this.meter, Tone.getTransport().bpm.value);
+        const key = `${now.toFixed(1)}|${beatTicks}|${a.left}|${a.cursorX}|${a.top}|${a.bottom}|${this.hits.length}`;
         if (key === this.drawnKey) return;
         this.drawnKey = key;
 
         const tip = a.cursorX - ARROW_W;
         const width = tip - a.left;
         const beats = Math.max(MIN_BEATS, Math.min(MAX_BEATS, Math.round(width / PX_PER_BEAT)));
-        const span = beats * this.beatTicks;
+        const span = beats * beatTicks;
         const pxPerTick = width / span;
         const mid = (a.top + a.bottom) / 2, amp = (a.bottom - a.top) / 2;
         // At the bottom on the beat, at the top between beats.
-        const yAt = (tick: number) => mid + amp * swingAt(beatsAt(this.bars, this.beatTicks, tick));
+        const yAt = (tick: number) => mid + amp * swingAt(beatsAt(this.bars, beatTicks, tick));
         const xAt = (tick: number) => tip - (now - tick) * pxPerTick;
 
         const g = this.view;

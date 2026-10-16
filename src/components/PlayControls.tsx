@@ -5,15 +5,18 @@ import { useGame } from '../context/game';
 import { useStats } from '../context/stats';
 import * as Tone from 'tone';
 import { LoopChip } from './LoopRangeSelector';
+import { usePlayToggle } from '../hooks/usePlayToggle';
 
 export const PlayControls: React.FC = () => {
-    const { isPlaying, setIsPlaying, tempo, setTempo, scoreTempo, isMetronomeMuted, setMetronomeMuted, visualMetronome, setVisualMetronome, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection, loopRange, tempoLock } = useGame();
+    const { isPlaying, setIsPlaying, tempo, setTempo, scoreTempo, isMetronomeMuted, setMetronomeMuted, visualMetronome, setVisualMetronome, countdown, gameMode, setGameMode, setPlayPosition, setWaitingForNotes, seek, instrument, handSelection, setHandSelection, loopRange, tempoLock } = useGame();
     const { resetSession } = useStats();
+    // Play and pause, with the count-in (hooks/usePlayToggle.ts); the key handler reads the latest through a ref.
+    const togglePlay = usePlayToggle();
+    const togglePlayRef = useRef(togglePlay);
+    useEffect(() => { togglePlayRef.current = togglePlay; }, [togglePlay]);
 
     // Fix 10: stable refs so the keydown closure never captures stale values
-    const isPlayingRef = useRef(isPlaying);
     const tempoRef = useRef(tempo);
-    useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
     useEffect(() => { tempoRef.current = tempo; }, [tempo]);
     const byEar = gameMode === 'ear';
     const byEarRef = useRef(byEar);
@@ -39,17 +42,7 @@ export const PlayControls: React.FC = () => {
             switch (e.key) {
                 case ' ':
                     e.preventDefault();
-                    {
-                        const next = !isPlayingRef.current;
-                        setIsPlaying(next);
-                        if (next) {
-                            Tone.start()
-                                .then(() => Tone.getTransport().start())
-                                .catch(console.error);
-                        } else {
-                            Tone.getTransport().pause();
-                        }
-                    }
+                    togglePlayRef.current();
                     break;
                 case 'ArrowLeft':
                     e.preventDefault();
@@ -243,23 +236,8 @@ export const PlayControls: React.FC = () => {
 
             {/* Play/Pause Button */}
             <button
-                onClick={async () => {
-                    const nextState = !isPlaying;
-                    console.log("Toggling Play state. New state:", nextState);
-                    setIsPlaying(nextState);
-
-                    if (nextState) {
-                        try {
-                            await Tone.start();
-                            Tone.getTransport().start();
-                        } catch (e) {
-                            console.error("Audio Context blocked:", e);
-                            setIsPlaying(false);
-                        }
-                    } else {
-                        Tone.getTransport().pause();
-                    }
-                }}
+                onClick={togglePlay}
+                title={countdown ? 'Stop the count' : isPlaying ? 'Pause' : 'Play, after a bar counted in'}
                 style={{
                     width: '50px',
                     height: '50px',
@@ -276,7 +254,7 @@ export const PlayControls: React.FC = () => {
                 }}
                 className="hover-scale"
             >
-                {isPlaying ? '⏸' : '▶'}
+                {isPlaying || countdown ? '⏸' : '▶'}
             </button>
             </>)}
             {/* What is looping — or, by ear, the passage being learned — and

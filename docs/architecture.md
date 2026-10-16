@@ -270,6 +270,22 @@ view is simpler — the whole pattern is centred and only the cursor sweeps.
 
 ---
 
+### The count-in — [countdown.ts](../src/utils/countdown.ts)
+
+Play — the button, the space bar, the phone's ▶ — goes through `usePlayToggle()`
+([usePlayToggle.ts](../src/hooks/usePlayToggle.ts)): a bar counted in before the transport starts,
+"4, 3, 2, Start" in 4/4, a beat apart (the meter's beat at the tempo, `pulseTicksOf` in
+[metronomeBeat.ts](../src/utils/metronomeBeat.ts): a slow 6/8 in eighths), shown by
+[CountdownOverlay](../src/components/CountdownOverlay.tsx) from `countdown` in the game context and
+clicked unless the sound is muted. The music comes in one beat after "Start": from the beginning,
+the transport starts in time to play the score's count-in rest as the "1"; from anywhere else, that
+beat is silent. The transport is started on the audio clock (`transport.start(time)`), so the
+count and the music are one pulse. Pressed again while it counts, it stops. By ear has no count.
+[MidiStartHint](../src/components/MidiStartHint.tsx) starts it from the instrument: while the song
+waits at its start (the count-in, or a loop's first bar) and no `[role="dialog"]` is open, the first
+note-on calls the same toggle, once per arming.
+`npm run check:countdown`.
+
 ### The visual metronome — [visualMetronome.ts](../src/utils/visualMetronome.ts)
 
 A layer on each score view's PIXI stage, under the cursor: a small arrow on the cursor at the

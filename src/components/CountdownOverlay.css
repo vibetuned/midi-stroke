@@ -1,0 +1,46 @@
+/* The count-in before play (CountdownOverlay.tsx). */
+.countdown-overlay {
+    position: fixed;
+    inset: 0;
+    /* Over the score and the controls, under any panel (those are 200 and up). */
+    z-index: 180;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+.countdown-label {
+    font-size: clamp(5rem, 22vh, 12rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--color-accent, #646cff);
+    text-shadow: 0 0 40px rgba(0, 0, 0, 0.55), 0 4px 18px rgba(0, 0, 0, 0.45);
+    font-variant-numeric: tabular-nums;
+    animation: countdown-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.countdown-start {
+    font-size: clamp(3rem, 13vh, 7rem);
+    letter-spacing: 0.04em;
+}
+@keyframes countdown-pop {
+    0% { transform: scale(1.5); opacity: 0; }
+    35% { opacity: 1; }
+    100% { transform: scale(1); opacity: 0.92; }
+}
+
+/* Before the count: what a key does (MidiStartHint.tsx). */
+.midi-start-hint {
+    padding: 0.45rem 1.1rem;
+    border-radius: 999px;
+    background: rgba(20, 20, 26, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: var(--color-text-primary, #f0f0f5);
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    animation: midi-start-breathe 2.4s ease-in-out infinite;
+}
+@keyframes midi-start-breathe {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+}
