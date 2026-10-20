@@ -58,6 +58,7 @@ export default defineConfig({
           items: [
             { slug: "development" },
             { slug: "contact" },
+            { slug: "privacy" },
           ],
         },
       ],

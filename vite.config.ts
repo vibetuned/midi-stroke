@@ -7,7 +7,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 // `mode` is 'tauri' when started by the Tauri shell (`npm run dev:tauri`).
 // A mode flag rather than an env var: `FOO=1 vite` is POSIX-only and breaks
 // on Windows, where npm runs scripts through cmd.exe.
+// The version the About screen shows (and links the source of).
+const { version } = JSON.parse(fs.readFileSync('./package.json', 'utf8')) as { version: string }
+
 export default defineConfig(({ mode }) => ({
+  define: { __APP_VERSION__: JSON.stringify(version) },
   // Pages deploy serves the app under https://ms.vibetuned.com/app/ (the root
   // is the Starlight docs site) — deploy.yml builds with DEPLOY_BASE=/app/.
   // Local dev and the Tauri shell keep the default root base.
@@ -16,7 +20,10 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      // Registered by the app itself (src/main.tsx), and only on the web: the
+      // desktop and mobile apps carry their files, and a webview's custom
+      // scheme (tauri://, http://tauri.localhost) cannot serve a worker.
+      injectRegister: false,
       manifest: {
         name: 'Midi Stroke',
         short_name: 'MidiStroke',

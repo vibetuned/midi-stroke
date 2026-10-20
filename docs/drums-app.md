@@ -94,7 +94,7 @@ controller; its logic is [drumGrid.ts](../src/utils/drumGrid.ts), pure and check
 1. **Reads the timemap** — the same one the score view loaded — for each onset's notes (pitch,
    notehead, fill) and the bars' ticks. (It used to re-parse the MEI itself; the timemap follows
    whatever is played — repeats written out, generated, uploaded and groove scores — and on all
-   518 library charts puts every hit in the same cell as before.)
+   150 library charts puts every hit in the same cell as before.)
 2. Derives the columns from the meter, and keeps them: 16 sixteenths in 4/4, **12 triplet eighths
    when a 4/4 is played more in triplets than in sixteenths**, 12 eighths in 12/8, 8 in 2/4.
 3. Identifies each note's row by written pitch + notehead (+ fill for the f5 diamonds) — the drums
@@ -114,6 +114,18 @@ controller; its logic is [drumGrid.ts](../src/utils/drumGrid.ts), pure and check
 
 
 ---
+
+## The pattern library
+
+`public/drums/` holds three collections of machine drum patterns, transcribed by hand into MEI
+from patterns printed in old magazines. Each keeps **50**: the most common styles and their basic
+patterns, ahead of the variations, with a fill for the most common —
+`classic_machine_drum_patterns` (the 24 one-bar grooves the Groove Builder game teaches,
+`src/games/groove.ts`, among them), `common_machine_drum_patterns` and `50_midi_drum_patterns`.
+The first two were `200_` and `260_machine_drum_patterns` until October 2026: the statistics and
+the games' best results kept under the old paths follow them
+([renamedCollections.ts](../src/utils/renamedCollections.ts)). `npm run build:drum-manifest`
+(`scripts/build-manifest.mjs drums`) brings `public/drums_files.json` up to date after a change.
 
 ## The drum kit (what a pad sounds like)
 

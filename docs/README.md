@@ -13,5 +13,9 @@ Release history lives in [../CHANGELOG.md](../CHANGELOG.md).
 - **[saxo-app.md](saxo-app.md)** — the Saxo app: single-voice wind-controller trainer (TravelSax),
   left/right split layout, offline MEI adaptation pipeline (drop bass clef, flatten chords,
   transpose for E♭ alto), full-key saxophone fingering display, breath meter, and input calibration.
+- **[mobile.md](mobile.md)** — the Android and iOS apps: the Tauri mobile shell, the native MIDI
+  plugin (USB and Bluetooth), building, signing, and what a store release needs.
+- **[store-listing.md](store-listing.md)** — the App Store and Google Play listings, with the
+  Verovio credit, the privacy answers and a draft privacy policy.
 - **[screenshots/](screenshots/)** — app screenshots used by the main README and the site (`npm run build` in `site/` copies them to `site/public/screenshots/`).
 </content>

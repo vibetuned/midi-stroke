@@ -105,6 +105,9 @@ interface TauriEventApi {
     event: {
         listen<T>(name: string, cb: (e: { payload: T }) => void): Promise<() => void>;
     };
+    core: {
+        invoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T>;
+    };
 }
 
 function tauriApi(): TauriEventApi | null {
@@ -122,16 +125,21 @@ function start(): void {
 
     const tauri = tauriApi();
     if (tauri) {
-        tauri.event.listen<[number, number, number]>('midi-message', e => {
+        const messages = tauri.event.listen<[number, number, number]>('midi-message', e => {
             const [status, d1, d2] = e.payload;
             handleMidiBytes(status, d1, d2);
-        }).catch(err => console.error('Tauri MIDI listen failed:', err));
-        tauri.event.listen<string[]>('midi-devices', e => {
+        });
+        const devices = tauri.event.listen<string[]>('midi-devices', e => {
             // The first device list says the native bridge is alive.
             const same = state.deviceNames.length === e.payload.length
                 && state.deviceNames.every((n, i) => n === e.payload[i]);
             if (!state.isMidiActive || !same) update({ isMidiActive: true, deviceNames: same ? state.deviceNames : e.payload });
-        }).catch(err => console.error('Tauri MIDI listen failed:', err));
+        });
+        // Listening: the shell may start its MIDI (a phone's starts now; a
+        // computer's has been running since launch). src-tauri/src/lib.rs.
+        Promise.all([messages, devices])
+            .then(() => tauri.core.invoke('midi_start'))
+            .catch(err => console.error('Tauri MIDI failed:', err));
         return;
     }
 

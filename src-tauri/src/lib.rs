@@ -1,0 +1,269 @@
+//! The Midi Stroke shell, shared by the desktop binary (main.rs) and the
+//! mobile apps (Android, iOS), which load it as a library.
+//!
+//! The webviews have no Web MIDI — WKWebView (macOS, iOS), WebKitGTK and
+//! Android's WebView alike — so the shell bridges it: MIDI in as Tauri events
+//! ("midi-message", "midi-devices"), MIDI out through commands. On desktop
+//! with midir; on a phone or tablet through the native-midi plugin
+//! (plugins/native-midi: CoreMIDI on iOS, android.media.midi on Android),
+//! which raises the same events — so the web app is the same everywhere.
+
+/// Forward webview console/errors to stderr (headless diagnostics).
+#[tauri::command]
+fn js_log(msg: String) {
+    eprintln!("[js] {msg}");
+}
+
+/// MIDI OUTPUT shim — the webview has no Web MIDI, so hardware key lights
+/// (ROLI LUMI SysEx, see src/utils/keyLights.ts) and score playback
+/// (src/utils/midiOut.ts) go through these commands.
+///
+/// One cached connection PER PORT, not one overall: the key-light guide and
+/// playback can be aimed at different devices, and a single slot would have
+/// torn down and rebuilt a connection on every note between them. A vanished
+/// device just errors its send and is dropped, reconnecting on the next call.
+#[cfg(desktop)]
+struct MidiOut(std::sync::Mutex<std::collections::HashMap<String, midir::MidiOutputConnection>>);
+
+/// True for MIDI ports created by this process itself. midir gives every
+/// connection a client-visible app port (ALSA: an output connection port is
+/// READable, an input one WRITEable — names look like
+/// "midi-stroke-out:midi-stroke-lights 128:0"), so the connect-everything
+/// input bridge would otherwise subscribe to our own key-light output and
+/// feed every guide note-on straight back to the trainer as a key press,
+/// self-advancing practice mode (verified: examples/loopback_probe.rs).
+#[cfg(desktop)]
+fn own_port(name: &str) -> bool {
+    name.contains("midi-stroke")
+}
+
+/// Names of every MIDI output port currently present.
+#[cfg(desktop)]
+#[tauri::command]
+fn midi_outputs() -> Vec<String> {
+    let Ok(probe) = midir::MidiOutput::new("midi-stroke-out-probe") else {
+        return Vec::new();
+    };
+    probe
+        .ports()
+        .iter()
+        .filter_map(|p| probe.port_name(p).ok())
+        .filter(|n| !own_port(n))
+        .collect()
+}
+
+/// Send raw MIDI bytes (e.g. a SysEx frame) to the first output port whose
+/// name matches `port_match` (a case-insensitive regex alternation like
+/// "lumi|roli").
+#[cfg(desktop)]
+#[tauri::command]
+fn midi_send(
+    port_match: String,
+    data: Vec<u8>,
+    state: tauri::State<'_, MidiOut>,
+) -> Result<(), String> {
+    let needles: Vec<String> = port_match.split('|').map(|s| s.trim().to_lowercase()).collect();
+    let matches = |name: &str| {
+        let lower = name.to_lowercase();
+        needles.iter().any(|n| !n.is_empty() && lower.contains(n))
+    };
+
+    let mut cached = state.0.lock().map_err(|e| e.to_string())?;
+
+    // Reuse this request's own connection when it is already open; otherwise
+    // connect and keep it beside the others.
+    if !cached.contains_key(&port_match) {
+        let out = midir::MidiOutput::new("midi-stroke-out").map_err(|e| e.to_string())?;
+        let port = out
+            .ports()
+            .into_iter()
+            .find(|p| out.port_name(p).map(|n| matches(&n) && !own_port(&n)).unwrap_or(false))
+            .ok_or_else(|| format!("no MIDI output matching '{port_match}'"))?;
+        let name = out.port_name(&port).unwrap_or_default();
+        let conn = out.connect(&port, "midi-stroke-out").map_err(|e| e.to_string())?;
+        eprintln!("[shell] midi out connected: {name}");
+        cached.insert(port_match.clone(), conn);
+    }
+
+    if let Some(conn) = cached.get_mut(&port_match) {
+        if let Err(e) = conn.send(&data) {
+            cached.remove(&port_match); // stale connection (device unplugged)
+            return Err(e.to_string());
+        }
+    }
+    Ok(())
+}
+
+/// Native MIDI: the Tauri webview (WKWebView / WebKitGTK) has no Web MIDI
+/// API, so the shell bridges it — every input port is connected and each
+/// channel-voice message streams to the webview as a Tauri event
+/// ("midi-message", payload [status, data1, data2]), with the device list on
+/// "midi-devices". A 2s poll handles hot-plug (midir has no callbacks).
+///
+/// Unlike a note-only bridge, the full 3-byte message is forwarded: the
+/// trainer needs velocity (piano/drums), and CC#2/7/11 + channel pressure
+/// (saxo breath). System real-time/common messages (status >= 0xF0 — clock,
+/// active sensing…) are dropped at the source to avoid event spam.
+#[cfg(desktop)]
+fn spawn_midi(app: tauri::AppHandle) {
+    use tauri::Emitter;
+    std::thread::spawn(move || {
+        // Smoke-test path: fake a device and a short note without hardware.
+        if std::env::var("MIDISTROKE_MIDI_TEST").as_deref() == Ok("1") {
+            std::thread::sleep(std::time::Duration::from_millis(4000));
+            let _ = app.emit("midi-devices", vec!["Test Piano (fake)".to_string()]);
+            std::thread::sleep(std::time::Duration::from_millis(1000));
+            let _ = app.emit("midi-message", (0x90u8, 60u8, 100u8));
+            std::thread::sleep(std::time::Duration::from_millis(200));
+            let _ = app.emit("midi-message", (0x80u8, 60u8, 0u8));
+            return;
+        }
+        let mut connections: Vec<midir::MidiInputConnection<()>> = Vec::new();
+        let mut last_names: Vec<String> = Vec::new();
+        loop {
+            let names = (|| -> Option<Vec<String>> {
+                let mut probe = midir::MidiInput::new("midi-stroke-probe").ok()?;
+                probe.ignore(midir::Ignore::None);
+                Some(
+                    probe
+                        .ports()
+                        .iter()
+                        .filter_map(|p| probe.port_name(p).ok())
+                        .filter(|n| !own_port(n))
+                        .collect(),
+                )
+            })()
+            .unwrap_or_default();
+            if names != last_names {
+                connections.clear(); // drop = disconnect
+                if let Ok(probe) = midir::MidiInput::new("midi-stroke-probe") {
+                    for port in probe.ports() {
+                        if probe.port_name(&port).map(|n| own_port(&n)).unwrap_or(true) {
+                            continue; // never subscribe to our own key-light stream
+                        }
+                        let Ok(mut input) = midir::MidiInput::new("midi-stroke") else { continue };
+                        input.ignore(midir::Ignore::None);
+                        let app2 = app.clone();
+                        if let Ok(conn) = input.connect(
+                            &port,
+                            "midi-stroke-in",
+                            move |_ts, msg, _| {
+                                let Some(&status) = msg.first() else { return };
+                                if status >= 0xF0 {
+                                    return; // system messages: clock, active sensing…
+                                }
+                                let d1 = msg.get(1).copied().unwrap_or(0);
+                                let d2 = msg.get(2).copied().unwrap_or(0);
+                                let _ = app2.emit("midi-message", (status, d1, d2));
+                            },
+                            (),
+                        ) {
+                            connections.push(conn);
+                        }
+                    }
+                }
+                eprintln!("[shell] midi devices: {names:?}");
+                last_names = names;
+            }
+            // Re-emit every tick: the first scan fires before the webview
+            // has subscribed, so a change-only emit is never seen (the
+            // frontend dedupes, so steady state is cheap).
+            let _ = app.emit("midi-devices", last_names.clone());
+            // The poll interval. On macOS a plain sleep would freeze the
+            // device list forever: CoreMIDI posts hot-plug notifications to
+            // THIS thread's run loop, and enumeration only updates after
+            // they are processed — so pump the run loop for the interval
+            // (falling back to sleep in the slices where it has no sources
+            // and returns immediately).
+            #[cfg(target_os = "macos")]
+            {
+                use core_foundation::runloop::{kCFRunLoopDefaultMode, CFRunLoop, CFRunLoopRunResult};
+                let deadline = std::time::Instant::now() + std::time::Duration::from_millis(2000);
+                while std::time::Instant::now() < deadline {
+                    let r = unsafe { CFRunLoop::run_in_mode(kCFRunLoopDefaultMode, std::time::Duration::from_millis(250), false) };
+                    if matches!(r, CFRunLoopRunResult::Finished) {
+                        std::thread::sleep(std::time::Duration::from_millis(250));
+                    }
+                }
+            }
+            #[cfg(not(target_os = "macos"))]
+            std::thread::sleep(std::time::Duration::from_millis(2000));
+        }
+    });
+}
+
+/// The web app asks for MIDI once it listens for it. On desktop the bridge is
+/// already running (spawned at setup); a phone starts its native one now.
+/// (Async, as the mobile commands are: the native side answers on the main
+/// thread, which a command run there would block.)
+#[tauri::command]
+async fn midi_start(app: tauri::AppHandle) -> Result<(), String> {
+    #[cfg(mobile)]
+    {
+        use tauri_plugin_native_midi::NativeMidiExt;
+        app.native_midi().start().map_err(|e| e.to_string())?;
+    }
+    #[cfg(desktop)]
+    let _ = app;
+    Ok(())
+}
+
+/// Names of every MIDI output there is.
+#[cfg(mobile)]
+#[tauri::command]
+async fn midi_outputs(app: tauri::AppHandle) -> Vec<String> {
+    use tauri_plugin_native_midi::NativeMidiExt;
+    app.native_midi().outputs().unwrap_or_default()
+}
+
+/// Raw MIDI bytes to the first output whose name matches `port_match`, as on desktop.
+#[cfg(mobile)]
+#[tauri::command]
+async fn midi_send(app: tauri::AppHandle, port_match: String, data: Vec<u8>) -> Result<(), String> {
+    use tauri_plugin_native_midi::NativeMidiExt;
+    app.native_midi().send(port_match, data).map_err(|e| e.to_string())
+}
+
+/// Pair a Bluetooth MIDI instrument: iOS's own Bluetooth MIDI view, Android's
+/// list of the instruments in range. A computer pairs in its settings.
+#[tauri::command]
+async fn midi_bluetooth(app: tauri::AppHandle) -> Result<(), String> {
+    #[cfg(mobile)]
+    {
+        use tauri_plugin_native_midi::NativeMidiExt;
+        app.native_midi().bluetooth().map_err(|e| e.to_string())
+    }
+    #[cfg(desktop)]
+    {
+        let _ = app;
+        Err("Bluetooth MIDI is paired in the system settings".into())
+    }
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    if tauri::is_dev() {
+        eprintln!(
+            "[shell] mode: DEV SERVER — this build loads http://localhost:5173.\n\
+             [shell] start it with `npm run dev:tauri`, or use `npm run tauri dev`\n\
+             [shell] which launches both."
+        );
+    } else {
+        eprintln!("[shell] mode: embedded assets (self-contained build) v{}", env!("CARGO_PKG_VERSION"));
+    }
+    let builder = tauri::Builder::default().plugin(tauri_plugin_opener::init());
+    #[cfg(mobile)]
+    let builder = builder.plugin(tauri_plugin_native_midi::init());
+    #[cfg(desktop)]
+    let builder = builder
+        .manage(MidiOut(std::sync::Mutex::new(std::collections::HashMap::new())))
+        .setup(|app| {
+            use tauri::Manager;
+            spawn_midi(app.app_handle().clone());
+            Ok(())
+        });
+    builder
+        .invoke_handler(tauri::generate_handler![js_log, midi_start, midi_outputs, midi_send, midi_bluetooth])
+        .run(tauri::generate_context!())
+        .expect("error while running midi-stroke");
+}

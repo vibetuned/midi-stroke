@@ -2,6 +2,7 @@ import React, { useState, useCallback, type ReactNode } from 'react';
 import { StatsContext, type ModeStats, type SessionStats, type SongRecord } from './stats';
 import { clearSessionLog } from '../utils/sessionLog';
 import { appendHistory, type SessionRecord } from '../utils/sessionResults';
+import { renamePaths } from '../utils/renamedCollections';
 
 const emptyMode = (): ModeStats => ({ plays: 0, hits: 0, wrongs: 0, goods: 0, maxCombo: 0, scoreAccum: 0 });
 
@@ -14,7 +15,11 @@ const STORAGE_KEY = 'midi-stroke-stats';
 function loadStore(): StatsStore {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? (JSON.parse(raw) as StatsStore) : {};
+        const store = raw ? (JSON.parse(raw) as StatsStore) : {};
+        // Songs whose collection was renamed keep their statistics (utils/renamedCollections.ts).
+        const renamed = renamePaths(store);
+        if (renamed) saveStore(renamed);
+        return renamed ?? store;
     } catch {
         return {};
     }

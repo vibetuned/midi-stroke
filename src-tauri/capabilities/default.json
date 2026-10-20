@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "core APIs for the main window (event listeners for MIDI)",
+  "description": "core APIs for the main window (event listeners for MIDI); links opened in the system browser",
   "windows": ["*"],
-  "permissions": ["core:default"]
+  "permissions": ["core:default", "opener:default"]
 }

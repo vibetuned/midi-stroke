@@ -104,7 +104,9 @@ export const PlayControls: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'center',
             borderTop: '1px solid rgba(255,255,255,0.1)',
-            width: '100%',
+            // As wide as the screen by stretching, not width: 100% — that and the
+            // padding made it 4rem wider, and a phone's or tablet's webview zooms
+            // the whole page out to fit, leaving it room to scroll.
             height: '80px'
         }}>
             {/* Game Mode Toggle */}

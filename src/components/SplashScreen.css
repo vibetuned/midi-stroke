@@ -236,3 +236,27 @@
 .phone .app-name { font-size: 1.05rem; }
 .phone .app-badge { top: 0.5rem; right: 0.5rem; font-size: 0.5rem; padding: 0.1rem 0.45rem; letter-spacing: 0.5px; }
 
+
+/* A tablet, or a window too narrow for the five cards at full size: smaller
+   cards, still in one row while they fit, and a page that scrolls rather than
+   cutting the title off when they do not (an iPad held upright). */
+@media (max-width: 1320px) {
+    .splash-container { height: auto; min-height: 100dvh; overflow-y: auto; padding: 2rem 0; box-sizing: border-box; }
+    .splash-cards-container { gap: 1.2rem; }
+    .app-card { width: clamp(150px, 16vw, 220px); height: auto; aspect-ratio: 2 / 3; }
+}
+
+/* About & licences (components/AboutDialog.tsx): quiet, in the corner. */
+.splash-about {
+    position: fixed;
+    right: calc(1rem + env(safe-area-inset-right));
+    bottom: calc(0.8rem + env(safe-area-inset-bottom));
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    font: inherit;
+    font-size: 0.8rem;
+    opacity: 0.75;
+    cursor: pointer;
+}
+.splash-about:hover { opacity: 1; color: var(--color-text-primary); }

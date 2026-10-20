@@ -57,7 +57,15 @@
   box-shadow: 0 0 10px var(--color-accent), 0 0 20px var(--color-accent-glow);
 }
 
+/* An app, not a page: nothing scrolls or bounces past its edges (WKWebView on
+   an iPad rubber-bands the page otherwise); the views scroll inside themselves. */
+html {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
+  overscroll-behavior: none;
   margin: 0;
   padding: 0;
   background-color: var(--color-bg-primary);

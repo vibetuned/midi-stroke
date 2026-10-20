@@ -158,7 +158,7 @@ flam, forced feels), the notation's (a sextuplet, a triplet after a rest, a half
 a blank kick bar, the tempo, a part) and the URL. About two minutes; `--quick` takes
 one in ten.
 
-`npm run check:grid` — the step grid on all 518 library charts exactly as the old
+`npm run check:grid` — the step grid on all 150 library charts exactly as the old
 MEI-parsing grid had it (the old parser is kept in the check to compare); the rolling
 view through a looping pattern, a long score and a loop range; the grooves' 16 and 12
 columns and their RD and HF rows.

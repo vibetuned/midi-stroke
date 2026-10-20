@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { BluetoothMidiButton } from '../MidiStatus';
 import { useGame } from '../../context/game';
 import { useMidi } from '../../hooks/useMidi';
 import { usePlayToggle } from '../../hooks/usePlayToggle';
@@ -136,6 +137,8 @@ const MidiDot: React.FC = () => {
     return (
         <div className={`mobile-midi${isMidiActive && n ? ' on' : ''}`} title={isMidiActive ? `MIDI: ${n} device${n === 1 ? '' : 's'}` : 'MIDI unavailable'}>
             <span className="dot" /> {isMidiActive ? `MIDI ${n}` : 'no MIDI'}
+            {/* The apps: pair a Bluetooth instrument. */}
+            <BluetoothMidiButton size={22} />
         </div>
     );
 };

@@ -152,6 +152,10 @@ Loads the Verovio WASM module once and exposes `{ toolkit }`. The toolkit render
 
 ### MIDI input — [midiInput.ts](../src/utils/midiInput.ts), [useMidi.ts](../src/hooks/useMidi.ts)
 One connection for the whole app, from Web MIDI or the Tauri native bridge, opened on first use.
+The bridge is midir on desktop and the native-midi plugin on Android and iOS
+([src-tauri/plugins/native-midi](../src-tauri/plugins/native-midi), [mobile.md](mobile.md)); both
+raise the same `midi-message` and `midi-devices` events, and the web app calls `midi_start` once it
+listens (a phone's bridge starts then).
 Notes the app sends — score playback to an output ([midiOut.ts](../src/utils/midiOut.ts)),
 the ROLI guide lights ([keyLights.ts](../src/utils/keyLights.ts)) — are noted by
 [midiEcho.ts](../src/utils/midiEcho.ts), and a note-on that comes back as their echo (the same key

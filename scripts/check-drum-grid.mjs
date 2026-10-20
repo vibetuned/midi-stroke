@@ -18,7 +18,7 @@ import createVerovioModule from 'verovio/wasm';
 import { VerovioToolkit } from 'verovio/esm';
 import { DOMParser } from '@xmldom/xmldom';
 import { build } from 'esbuild';
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, writeFileSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -31,6 +31,7 @@ export { extractTimemap } from ${JSON.stringify(join(ROOT, 'src/utils/timemap.ts
 export { ensureCountInMeasure, ensureNoteIds } from ${JSON.stringify(join(ROOT, 'src/utils/mei.ts'))};
 export { expandRepeats } from ${JSON.stringify(join(ROOT, 'src/utils/expandRepeats.ts'))};
 export { readMidi, quantize, grooveMei } from ${JSON.stringify(join(ROOT, 'src/utils/grooveMidi.ts'))};
+export { currentPath, renamePaths } from ${JSON.stringify(join(ROOT, 'src/utils/renamedCollections.ts'))};
 `);
 await build({ entryPoints: [join(outDir, 'entry.ts')], bundle: true, format: 'esm', outfile: join(outDir, 'b.mjs'), logLevel: 'warning', define: { 'import.meta.env.BASE_URL': '"/"' } });
 const E = await import(pathToFileURL(join(outDir, 'b.mjs')).href);
@@ -139,7 +140,7 @@ function oldGrid(xmlText) {
         ok(`1. ${name} loops`, grid.loops && E.drumScoreLoops(timemapOf(mei)));
     }
     console.log(`   ${same} of ${charts.length} bundled charts on the grid exactly as before`);
-    eq('1. all 518 charts checked', charts.length, 518);
+    eq('1. all 150 charts checked', charts.length, 150);
 }
 
 // ------------------------------------------------------------ 2. the rolling grid
@@ -190,6 +191,32 @@ function oldGrid(xmlText) {
     ok('3. the ride has its row', ride.rows.some(r => r.label === 'RD'));
     const fill = E.buildDrumGrid(timemapOf(E.grooveMei(E.quantize(E.readMidi(new Uint8Array(readFileSync(join(ROOT, 'public/groove/midi/drummer1/session1/240_funk-purdieshuffle_130_fill_4-4.mid'))))))));
     eq('3. a two-bar fill loops', fill.loops, true);
+}
+
+// ------------------------------------------------------------ 4. the renamed collections
+{
+    // 200_ and 260_machine_drum_patterns became classic_ and common_: what the device remembers follows.
+    const stats = {
+        '/drums/200_machine_drum_patterns/Funk1MeasureA.mei': { plays: 3 },
+        '/app/drums/260_machine_drum_patterns/Rock1.mei': { plays: 2 },
+        '/drums/50_midi_drum_patterns/Pattern 1.mei': { plays: 1 },
+    };
+    eq('4. statistics: old paths follow their collection, the rest stay', E.renamePaths(stats), {
+        '/drums/50_midi_drum_patterns/Pattern 1.mei': { plays: 1 },
+        '/drums/classic_machine_drum_patterns/Funk1MeasureA.mei': { plays: 3 },
+        '/app/drums/common_machine_drum_patterns/Rock1.mei': { plays: 2 },
+    });
+    eq('4. nothing to rename: nothing done', E.renamePaths({ '/drums/classic_machine_drum_patterns/Ska.mei': 1 }), null);
+    eq('4. remembered under both names: the new one is kept', E.renamePaths({
+        'drums/200_machine_drum_patterns/SkaMeasureA.mei': { stars: 1 },
+        'drums/classic_machine_drum_patterns/SkaMeasureA.mei': { stars: 3 },
+    }), { 'drums/classic_machine_drum_patterns/SkaMeasureA.mei': { stars: 3 } });
+    // Every path the games and the library name is a current one, on disk.
+    const listed = JSON.parse(readFileSync(join(ROOT, 'public/drums_files.json'), 'utf8'));
+    eq('4. the drum list names no old folder', listed.filter(f => E.currentPath(`/${f.path}/`) !== `/${f.path}/`).length, 0);
+    const grooves = [...readFileSync(join(ROOT, 'src/games/groove.ts'), 'utf8').matchAll(/songKey: '([^']+)'/g)].map(m => m[1]);
+    eq('4. the Groove Builder\'s 24 patterns are all in the library', grooves.filter(k => !existsSync(join(ROOT, 'public', k))), []);
+    eq('4. …24 of them', grooves.length, 24);
 }
 
 if (fails.length) {

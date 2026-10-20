@@ -18,6 +18,10 @@ A few details make a bug much quicker to find:
 - your MIDI device, if it's involved;
 - what you did, what you expected, and what happened instead. A screenshot helps.
 
+## Privacy
+
+The app collects no personal data: see [Privacy](/privacy/).
+
 ## Credits and removals
 
 The app uses scores, samples and sounds made by others, credited with the files they came in.

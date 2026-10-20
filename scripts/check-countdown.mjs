@@ -102,7 +102,7 @@ const Q = E.TONE_PPQ;
     for (const [file, labels] of [
         ['public/piano/first_two_hand_exercises/001_Czerny_Carl_-_Op_824_-_Nr_1.mei', ['4', '3', '2', 'Start']],
         ['public/saxo/english_folk/1795_Ham Frolick. VWMLa.166.mei', null],
-        ['public/drums/200_machine_drum_patterns/Funk2MeasureA.mei', ['4', '3', '2', 'Start']],
+        ['public/drums/classic_machine_drum_patterns/Funk2MeasureA.mei', ['4', '3', '2', 'Start']],
     ]) {
         const tm = load(file);
         const start = E.musicStartOf(tm);

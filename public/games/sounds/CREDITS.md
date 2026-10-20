@@ -17,13 +17,13 @@ credit worded differently, please email [dev@vibetuned.com](mailto:dev@vibetuned
 issue at [github.com/vibetuned/midi-stroke](https://github.com/vibetuned/midi-stroke/issues),
 and they will be removed or changed straight away.
 
-## Before a public release
+## Clearance
 
 The NASA and JPL recordings are generally free to reuse with credit. The
 *Nasa Space Pad*, *Space Voices* and *The Spellsinger* samples belong to their
-makers. Free libraries of this kind usually allow using the sounds in music,
-but not handing the samples themselves on, which is what shipping them in an
-app does. Their makers were asked through Pianobook in September 2026; until
-they answer, treat these three sets as not yet cleared for a public release.
-For the Slingshot, the same two sounds could instead be cut from the NASA
-originals, which the *Nasa Space Pad* readme names.
+makers; free libraries of this kind usually allow using the sounds in music, not
+handing the samples themselves on, which shipping them in an app does. Their
+makers were asked through Pianobook in September 2026 and have not answered.
+The sounds stay, credited here and in the app, until a maker asks otherwise —
+then they are removed straight away (for the Slingshot, the same two sounds can
+be cut from the NASA originals, which the *Nasa Space Pad* readme names).

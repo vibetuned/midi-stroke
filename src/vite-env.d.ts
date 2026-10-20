@@ -1,3 +1,6 @@
+/** The app's version, from package.json (vite.config.ts). */
+declare const __APP_VERSION__: string;
+
 declare module 'verovio/wasm' {
     /** The compiled Verovio module, handed straight to the toolkit. */
     export type VerovioModule = object;

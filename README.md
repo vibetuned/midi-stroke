@@ -280,6 +280,22 @@ a **draft** release. Publishing that draft is what updates the Homebrew cask,
 the winget manifest and the apt repository — see the exact dependency list and
 the per-platform bundle flags in that workflow.
 
+### Phones and tablets (Android, iOS)
+
+The same app in Tauri's mobile shell, with the platform's own MIDI (USB and
+Bluetooth, through `src-tauri/plugins/native-midi`):
+
+```sh
+npx tauri android build --debug --apk --target aarch64            # a debug APK for a device
+npx tauri ios build --debug --target aarch64 --export-method debugging   # a debug build for an iPad or iPhone
+npx tauri android build --aab                                      # Google Play
+npx tauri ios build --export-method app-store-connect              # the App Store
+```
+
+The toolchain, what the native side does, signing, and the checklist before
+a store release: [docs/mobile.md](docs/mobile.md); the store listings:
+[docs/store-listing.md](docs/store-listing.md).
+
 ### Score asset scripts
 
 Saxophone scores live in `public/saxo/` as single-staff, alto-transposed MEI files:
@@ -290,6 +306,8 @@ npm run build:saxo-manifest      # bring public/saxo_files.json up to date with 
 npm run build:course-manifest    # regenerate the theory course manifest from public/courses/
 npm run build:piano-manifest     # bring public/piano_files.json up to date with public/piano/ (run after adding scores, e.g. Kunz canons)
 npm run expand-repeats           # write out the repeats of every score under public/ that still has them (run after adding scores)
+npm run build:licenses           # the open-source licences of every package the app is built from → public/licenses.json (part of npm run build)
+npm run store:screenshots        # the App Store and Google Play screenshots, every size, and Play's feature graphic → store/screenshots/
 npm run build:game-sounds        # cut the games' sounds (public/games/sounds/) from the sample libraries in ../sounds (needs uv and ffmpeg)
 npm run build:jazz-scores        # the Weimar Jazz Database's solos (jazztube/wjazzd.db) as saxophone and piano MEI, plus importable ZIPs, in jazztube/mei/ (needs uv)
 npm run build:jazz-licks         # the Jazzomat's 653 patterns with their usual rhythm and chords, from jazztube/wjazzd.db → public/jazz/jazzomat-licks.json (needs uv)

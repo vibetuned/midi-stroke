@@ -4,14 +4,31 @@ version = "1.0.1"
 description = "Midi Stroke — piano, drums & saxo MIDI trainer"
 edition = "2021"
 
+# The mobile apps load the shell as a library (Android: a .so; iOS: a static
+# library linked by Xcode); the desktop binary (main.rs) calls the same run().
+[lib]
+name = "midi_stroke_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = [] }
-midir = "0.10"
+# Links (the About screen's sources and licences) open in the system's browser.
+tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+# MIDI on desktop: midir (CoreMIDI, ALSA, WinMM). A phone's MIDI is the
+# native-midi plugin's.
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+midir = "0.10"
+
+# MIDI on a phone or tablet: CoreMIDI (iOS) and android.media.midi (Android),
+# through the shell's own plugin, which raises the same events as midir.
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+tauri-plugin-native-midi = { path = "plugins/native-midi" }
 
 # CoreMIDI delivers hot-plug notifications to the run loop of the thread
 # that created the MIDI client — the poll thread must PUMP one on macOS

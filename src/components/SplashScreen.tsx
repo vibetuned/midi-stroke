@@ -1,5 +1,6 @@
 import React from 'react';
 import './SplashScreen.css';
+import { AboutButton } from './AboutDialog';
 
 interface SplashScreenProps {
     onSelectApp: (app: 'piano' | 'drums' | 'saxo' | 'theory' | 'games') => void;
@@ -58,6 +59,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onSelectApp }) => {
                     <div className="app-name">Games</div>
                 </div>
             </div>
+
+            {/* What it is, its source, and the licences of what it is made with. */}
+            <AboutButton />
         </div>
     );
 };

@@ -324,7 +324,7 @@ what you play is what the groove keeps.
   hits. The tip names the part that went most wrong: wrong steps first ("the kick landed on the
   wrong step once, and those hits stayed in the groove"), then missing hits, then a lean ahead of
   or behind the beat, taken from the median.
-- **Grooves** are 24 one-bar charts from `drums/200_machine_drum_patterns`, easiest first: ska,
+- **Grooves** are 24 one-bar charts from `drums/classic_machine_drum_patterns`, easiest first: ska,
   rock, disco, rock ballad, hard rock, twist, pop and a pushed pop, rhythm & blues, reggae (one
   drop, and a lilt with the hi-hat in triplets), funk, open-hat funk, kicks off the beat,
   syncopation, bossa nova, Afro-Cuban with and without toms, cha-cha, and in 12/8 a shuffle, a
