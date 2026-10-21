@@ -139,7 +139,8 @@ team's wildcard development profile):
 (Without the IDEs: `npx tauri android build --aab` signs with the key in `keystore.properties`;
 `npx tauri ios build --export-method app-store-connect` gives an `.ipa` for Transporter.)
 
-The listing texts, the Verovio credit the stores' metadata must carry, and the privacy answers:
+The stores' questionnaires, answered (age rating, privacy, data safety, content rating), and the
+keywords and tags: [store-questions.md](store-questions.md). The listing texts, the Verovio credit the stores' metadata must carry, and the privacy answers:
 [store-listing.md](store-listing.md).
 
 ### Before the first submission

@@ -36,8 +36,8 @@
 > from the Weimar Jazz Database (The Jazzomat Research Project; ODbL); piano samples from the
 > Salamander Grand Piano (Alexander Holm; CC BY 3.0).
 
-**App Store keywords** (100 characters, comma-separated):
-`piano,drums,saxophone,midi,sheet music,score,practice,rhythm,metronome,sight reading,music lessons`
+**App Store keywords** and **Google Play tags**, with every question the two stores' forms ask:
+[store-questions.md](store-questions.md).
 
 **URLs**: support `https://ms.vibetuned.com/contact/` · marketing `https://ms.vibetuned.com/` ·
 privacy policy `https://ms.vibetuned.com/privacy/` (`site/src/content/docs/privacy.md`).

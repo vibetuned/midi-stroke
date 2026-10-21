@@ -16,6 +16,9 @@ Release history lives in [../CHANGELOG.md](../CHANGELOG.md).
 - **[mobile.md](mobile.md)** — the Android and iOS apps: the Tauri mobile shell, the native MIDI
   plugin (USB and Bluetooth), building, signing, and what a store release needs.
 - **[store-listing.md](store-listing.md)** — the App Store and Google Play listings, with the
-  Verovio credit, the privacy answers and a draft privacy policy.
+  Verovio credit, the privacy answers and the screenshots.
+- **[store-questions.md](store-questions.md)** — every question App Store Connect and the Play
+  Console ask (age rating, privacy, data safety, content rating, app access…), answered, and the
+  stores' keywords and tags.
 - **[screenshots/](screenshots/)** — app screenshots used by the main README and the site (`npm run build` in `site/` copies them to `site/public/screenshots/`).
 </content>

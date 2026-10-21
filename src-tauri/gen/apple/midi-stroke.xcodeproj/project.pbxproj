@@ -17,6 +17,7 @@
 		B5EAFDD25787B54E7B6DACC4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A5E053B35716FEB5F991DFAE /* Assets.xcassets */; };
 		BF9C103D5CA95DAB67A5B49C /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BEF6326248108113188C33EF /* WebKit.framework */; };
 		CE30FC5EFF434E6FF991D90F /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2AC912C9BA4B800E32C73680 /* libapp.a */; };
+		D84726DFC702A4A39DB2F216 /* libapp.a in Resources */ = {isa = PBXBuildFile; fileRef = 77538F97D104226EB78A89E4 /* libapp.a */; };
 		E39A044EA417FE553B2D4DC4 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EA7751F834DABD6015A6628B /* UIKit.framework */; };
 		F98CE51AA06F2EECBB8193E0 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11EB684423E0DFD9539A5A5F /* MetalKit.framework */; };
 /* End PBXBuildFile section */
@@ -27,6 +28,7 @@
 		2AC912C9BA4B800E32C73680 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
 		2ECA20A7FEC5979B18B8290C /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
 		70E9FDF88AD0E0D38AF202CF /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		77538F97D104226EB78A89E4 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
 		7A97F244506B00B173E6A0E4 /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
 		93DFDC49384D8DF25C56A29B /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9F79312222AB441BF2121CF1 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -67,6 +69,14 @@
 				B7CCEE38991F6268B2F67975 /* midi-stroke_iOS.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		164E77BACC2DE1D2743A11B4 /* arm64 */ = {
+			isa = PBXGroup;
+			children = (
+				BE16126C537712C363E31E51 /* debug */,
+			);
+			path = arm64;
 			sourceTree = "<group>";
 		};
 		2459F9F91C008BAD414A944B /* Sources */ = {
@@ -113,6 +123,7 @@
 		5ED0BAB2691B2BDCBF579C87 /* Externals */ = {
 			isa = PBXGroup;
 			children = (
+				164E77BACC2DE1D2743A11B4 /* arm64 */,
 			);
 			path = Externals;
 			sourceTree = "<group>";
@@ -135,6 +146,14 @@
 			path = "midi-stroke_iOS";
 			sourceTree = "<group>";
 		};
+		BE16126C537712C363E31E51 /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				77538F97D104226EB78A89E4 /* libapp.a */,
+			);
+			path = debug;
+			sourceTree = "<group>";
+		};
 		EEB9869551E1876D408C2619 = {
 			isa = PBXGroup;
 			children = (
@@ -148,6 +167,13 @@
 				54DB5C0B1B48E5F87A964B31 /* Frameworks */,
 				00F7FA40971489198156E98E /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		"TEMP_27751365-F55A-4FD0-BC4F-7BE27630FE44" /* x86_64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = x86_64;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -214,6 +240,7 @@
 				B5EAFDD25787B54E7B6DACC4 /* Assets.xcassets in Resources */,
 				9729205C59B9674D0E4947B3 /* LaunchScreen.storyboard in Resources */,
 				4805454D71ACCE625C5AA0AA /* assets in Resources */,
+				D84726DFC702A4A39DB2F216 /* libapp.a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,7 +355,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "midi-stroke_iOS/midi-stroke_iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = "47D2CT68R2";
+				DEVELOPMENT_TEAM = 47D2CT68R2;
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -342,7 +369,7 @@
 				);
 				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
 				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
-				PRODUCT_BUNDLE_IDENTIFIER = com.vibetuned.midi-stroke;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.vibetuned.midi-stroke";
 				PRODUCT_NAME = "Midi Stroke";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -416,7 +443,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "midi-stroke_iOS/midi-stroke_iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = "47D2CT68R2";
+				DEVELOPMENT_TEAM = 47D2CT68R2;
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -430,7 +457,7 @@
 				);
 				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
 				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
-				PRODUCT_BUNDLE_IDENTIFIER = com.vibetuned.midi-stroke;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.vibetuned.midi-stroke";
 				PRODUCT_NAME = "Midi Stroke";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";

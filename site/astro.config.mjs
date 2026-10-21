@@ -21,6 +21,9 @@ export default defineConfig({
       favicon: "/favicon.svg",
       head: [
         { tag: "meta", attrs: { name: "theme-color", content: "#121214" } },
+        // The logo for browsers without SVG favicons, and for a bookmark on an iPhone's or iPad's home screen.
+        { tag: "link", attrs: { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" } },
+        { tag: "link", attrs: { rel: "apple-touch-icon", href: "/apple-touch-icon.png" } },
       ],
       social: [
         { icon: "github", label: "GitHub", href: "https://github.com/vibetuned/midi-stroke" },

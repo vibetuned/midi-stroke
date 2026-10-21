@@ -34,7 +34,11 @@ the way. Install channels and downloads:
   (`src-tauri/icons/source/`).
 - **A privacy page**, <https://ms.vibetuned.com/privacy/>: the app collects no personal data; linked
   from the About screen and the contact page.
-- The **store listings** and **screenshots**: [docs/store-listing.md](docs/store-listing.md), and
+- The site and the web app show the **new logo** as their favicon — and the site in its header —
+  with a PNG for browsers without SVG favicons and an icon for a bookmark on a home screen.
+- The **store listings**, their **questionnaires answered** and their **keywords and tags**
+  ([docs/store-questions.md](docs/store-questions.md)), and the **screenshots**:
+  [docs/store-listing.md](docs/store-listing.md), and
   `npm run store:screenshots`, which makes every size the App Store and Google Play ask for, and
   Play's feature graphic, from the app itself.
 - **Fixed:** on a phone or tablet, the page could be scrolled a little past the app — the controls
