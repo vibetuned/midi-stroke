@@ -69,6 +69,9 @@ jobs:
             rm -rf out/apt
             exit 0
           fi
+          # apt-ftparchive is apt-utils', no longer on the runner image.
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends apt-utils
           gpg --batch --import <<< "$APT_GPG_PRIVATE_KEY"
           cd out/apt
           mkdir -p dists/stable/main/binary-amd64

@@ -6,9 +6,18 @@ the way. Install channels and downloads:
 [ms.vibetuned.com/desktop](https://ms.vibetuned.com/desktop/) ·
 [GitHub releases](https://github.com/vibetuned/midi-stroke/releases).
 
-## Unreleased
+## 1.1.0 — 2026-10-21
 
-### Phones and tablets
+Midi Stroke comes to Android and iOS — phones held sideways, and tablets — with the platform's own
+MIDI: USB instruments as they are plugged in, Bluetooth instruments paired from the app, the score
+played out to a synth or the key lights. The apps keep the screen on while you practise, and on
+iOS they sound with the silent switch on. An About screen gives the app's licence and its source,
+Verovio's credit, and every open-source package it is made with; a privacy page says what the app
+collects: nothing. The drum pattern collections keep their fifty most common patterns each, as the
+classic and the common machine drum patterns, your statistics following them. And on a phone or a
+tablet the page no longer scrolls past the app.
+
+### Android and iOS
 
 - **Midi Stroke for Android and iOS**, in Tauri's mobile shell: the same app, with the phone
   layout on a phone held sideways and the desktop layout on a tablet; full screen, the screen
@@ -20,35 +29,51 @@ the way. Install channels and downloads:
   **Bluetooth MIDI** paired from the ᛒ button beside the MIDI status (Apple's own Bluetooth MIDI
   view on iOS; on Android, the instruments in range). MIDI out too: score playback and the ROLI
   key lights. The web app reads it through the same events as on desktop.
+- **The app icons**, from the new logo: full bleed on iOS, an adaptive icon on Android
+  (`src-tauri/icons/source/`).
+- Android: native libraries aligned for 16 KB pages, as Google Play requires.
+
+### About, licences and privacy
+
 - **About & licences**, from the instrument picker
   ([src/components/AboutDialog.tsx](src/components/AboutDialog.tsx)): the app's licence (AGPL v3)
   and its source, Verovio's credit and licence (LGPL v3, with the GPL v3), the sounds' and data's
   credits, and every open-source package the app is built from with its licence text
   (`npm run build:licenses`, part of `npm run build`). Links open in the system's browser.
-- The instrument picker keeps its five cards on one row on a tablet, and scrolls rather than
-  cutting off its title when they do not fit.
-- The offline cache (the service worker) is registered on the web only: the apps carry their
-  files.
-- Android: native libraries aligned for 16 KB pages, as Google Play requires.
-- **The app icons**, from the new logo: full bleed on iOS, an adaptive icon on Android
-  (`src-tauri/icons/source/`).
 - **A privacy page**, <https://ms.vibetuned.com/privacy/>: the app collects no personal data; linked
   from the About screen and the contact page.
 - The site and the web app show the **new logo** as their favicon — and the site in its header —
   with a PNG for browsers without SVG favicons and an icon for a bookmark on a home screen.
-- The **store listings**, their **questionnaires answered** and their **keywords and tags**
-  ([docs/store-questions.md](docs/store-questions.md)), and the **screenshots**:
-  [docs/store-listing.md](docs/store-listing.md), and
-  `npm run store:screenshots`, which makes every size the App Store and Google Play ask for, and
-  Play's feature graphic, from the app itself.
-- **Fixed:** on a phone or tablet, the page could be scrolled a little past the app — the controls
-  bar was 4rem wider than the screen, and the webview zoomed the page out to fit it. It fits now,
-  and the page never scrolls or bounces past its edges.
+
+### The drum library
+
 - The **drum pattern collections** keep 50 patterns each: the most common styles and their basic
   patterns, and a fill for the most common. `200_machine_drum_patterns` and
   `260_machine_drum_patterns` are now **classic** and **common** machine drum patterns; the
   statistics and the Groove Builder's best results kept under the old names follow them
   ([src/utils/renamedCollections.ts](src/utils/renamedCollections.ts)).
+
+### Fixes
+
+- **Fixed:** on an iPad, a quick double tap in a game selected the text under it and turned the
+  screen blue. iPadOS's WebKit — and the macOS app's — knows `user-select` only with its prefix;
+  nothing in the app is selected or called up by a tap, a double tap or a long press now, and
+  fields and the licence texts stay selectable.
+- **Fixed:** on a phone or tablet, the page could be scrolled a little past the app — the controls
+  bar was 4rem wider than the screen, and the webview zoomed the page out to fit it. It fits now,
+  and the page never scrolls or bounces past its edges.
+- The instrument picker keeps its five cards on one row on a tablet, and scrolls rather than
+  cutting off its title when they do not fit.
+- The offline cache (the service worker) is registered on the web only: the apps carry their
+  files.
+
+### Releasing
+
+- The **store listings**, their **questionnaires answered** and their **keywords and tags**
+  ([docs/store-questions.md](docs/store-questions.md)), and the **screenshots**:
+  [docs/store-listing.md](docs/store-listing.md), and
+  `npm run store:screenshots`, which makes every size the App Store and Google Play ask for, and
+  Play's feature graphic, from the app itself.
 
 ## 1.0.1 — 2026-10-16
 

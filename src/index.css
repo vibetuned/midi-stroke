@@ -64,6 +64,25 @@ html {
   overscroll-behavior: none;
 }
 
+/* A tap is a tap: a double tap or a long press selects nothing and calls up no
+   menu. iPadOS's WebKit (and the macOS app's) knows user-select only with its
+   prefix, so the inline userSelect: 'none' of the games' play surfaces was lost
+   on it and a quick double tap selected the text under it; Android's WebView
+   and Chrome kept it. Fields, and the texts there to read or copy, stay
+   selectable. */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input, textarea, select, [contenteditable="true"], pre {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 body {
   overscroll-behavior: none;
   margin: 0;
