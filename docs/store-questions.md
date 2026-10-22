@@ -95,7 +95,7 @@ Sign-in required: **No**. Contact: Vibetuned, dev@vibetuned.com. Notes:
 | Promotional text (170) | Practise piano, drums and saxophone on your own MIDI instrument: a score that scrolls, a count-in, a visual metronome, and results after every piece. |
 | Description | [store-listing.md](store-listing.md) — with the Verovio credit line |
 | Keywords (100) | see *Tags and keywords* below |
-| What's New | First release on iPhone and iPad: the piano, drums and saxophone trainers, USB and Bluetooth MIDI, results after every piece, and the games. |
+| What's New | Not asked for a first version; later ones: [store-listing.md](store-listing.md#release-notes) |
 | Screenshots | `store/screenshots/ios-iphone-6.9/`, `ios-ipad-13/` (`npm run store:screenshots`) |
 
 ## Google Play Console
@@ -159,8 +159,7 @@ instrument; nothing is sent anywhere, so neither counts as *collected*.
 
 ### Release notes
 
-> First release on Android phones and tablets: the piano, drums and saxophone trainers, USB and
-> Bluetooth MIDI, results after every piece, and the games.
+In [store-listing.md](store-listing.md#release-notes), ready to paste in Play's format.
 
 ## Tags and keywords
 

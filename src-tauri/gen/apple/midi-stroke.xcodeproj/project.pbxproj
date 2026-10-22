@@ -17,7 +17,6 @@
 		B5EAFDD25787B54E7B6DACC4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A5E053B35716FEB5F991DFAE /* Assets.xcassets */; };
 		BF9C103D5CA95DAB67A5B49C /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BEF6326248108113188C33EF /* WebKit.framework */; };
 		CE30FC5EFF434E6FF991D90F /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2AC912C9BA4B800E32C73680 /* libapp.a */; };
-		D84726DFC702A4A39DB2F216 /* libapp.a in Resources */ = {isa = PBXBuildFile; fileRef = 77538F97D104226EB78A89E4 /* libapp.a */; };
 		E39A044EA417FE553B2D4DC4 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EA7751F834DABD6015A6628B /* UIKit.framework */; };
 		F98CE51AA06F2EECBB8193E0 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11EB684423E0DFD9539A5A5F /* MetalKit.framework */; };
 /* End PBXBuildFile section */
@@ -30,6 +29,7 @@
 		70E9FDF88AD0E0D38AF202CF /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		77538F97D104226EB78A89E4 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
 		7A97F244506B00B173E6A0E4 /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
+		82FAD1F8B452E8793C882A66 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
 		93DFDC49384D8DF25C56A29B /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9F79312222AB441BF2121CF1 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		A5E053B35716FEB5F991DFAE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -75,6 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				BE16126C537712C363E31E51 /* debug */,
+				45B20FDB727A1F43376E4DFA /* release */,
 			);
 			path = arm64;
 			sourceTree = "<group>";
@@ -95,6 +96,14 @@
 			);
 			name = src;
 			path = ../../src;
+			sourceTree = "<group>";
+		};
+		45B20FDB727A1F43376E4DFA /* release */ = {
+			isa = PBXGroup;
+			children = (
+				82FAD1F8B452E8793C882A66 /* libapp.a */,
+			);
+			path = release;
 			sourceTree = "<group>";
 		};
 		54DB5C0B1B48E5F87A964B31 /* Frameworks */ = {
@@ -169,7 +178,7 @@
 			);
 			sourceTree = "<group>";
 		};
-		"TEMP_27751365-F55A-4FD0-BC4F-7BE27630FE44" /* x86_64 */ = {
+		"TEMP_6D2C4298-8E0F-410A-B27A-EE7661641EBE" /* x86_64 */ = {
 			isa = PBXGroup;
 			children = (
 			);
@@ -240,7 +249,6 @@
 				B5EAFDD25787B54E7B6DACC4 /* Assets.xcassets in Resources */,
 				9729205C59B9674D0E4947B3 /* LaunchScreen.storyboard in Resources */,
 				4805454D71ACCE625C5AA0AA /* assets in Resources */,
-				D84726DFC702A4A39DB2F216 /* libapp.a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -266,7 +274,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "npm run -- tauri ios xcode-script -v --platform ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?} --framework-search-paths \"${FRAMEWORK_SEARCH_PATHS:?}\" --header-search-paths \"${HEADER_SEARCH_PATHS:?}\" --gcc-preprocessor-definitions \"${GCC_PREPROCESSOR_DEFINITIONS:-}\" --configuration ${CONFIGURATION:?} ${FORCE_COLOR} ${ARCHS:?}";
+			shellScript = "# Xcode started from the Dock or Finder gets macOS's default PATH, without Homebrew's npm and node.\nexport PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\"\nnpm run -- tauri ios xcode-script -v --platform ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?} --framework-search-paths \"${FRAMEWORK_SEARCH_PATHS:?}\" --header-search-paths \"${HEADER_SEARCH_PATHS:?}\" --gcc-preprocessor-definitions \"${GCC_PREPROCESSOR_DEFINITIONS:-}\" --configuration ${CONFIGURATION:?} ${FORCE_COLOR} ${ARCHS:?}\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -355,7 +363,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "midi-stroke_iOS/midi-stroke_iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = "47D2CT68R2";
+				DEVELOPMENT_TEAM = 47D2CT68R2;
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -369,7 +377,7 @@
 				);
 				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
 				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
-				PRODUCT_BUNDLE_IDENTIFIER = com.vibetuned.midi-stroke;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.vibetuned.midi-stroke";
 				PRODUCT_NAME = "Midi Stroke";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -443,7 +451,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "midi-stroke_iOS/midi-stroke_iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = "47D2CT68R2";
+				DEVELOPMENT_TEAM = 47D2CT68R2;
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -457,7 +465,7 @@
 				);
 				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
 				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
-				PRODUCT_BUNDLE_IDENTIFIER = com.vibetuned.midi-stroke;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.vibetuned.midi-stroke";
 				PRODUCT_NAME = "Midi Stroke";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";

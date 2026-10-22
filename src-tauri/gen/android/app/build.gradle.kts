@@ -67,6 +67,10 @@ android {
             )
         }
     }
+    // The rust plugin adds one flavour per ABI. Android Studio otherwise opens on
+    // the first alphabetically, "arm" (32-bit only); "universal" carries all four,
+    // as the Tauri CLI builds it.
+    productFlavors.getByName("universal").isDefault = true
     kotlinOptions {
         jvmTarget = "1.8"
     }

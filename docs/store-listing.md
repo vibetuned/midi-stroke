@@ -42,6 +42,23 @@
 **URLs**: support `https://ms.vibetuned.com/contact/` · marketing `https://ms.vibetuned.com/` ·
 privacy policy `https://ms.vibetuned.com/privacy/` (`site/src/content/docs/privacy.md`).
 
+## Release notes
+
+**Google Play** — the release's *Release notes* box (Play Console → the release → *Release
+notes*), 500 characters per language, between language tags, pasted as is:
+
+```
+<en-US>
+Midi Stroke on Android: train piano, drums and saxophone on your own MIDI instrument, by USB or Bluetooth. The score scrolls under a cursor, with a count-in and a visual metronome, and the results after every piece show your precision, your timing and your progress. Rhythm games that need no instrument, theory lessons, jazz licks and 1,150 real drummers' grooves. Free and open source.
+</en-US>
+```
+
+**App Store** — *What's New in This Version* is not asked for an app's first version; from the
+next one on:
+
+> Midi Stroke on iPhone and iPad: the piano, drums and saxophone trainers, USB and Bluetooth MIDI,
+> results after every piece, and the games.
+
 ## Privacy answers
 
 What the app does: everything stays on the device — statistics, settings, imported scores

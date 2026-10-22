@@ -69,6 +69,14 @@ iOS (`gen/apple/project.yml` and `Info.plist` — both, as XcodeGen regenerates 
   question at each upload.
 - The plugin sets the **audio session to playback** — the app sounds with the silent switch on —
   and keeps the screen awake.
+- The *Build Rust Code* phase runs `npm`, and puts Homebrew's `/opt/homebrew/bin` on its PATH
+  first: Xcode started from the Dock or Finder has only macOS's default PATH ("npm: command not
+  found", *PhaseScriptExecution failed*).
+- `Externals/` (where each build leaves the Rust library, `libapp.a`) is linked, never copied:
+  Tauri's template lists it as a source, which put the whole library — 300 MB in debug — into
+  the app as a resource whenever XcodeGen ran after a build (`buildPhase: none`).
+- The scheme keeps the target's name (`midi-stroke_iOS`), which the Tauri CLI builds by; its
+  archives are named *Midi Stroke* in the Organizer (`customArchiveName`).
 
 **Icons** — from the logo (`public/vite.svg`), in the variants each platform needs
 (`src-tauri/icons/source/`): full bleed for iOS (it rounds the corners itself, and the App Store
@@ -81,7 +89,10 @@ regenerate them: `src-tauri/icons/source/README.md`.
 You need: Xcode with the **simulator runtime matching its SDK** (Xcode → Settings → Components;
 the Tauri CLI refuses an older runtime), the Android SDK with NDK 27, a JDK (21), the Rust
 targets (`rustup target add aarch64-apple-ios aarch64-apple-ios-sim aarch64-linux-android
-armv7-linux-androideabi i686-linux-android x86_64-linux-android`), and for Android:
+armv7-linux-androideabi i686-linux-android x86_64-linux-android`), rustup's `llvm-tools`
+(`rustup component add llvm-tools`: Xcode 27 hides the plugin's Swift entry points in release
+builds, and swift-rs makes them visible again with its `llvm-objcopy` — without it, an Archive
+fails on *Undefined symbols: _init_plugin_native_midi* while debug builds work), and for Android:
 
 ```bash
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
